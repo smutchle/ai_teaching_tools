@@ -300,7 +300,7 @@ def create_new_visualization(prompt):
     generate_prompt = f"""
     Create a Streamlit visualization based on this description: "{prompt}"
 
-    IMPORTANT: The code MUST include ALL imports it needs to run. DO NOT rely on any pre-existing imports. Do not write any functions. All codes must be inline.
+    IMPORTANT: The code MUST include ALL imports it needs to run. DO NOT rely on any pre-existing imports.
     
     The code should:
     1. Begin with ALL required imports at the top (mandatory)
@@ -310,7 +310,6 @@ def create_new_visualization(prompt):
     5. Use clear variable names
     6. Include UI elements for student interaction
     7. Use streamlit's rerun() instead of experimental_rerun()
-    8. Don't write any functions, all code must be in-line (it will be run in an eval() call)
 
    These imports are the only allowed imports.  You must work within these import libraries.
     ```
@@ -341,7 +340,7 @@ def create_new_visualization(prompt):
         import statsmodels.api as sm
         import altair as alt
     ```
-    Do not write any functions. All codes must be inline.
+
     Return only the complete Python code with no explanations.
     """
 
@@ -513,7 +512,6 @@ def main():
 
                 Return the complete updated code with all changes implemented and all required imports.
                 Return only Python code, no explanations or comments about the changes.
-                Do not write any functions. All codes must be inline.
                 """
 
                 with st.spinner("Refining visualization..."):  # ⏳
