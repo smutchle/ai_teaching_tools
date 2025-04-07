@@ -680,7 +680,7 @@ with tab_course:
 2.  **Background & Theory**:
     *   Cover historical context (if applicable) and theoretical foundations.
     *   Include mathematical derivations using LaTeX (e.g., `$E=mc^2$`). Define all terms clearly. Explain reasoning behind steps.
-    *   Use Mermaid diagrams (in appropriate ```mermaid ... ``` blocks) or other visualizations if they aid understanding.
+    *   Use Mermaid diagrams (in appropriate ```{{mermaid}} ... ``` blocks) or other visualizations if they aid understanding.
     *   Link to 1-3 high-quality external resources (papers, articles, tutorials) for further reading.
 3.  **Practical Example / Code Implementation**:
     *   Provide a working code example in {examples_programming_language}.
