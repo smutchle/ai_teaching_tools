@@ -52,5 +52,15 @@
     "title": "Neural Network Function Approximation Visualization",
     "description": "",
     "tags": []
+  },
+  "232d5513-d92f-42f1-a828-0a5f72a245b4": {
+    "id": "232d5513-d92f-42f1-a828-0a5f72a245b4",
+    "created_at": "2025-04-09T16:06:48.178903",
+    "updated_at": "2025-04-09T16:06:48.178903",
+    "code": "import streamlit as st\nimport numpy as np\nimport pandas as pd\nimport matplotlib as mpl\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport plotly\nimport plotly.express as px\nimport plotly.graph_objects as go\nimport plotly.figure_factory as ff\nimport scipy\nimport math\nimport random\nimport datetime\nimport time\nimport json\nimport re\nimport os\nimport sys\nimport io\nimport collections\nimport itertools\nimport sklearn\nimport statsmodels\nimport statsmodels.api as sm\nimport altair as alt\nimport pygame\n\nst.title(\"Iris Dataset PCA Visualization\")\n\n# Load the Iris dataset\ntry:\n    iris_data = pd.read_csv('./upload/iris.csv')\nexcept FileNotFoundError:\n    st.error(\"The file 'iris.csv' was not found in the './upload/' directory.  Please upload the file or check the path.\")\n    st.stop()  # Stop execution if file is not found\n\nst.write(\"First 5 rows of the dataset:\")\nst.dataframe(iris_data.head())\n\n# Data Preprocessing\nfeatures = ['Sepal.Length', 'Sepal.Width', 'Petal.Length', 'Petal.Width']\nX = iris_data[features]\ny = iris_data['Species']\n\n# Standardize the features\nfrom sklearn.preprocessing import StandardScaler\nX = StandardScaler().fit_transform(X)\n\n# PCA implementation\nfrom sklearn.decomposition import PCA\npca = PCA(n_components=2)\nprincipalComponents = pca.fit_transform(X)\nprincipalDf = pd.DataFrame(data = principalComponents, columns = ['PCA1', 'PCA2'])\n\n# Concatenate with species information\nfinalDf = pd.concat([principalDf, iris_data[['Species']]], axis = 1)\n\nst.subheader(\"Explained Variance Ratio\")\nst.write(pca.explained_variance_ratio_)\n\n# Scatter Plot using Plotly Express\nfig = px.scatter(finalDf, x='PCA1', y='PCA2', color='Species',\n                 title='PCA of Iris Dataset',\n                 labels={'PCA1': 'Principal Component 1', 'PCA2': 'Principal Component 2'})\n\nst.plotly_chart(fig, use_container_width=True)",
+    "title": "Iris Dataset: PCA Scatter Plot",
+    "description": "",
+    "tags": [],
+    "used_csv": "iris.csv"
   }
 }

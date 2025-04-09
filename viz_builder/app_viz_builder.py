@@ -43,6 +43,7 @@ import statsmodels
 import statsmodels.api as sm
 import altair as alt
 import pygame
+import shutil
 
 # Add any other common visualization libraries you might need
 # import altair as alt
@@ -67,6 +68,12 @@ def initialize_state():
 
     if "edit_history" not in st.session_state:
         st.session_state.edit_history = {}
+        
+    if "uploaded_csv" not in st.session_state:
+        st.session_state.uploaded_csv = None
+
+    # Create upload directory if it doesn't exist
+    os.makedirs("./upload", exist_ok=True)
 
 def safe_exec_visualization(code):
     stdout_buffer = io.StringIO()
@@ -225,12 +232,14 @@ def save_visualization(viz_id=None, auto_save=False, title=None):
             "code": st.session_state.current_code,
             "title": title,
             "description": "",
-            "tags": []
+            "tags": [],
+            "used_csv": st.session_state.uploaded_csv
         }
     else:
         st.session_state.visualizations[viz_id]["updated_at"] = timestamp
         st.session_state.visualizations[viz_id]["code"] = st.session_state.current_code
         st.session_state.visualizations[viz_id]["title"] = title
+        st.session_state.visualizations[viz_id]["used_csv"] = st.session_state.uploaded_csv
 
     if viz_id not in st.session_state.edit_history:
         st.session_state.edit_history[viz_id] = []
@@ -297,25 +306,49 @@ format: html
 """
     return qmd_content, title
 
-def create_new_visualization(prompt):
+def create_new_visualization(prompt, csv_filename=None):
     chatbot = get_chatbot()
-
+    
+    # Include CSV data information in the prompt if a file was uploaded
+    csv_data_section = ""
+    if csv_filename:
+        try:
+            # Read the CSV file to include sample data in the prompt
+            csv_path = os.path.join("./upload", csv_filename)
+            df = pd.read_csv(csv_path)
+            sample_data = df.head(50).to_csv(index=False)
+            
+            csv_data_section = f"""
+            A CSV file has been uploaded and saved at './upload/{csv_filename}'.
+            
+            Here's a sample of the first 50 rows:
+            ```
+            {sample_data}
+            ```
+            
+            Please incorporate this data in your visualization. Your code should load the data from the file path './upload/{csv_filename}'.
+            """
+        except Exception as e:
+            csv_data_section = f"Note: There was an error reading the CSV file: {str(e)}"
+    
     generate_prompt = f"""
     Create a Streamlit visualization based on this description: "{prompt}"
+    
+    {csv_data_section}
 
     IMPORTANT: The code MUST include ALL imports it needs to run. DO NOT rely on any pre-existing imports. Do not write any functions. All codes must be inline.
     
     The code should:
     1. Begin with ALL required imports at the top (mandatory)
     2. Be complete and self-contained - do not rely on any external variables or imports
-    3. Include sample data if needed (generated or loaded within the code)
+    3. {"Load data from './upload/" + csv_filename + "'" if csv_filename else "Include sample data if needed (generated or loaded within the code)"}
     4. Be educational and interactive
     5. Use clear variable names
     6. Include UI elements for student interaction
     7. Use streamlit's rerun() instead of experimental_rerun()
     8. Don't write any functions, all code must be in-line (it will be run in an eval() call)
 
-   These imports are the only allowed imports.  You must work within these import libraries.
+   These imports are the only allowed imports. You must work within these import libraries.
     ```
         import streamlit as st
         import numpy as np
@@ -368,6 +401,21 @@ def delete_visualization(viz_id):
         st.session_state.current_code = ""
         st.rerun()
 
+def handle_csv_upload(uploaded_file):
+    if uploaded_file is not None:
+        # Create upload directory if it doesn't exist
+        os.makedirs("./upload", exist_ok=True)
+        
+        # Save the file to the upload directory
+        file_path = os.path.join("./upload", uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+            
+        st.session_state.uploaded_csv = uploaded_file.name
+        return True, f"File '{uploaded_file.name}' uploaded successfully and saved to {file_path}"
+    
+    return False, "No file uploaded"
+
 def main():
     st.set_page_config(page_title="Educational Visualization Platform", layout="wide") # 🖥️
     initialize_state()
@@ -379,11 +427,23 @@ def main():
     with sidebar:
         st.subheader("Create Visualization")  # ✨
 
+        # File uploader for CSV
+        uploaded_file = st.file_uploader("Upload CSV Dataset (optional)", type=["csv"])
+        
+        # Handle file upload
+        if uploaded_file is not None:
+            success, message = handle_csv_upload(uploaded_file)
+            if success:
+                st.success(message)
+            else:
+                st.error(message)
+
         prompt = st.text_area("Describe the visualization you want:")  # 📝
 
         if st.button("Generate"):  # 💡
             with st.spinner("Generating visualization..."):  # ⏳
-                create_new_visualization(prompt)
+                # Pass the CSV filename to the create_new_visualization function if available
+                create_new_visualization(prompt, st.session_state.uploaded_csv)
 
         st.subheader("My Visualizations")  # 📚
 
@@ -407,6 +467,7 @@ def main():
                 if st.button("Load"):  # 📂
                     st.session_state.current_viz_id = selected_viz_id
                     st.session_state.current_code = st.session_state.visualizations[selected_viz_id]["code"]
+                    st.session_state.uploaded_csv = st.session_state.visualizations[selected_viz_id].get("used_csv")
                     st.rerun()
             with col2:
                 if st.button("Delete"):  # 🗑️
@@ -415,6 +476,10 @@ def main():
     with main_area:
         if st.session_state.current_viz_id:
             viz = st.session_state.visualizations[st.session_state.current_viz_id]
+
+            # Display CSV information if this visualization uses a CSV
+            if "used_csv" in viz and viz["used_csv"]:
+                st.info(f"This visualization uses the CSV file: {viz['used_csv']}")
 
             # Parameters Section (Collapsible)
             with st.expander(f"Parameters for: {viz['title']}", expanded=True):  # ⚙️
@@ -477,8 +542,15 @@ def main():
             refinement_prompt = st.text_area("Describe what to change:")  # ✍️
             if st.button("Refine with AI"):  # 🤖
                 chatbot = get_chatbot()
+                
+                # Include information about the CSV file if used
+                csv_info = ""
+                if "used_csv" in viz and viz["used_csv"]:
+                    csv_info = f"\nThis visualization uses CSV data from './upload/{viz['used_csv']}'. Make sure to maintain this data source in your refinements."
+                
                 refine_prompt = f"""
                 Refine this Streamlit visualization based on the following request: "{refinement_prompt}"
+                {csv_info}
 
                 Current Code:
                 ```python
