@@ -19,17 +19,26 @@ There are a couple of APIs that you can sign up for if you want commercial level
 
 ### Installation
 
-1. Download (or clone) the repository.
-2. Create your anaconda environment:
+0. [Install git version control software](https://git-scm.com/downloads)
+1. [Install anaconda for virtual python environments](https://www.anaconda.com/download)
+2. Download (or clone) the repository.
+
+```
+md ai_tools
+cd ai_tools
+git clone https://github.com/smutchle/ai_teaching_tools
+```
+
+3. Create your anaconda environment:
 
 ```
     conda create --name ai_teaching
     conda activate ai_teaching
 ```
 
-3. Install the required libraries:
+4. Install the required libraries:
 
-`ip install streamlit python-dotenv numpy pandas matplotlib seaborn plotly scipy scikit-learn statsmodels altair pygame`
+`pip install streamlit python-dotenv numpy pandas matplotlib seaborn plotly scipy scikit-learn statsmodels altair pygame`
 
-4. In each folder, rename .env_sample to .env. Edit each .env file and put in your API key values, etc.
-5. Run the appropriate .sh (Linux/Mac) or .bat (Windows) file. This will launch the respective web interface. If there is no .bat file, you can simply rename the .sh file to .bat.
+5. In each folder, rename .env_sample to .env. Edit each .env file and put in your API key values, etc.
+6. Run the appropriate .sh (Linux/Mac) or .bat (Windows) file. This will launch the respective web interface. If there is no .bat file, you can simply rename the .sh file to .bat.
