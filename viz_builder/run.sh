@@ -1,1 +1,1 @@
-streamlit run app_monitor.py --server.port 7123 
+streamlit run app_viz_builder.py --server.port 7123 

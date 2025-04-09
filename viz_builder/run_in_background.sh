@@ -1,1 +1,1 @@
-nohup streamlit run app_monitor.py --server.port 7123 2>&1 &
+nohup streamlit run app_viz_builder.py --server.port 7123 2>&1 &
