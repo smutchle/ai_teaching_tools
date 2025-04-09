@@ -1,8 +1,6 @@
-## AI Research Tools
+## AI Teaching Tools
 
 There are currently 3 tools in the AI Teaching tools platform.
-
-[YouTube Video](https://www.youtube.com/watch?v=p4ygW6npE3Y)
 
 1. Viz Builder - Allows you (or your students) to build live, interactive visualizations using LLM prompting.
 2. Course Creator - A robust tool for generating complete online curriculums using a LLM.
@@ -31,7 +29,7 @@ There are a couple of APIs that you can sign up for if you want commercial level
 
 3. Install the required libraries:
 
-`pip install streamlit requests python-dotenv pandas`
+`ip install streamlit python-dotenv numpy pandas matplotlib seaborn plotly scipy scikit-learn statsmodels altair pygame`
 
 4. In each folder, rename .env_sample to .env. Edit each .env file and put in your API key values, etc.
-5. Run the appropriate .sh (Linux/Mac) or .bat (Windows) file. This will launch the respective web interface.
+5. Run the appropriate .sh (Linux/Mac) or .bat (Windows) file. This will launch the respective web interface. If there is no .bat file, you can simply rename the .sh file to .bat.
