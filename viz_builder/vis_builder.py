@@ -42,6 +42,7 @@ import sklearn
 import statsmodels
 import statsmodels.api as sm
 import altair as alt
+import pygame
 
 # Add any other common visualization libraries you might need
 # import altair as alt
@@ -104,7 +105,8 @@ def safe_exec_visualization(code):
         "statsmodels": statsmodels,
         "sm": sm,
         "alt": alt,
-        "norm": scipy.stats.norm  # Still include this common one directly
+        "norm": scipy.stats.norm,
+        "pygame": pygame,
     }
     
     try:
@@ -177,6 +179,7 @@ def repair_with_llm(code, error_info):
         import statsmodels
         import statsmodels.api as sm
         import altair as alt
+        import pygame
     ```
 
     Return only the complete fixed Python code with no explanations. Make sure every module used is imported within the code itself.
@@ -340,6 +343,7 @@ def create_new_visualization(prompt):
         import statsmodels
         import statsmodels.api as sm
         import altair as alt
+        import pygame
     ```
     Do not write any functions. All codes must be inline.
     Return only the complete Python code with no explanations.
@@ -509,6 +513,7 @@ def main():
                     import statsmodels
                     import statsmodels.api as sm
                     import altair as alt
+                    import pygame
                 ```
 
                 Return the complete updated code with all changes implemented and all required imports.
