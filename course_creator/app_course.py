@@ -8,11 +8,10 @@ import re
 import base64
 
 # Import necessary chatbot classes
-from vt_ads_common.genai.OllamaChatBot import OllamaChatBot
-from vt_ads_common.genai.AnthropicChatBot import AnthropicChatBot
-from vt_ads_common.genai.OpenAIChatBot import OpenAIChatBot
-# Assume a GoogleChatBot class exists in the same module or path
-from vt_ads_common.genai.GoogleChatBot import GoogleChatBot # Added Google Chatbot import
+from OllamaChatBot import OllamaChatBot
+from AnthropicChatBot import AnthropicChatBot
+from OpenAIChatBot import OpenAIChatBot
+from GoogleChatBot import GoogleChatBot # Added Google Chatbot import
 
 import nbformat
 from nbformat import v4, writes
