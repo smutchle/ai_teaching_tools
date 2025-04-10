@@ -346,7 +346,9 @@ def create_new_visualization(prompt, csv_filename=None):
     5. Use clear variable names
     6. Include UI elements for student interaction
     7. Use streamlit's rerun() instead of experimental_rerun()
-    8. Don't write any functions, all code must be in-line (it will be run in an eval() call)
+    8. Streamlit image use_column_width=True has been replaced with use_container_width=True. Do not use use_column_width.
+    9. Don't write any functions, all code must be in-line (it will be run in an eval() call)
+    10. Suppress any warnings.
 
    These imports are the only allowed imports. You must work within these import libraries.
     ```
