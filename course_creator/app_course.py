@@ -668,7 +668,7 @@ with tab_course:
     with col2:
         st.session_state.lecture_length = st.number_input(
             "Approx. Lecture Length (minutes)",
-            value=st.session_state.get('lecture_length', 45), min_value=10, max_value=180
+            value=st.session_state.get('lecture_length', 60), min_value=10, max_value=180
         )
 
     st.subheader("📝 Notebook Instructions Template")
@@ -677,10 +677,11 @@ with tab_course:
     *   Provide a detailed overview, focusing on building intuition.
     *   Conclude with the importance and relevance of this topic within the broader lecture/course ({course_title}).
 2.  **Background & Theory**:
+    *   This section must be the bulk of the document. It should be comprehensive, detailed and packed with information.  It should take 30-60 minutes to cover this Background & Theory section.
     *   Cover historical context (if applicable) and theoretical foundations.
-    *   Include mathematical derivations using LaTeX (e.g., `$E=mc^2$`). Define all terms clearly. Explain reasoning behind steps.
+    *   Include mathematical derivations (as appropriate) using LaTeX (e.g., `$E=mc^2$`). Define all terms clearly. Explain reasoning behind steps.
     *   Use Mermaid diagrams (in appropriate ```{{mermaid}} ... ``` blocks) or other visualizations if they aid understanding.
-    *   Link to 1-3 high-quality external resources (papers, articles, tutorials) for further reading.
+    *   Link to 1-3 high-quality external resources (papers, articles, tutorials) for further reading if possible. If you don't know of valid references, don't create any output.
 3.  **Practical Example / Code Implementation**:
     *   Provide a working code example in {examples_programming_language}.
     *   Use the libraries mentioned ({libraries_used}) or other suitable ones.
@@ -696,7 +697,7 @@ with tab_course:
 
 General Formatting Notes:
 *   When creating markdown lists, always have a blank line before the list starts.
-*   Ensure code blocks are correctly specified for {examples_programming_language}.
+*   Ensure code blocks are correctly specified for {examples_programming_language}.  If the code block is to generate a visualization only, then collapse the code block by default.
 *   Be verbose and pedagogical throughout.
 """
     st.session_state.instructions = st.text_area(
