@@ -2,9 +2,9 @@
 
 There are currently 3 tools in the AI Teaching tools platform.
 
-1. Viz Builder - Allows you (or your students) to build live, interactive visualizations using LLM prompting.
-2. Course Creator - A robust tool for generating complete online curriculums using a LLM.
-3. App Monitor - A tool to monitor your streamlit apps (e.g. Viz Builder and Course Creator, etc.)
+1. **Viz Builder** - Allows you (or your students) to build live, interactive visualizations using LLM prompting.
+2. **Course Creator** - A robust tool for generating complete online curriculums using a LLM.
+3. **App Monitor** - A tool to monitor your streamlit apps (e.g. Viz Builder and Course Creator, etc.)
 
 ### Preconfiguration
 
@@ -23,7 +23,7 @@ There are a couple of APIs that you can sign up for if you want commercial level
 1. [Install anaconda for virtual python environments](https://www.anaconda.com/download)
 2. Download (or clone) the repository.
 
-```
+```bash
 md ai_tools
 cd ai_tools
 git clone https://github.com/smutchle/ai_teaching_tools
@@ -31,14 +31,31 @@ git clone https://github.com/smutchle/ai_teaching_tools
 
 3. Create your anaconda environment:
 
-```
-    conda create --name ai_teaching
-    conda activate ai_teaching
+```bash
+conda create --name ai_teaching python=3.10
+conda activate ai_teaching
 ```
 
 4. Install the required libraries:
 
-`pip install streamlit python-dotenv numpy pandas matplotlib seaborn plotly scipy scikit-learn statsmodels altair pygame`
+```bash
+cd ai_teaching_tools
+pip install -r requirements.txt
+```
 
 5. In each folder, rename .env_sample to .env. Edit each .env file and put in your API key values, etc.
-6. Run the appropriate .sh (Linux/Mac) or .bat (Windows) file. This will launch the respective web interface. If there is no .bat file, you can simply rename the .sh file to .bat.
+6. Run the appropriate .sh (Linux/Mac) or .bat (Windows) file in the **appropriate sub-directory**. This will launch the respective web interface. If there is no .bat file, you can simply rename the .sh file to .bat.
+
+Linux/Mac:
+
+```bash
+cd course_creator
+./run.sh
+```
+
+Windows:
+
+```powershell
+cd course_creator
+run.bat
+```
