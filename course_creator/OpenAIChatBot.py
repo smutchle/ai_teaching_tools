@@ -4,7 +4,7 @@ import re
 
 
 class OpenAIChatBot:
-    def __init__(self, api_key=None, model="gpt-4o", temperature=0.0, use_chat_history=False):
+    def __init__(self, api_key=None, model="gpt-5", temperature=0.0, use_chat_history=False):
         self.messages = []
         self.model = model
         self.temperature = temperature

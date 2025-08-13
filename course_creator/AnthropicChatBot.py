@@ -10,11 +10,11 @@ class AnthropicChatBot:
     def __init__(
         self,
         api_key,
-        model="claude-3-5-sonnet-latest",
+        model="claude-sonnet-4-0",
         use_chat_history=False,
-        temperature=0.0,
+        temperature=0.7,
         num_retries=10,
-        max_tokens=8192
+        max_tokens=8192*2
     ):
         self.client = anthropic.Client(api_key=api_key)
         self.use_chat_history = use_chat_history
