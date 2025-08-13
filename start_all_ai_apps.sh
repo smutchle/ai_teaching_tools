@@ -3,6 +3,9 @@
 AI_BASE_DIR=`pwd`
 CURRENT_DIR=`pwd`
 
+eval "$(conda shell.bash hook)"
+conda activate genai
+
 cd $AI_BASE_DIR/app_monitor
 ./run_in_background.sh
 
