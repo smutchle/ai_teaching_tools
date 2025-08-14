@@ -118,5 +118,15 @@
     "description": "",
     "tags": [],
     "used_csv": null
+  },
+  "45310695-9d72-4c46-8748-03a9168f2bb4": {
+    "id": "45310695-9d72-4c46-8748-03a9168f2bb4",
+    "created_at": "2025-08-13T14:36:25.738086",
+    "updated_at": "2025-08-13T14:36:44.154400",
+    "code": "import streamlit as st\nimport numpy as np\nimport pandas as pd\nimport matplotlib as mpl\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport plotly\nimport plotly.express as px\nimport plotly.graph_objects as go\nimport plotly.figure_factory as ff\nimport scipy\nimport math\nimport random\nimport datetime\nimport time\nimport json\nimport re\nimport os\nimport sys\nimport io\nimport collections\nimport itertools\nimport sklearn\nimport statsmodels\nimport statsmodels.api as sm\nimport altair as alt\nimport pygame\n\n# Sample Iris Data (using scikit-learn's built-in dataset)\nfrom sklearn.datasets import load_iris\niris = load_iris()\niris_df = pd.DataFrame(data=iris.data, columns=iris.feature_names)\niris_df['species'] = pd.Categorical.from_codes(iris.target, iris.target_names)\n\nst.title(\"Iris Sepal Length vs. Sepal Width Scatter Plot\")\n\n# UI elements for interaction\nselected_species = st.multiselect(\n    \"Select Species (or leave blank for all):\",\n    options=iris_df['species'].unique().tolist(),\n    default=iris_df['species'].unique().tolist()\n)\n\n# Filter data based on selected species\nif selected_species:\n    filtered_iris_df = iris_df[iris_df['species'].isin(selected_species)]\nelse:\n    filtered_iris_df = iris_df\n\n# Create the scatter plot using Plotly Express\nfig = px.scatter(\n    filtered_iris_df,\n    x=\"sepal length (cm)\",\n    y=\"sepal width (cm)\",\n    color=\"species\",\n    title=\"Sepal Length vs. Sepal Width\",\n    labels={\"sepal length (cm)\": \"Sepal Length (cm)\",\n            \"sepal width (cm)\": \"Sepal Width (cm)\"}\n)\n\n# Display the plot in Streamlit\nst.plotly_chart(fig, use_container_width=True)\n\nst.subheader(\"Data Table\")\nst.dataframe(filtered_iris_df)",
+    "title": "Iris Sepal Dimensions: Length vs. Width by Species",
+    "description": "",
+    "tags": [],
+    "used_csv": null
   }
 }
