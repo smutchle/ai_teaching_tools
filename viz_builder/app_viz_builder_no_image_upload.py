@@ -71,9 +71,6 @@ def initialize_state():
         
     if "uploaded_csv" not in st.session_state:
         st.session_state.uploaded_csv = None
-    
-    if "uploaded_image" not in st.session_state:
-        st.session_state.uploaded_image = None
 
     # Create upload directory if it doesn't exist
     os.makedirs("./upload", exist_ok=True)
@@ -144,7 +141,7 @@ def safe_exec_visualization(code):
             "stderr": stderr_buffer.getvalue()
         }
 
-def repair_with_llm(code, error_info, image_filename=None):
+def repair_with_llm(code, error_info):
     chatbot = get_chatbot()
 
     prompt = f"""
@@ -195,16 +192,7 @@ def repair_with_llm(code, error_info, image_filename=None):
     Return only the complete fixed Python code with no explanations. Make sure every module used is imported within the code itself.
     """
 
-    # Use image if available for repair
-    if image_filename:
-        image_path = os.path.join("./upload", image_filename)
-        if os.path.exists(image_path):
-            response = chatbot.complete_with_image(prompt, image_path)
-        else:
-            response = chatbot.complete(prompt)
-    else:
-        response = chatbot.complete(prompt)
-    
+    response = chatbot.complete(prompt)
     return extract_code_from_response(response)
 
 def extract_code_from_response(response_text):
@@ -245,15 +233,13 @@ def save_visualization(viz_id=None, auto_save=False, title=None):
             "title": title,
             "description": "",
             "tags": [],
-            "used_csv": st.session_state.uploaded_csv,
-            "used_image": st.session_state.uploaded_image
+            "used_csv": st.session_state.uploaded_csv
         }
     else:
         st.session_state.visualizations[viz_id]["updated_at"] = timestamp
         st.session_state.visualizations[viz_id]["code"] = st.session_state.current_code
         st.session_state.visualizations[viz_id]["title"] = title
         st.session_state.visualizations[viz_id]["used_csv"] = st.session_state.uploaded_csv
-        st.session_state.visualizations[viz_id]["used_image"] = st.session_state.uploaded_image
 
     if viz_id not in st.session_state.edit_history:
         st.session_state.edit_history[viz_id] = []
@@ -269,7 +255,7 @@ def save_visualization(viz_id=None, auto_save=False, title=None):
 
     return viz_id
 
-def generate_title_from_code(code, image_filename=None):
+def generate_title_from_code(code):
     chatbot = get_chatbot()
     prompt = f"""
     Suggest a concise and descriptive title for a Streamlit visualization based on the following code. The title should be under 10 words.
@@ -282,19 +268,10 @@ def generate_title_from_code(code, image_filename=None):
     Return only the title.
     """
 
-    # Use image if available for title generation
-    if image_filename:
-        image_path = os.path.join("./upload", image_filename)
-        if os.path.exists(image_path):
-            title = chatbot.complete_with_image(prompt, image_path)
-        else:
-            title = chatbot.complete(prompt)
-    else:
-        title = chatbot.complete(prompt)
-    
+    title = chatbot.complete(prompt)
     return title.strip().replace('"', '')
 
-def generate_quarto_title(code, image_filename=None):
+def generate_quarto_title(code):
     chatbot = get_chatbot()
     prompt = f"""
     Suggest an academic, descriptive title for a Quarto document containing this Streamlit visualization.
@@ -308,25 +285,15 @@ def generate_quarto_title(code, image_filename=None):
     Return only the title with no quotes or additional text.
     """
 
-    # Use image if available for title generation
-    if image_filename:
-        image_path = os.path.join("./upload", image_filename)
-        if os.path.exists(image_path):
-            title = chatbot.complete_with_image(prompt, image_path)
-        else:
-            title = chatbot.complete(prompt)
-    else:
-        title = chatbot.complete(prompt)
-    
+    title = chatbot.complete(prompt)
     return title.strip().replace('"', '')
 
 def export_to_quarto(viz_id):
     viz = st.session_state.visualizations[viz_id]
     code = viz['code']
-    image_filename = viz.get('used_image')
     
     # Generate an academic title for the Quarto document
-    title = generate_quarto_title(code, image_filename)
+    title = generate_quarto_title(code)
     
     qmd_content = f"""---
 title: "{title}"
@@ -339,7 +306,7 @@ format: html
 """
     return qmd_content, title
 
-def create_new_visualization(prompt, csv_filename=None, image_filename=None):
+def create_new_visualization(prompt, csv_filename=None):
     chatbot = get_chatbot()
     
     # Include CSV data information in the prompt if a file was uploaded
@@ -364,17 +331,9 @@ def create_new_visualization(prompt, csv_filename=None, image_filename=None):
         except Exception as e:
             csv_data_section = f"Note: There was an error reading the CSV file: {str(e)}"
     
-    # Include image reference in prompt
-    image_section = ""
-    if image_filename:
-        image_section = """
-        
-        An example visualization image has been uploaded. Please create a visualization that follows the style, layout, and visual approach shown in the reference image while incorporating the specific requirements from the text prompt.
-        """
-    
     generate_prompt = f"""
     Create a Streamlit visualization based on this description: "{prompt}"
-    {image_section}
+    
     {csv_data_section}
 
     IMPORTANT: The code MUST include ALL imports it needs to run. DO NOT rely on any pre-existing imports. Do not write any functions. All codes must be inline.
@@ -425,20 +384,11 @@ def create_new_visualization(prompt, csv_filename=None, image_filename=None):
     Return only the complete Python code with no explanations.
     """
 
-    # Use appropriate method based on whether image is available
-    if image_filename:
-        image_path = os.path.join("./upload", image_filename)
-        if os.path.exists(image_path):
-            code = chatbot.complete_with_image(generate_prompt, image_path)
-        else:
-            code = chatbot.complete(generate_prompt)
-    else:
-        code = chatbot.complete(generate_prompt)
-    
+    code = chatbot.complete(generate_prompt)
     code = extract_code_from_response(code)
 
     st.session_state.current_code = code
-    title = generate_title_from_code(code, image_filename)
+    title = generate_title_from_code(code)
     viz_id = save_visualization(title=title)
     st.session_state.current_viz_id = viz_id
 
@@ -468,21 +418,6 @@ def handle_csv_upload(uploaded_file):
     
     return False, "No file uploaded"
 
-def handle_image_upload(uploaded_file):
-    if uploaded_file is not None:
-        # Create upload directory if it doesn't exist
-        os.makedirs("./upload", exist_ok=True)
-        
-        # Save the file to the upload directory
-        file_path = os.path.join("./upload", uploaded_file.name)
-        with open(file_path, "wb") as f:
-            f.write(uploaded_file.getbuffer())
-            
-        st.session_state.uploaded_image = uploaded_file.name
-        return True, f"Image '{uploaded_file.name}' uploaded successfully and saved to {file_path}"
-    
-    return False, "No image uploaded"
-
 def main():
     st.set_page_config(page_title="Educational Visualization Platform", layout="wide") # 🖥️
     initialize_state()
@@ -495,27 +430,13 @@ def main():
         st.subheader("Create Visualization")  # ✨
 
         # File uploader for CSV
-        uploaded_csv = st.file_uploader("Upload CSV Dataset (optional)", type=["csv"])
+        uploaded_file = st.file_uploader("Upload CSV Dataset (optional)", type=["csv"])
         
-        # Handle CSV file upload
-        if uploaded_csv is not None:
-            success, message = handle_csv_upload(uploaded_csv)
+        # Handle file upload
+        if uploaded_file is not None:
+            success, message = handle_csv_upload(uploaded_file)
             if success:
                 st.success(message)
-            else:
-                st.error(message)
-
-        # File uploader for example visualization image
-        uploaded_image = st.file_uploader("Upload Example Visualization (optional)", type=["png", "jpg", "jpeg", "gif", "bmp"])
-        
-        # Handle image file upload
-        if uploaded_image is not None:
-            success, message = handle_image_upload(uploaded_image)
-            if success:
-                st.success(message)
-                # Show a preview of the uploaded image
-                with st.expander("Preview Example Image", expanded=True):
-                    st.image(uploaded_image, caption="Example Visualization", use_container_width=True)
             else:
                 st.error(message)
 
@@ -523,8 +444,8 @@ def main():
 
         if st.button("Generate"):  # 💡
             with st.spinner("Generating visualization..."):  # ⏳
-                # Pass both CSV and image filenames to the create_new_visualization function
-                create_new_visualization(prompt, st.session_state.uploaded_csv, st.session_state.uploaded_image)
+                # Pass the CSV filename to the create_new_visualization function if available
+                create_new_visualization(prompt, st.session_state.uploaded_csv)
 
         st.subheader("My Visualizations")  # 📚
 
@@ -549,7 +470,6 @@ def main():
                     st.session_state.current_viz_id = selected_viz_id
                     st.session_state.current_code = st.session_state.visualizations[selected_viz_id]["code"]
                     st.session_state.uploaded_csv = st.session_state.visualizations[selected_viz_id].get("used_csv")
-                    st.session_state.uploaded_image = st.session_state.visualizations[selected_viz_id].get("used_image")
                     st.rerun()
             with col2:
                 if st.button("Delete"):  # 🗑️
@@ -559,15 +479,9 @@ def main():
         if st.session_state.current_viz_id:
             viz = st.session_state.visualizations[st.session_state.current_viz_id]
 
-            # Display file information if this visualization uses files
-            file_info_items = []
+            # Display CSV information if this visualization uses a CSV
             if "used_csv" in viz and viz["used_csv"]:
-                file_info_items.append(f"CSV: {viz['used_csv']}")
-            if "used_image" in viz and viz["used_image"]:
-                file_info_items.append(f"Example Image: {viz['used_image']}")
-            
-            if file_info_items:
-                st.info(f"This visualization uses: {', '.join(file_info_items)}")
+                st.info(f"This visualization uses the CSV file: {viz['used_csv']}")
 
             # Parameters Section (Collapsible)
             with st.expander(f"Parameters for: {viz['title']}", expanded=True):  # ⚙️
@@ -598,7 +512,7 @@ def main():
 
                     if st.button("Auto-repair"):  # 🛠️
                         with st.spinner("Repairing code..."):  # ⏳
-                            fixed_code = repair_with_llm(st.session_state.current_code, result, viz.get('used_image'))
+                            fixed_code = repair_with_llm(st.session_state.current_code, result)
                             st.session_state.current_code = fixed_code
                             save_visualization(st.session_state.current_viz_id, True, title=viz['title'])
                             st.rerun()
@@ -631,16 +545,14 @@ def main():
             if st.button("Refine with AI"):  # 🤖
                 chatbot = get_chatbot()
                 
-                # Include information about the files if used
-                file_info = ""
+                # Include information about the CSV file if used
+                csv_info = ""
                 if "used_csv" in viz and viz["used_csv"]:
-                    file_info += f"\nThis visualization uses CSV data from './upload/{viz['used_csv']}'. Make sure to maintain this data source in your refinements."
-                if "used_image" in viz and viz["used_image"]:
-                    file_info += f"\nThis visualization was created using an example image reference. Consider the visual style and layout from the reference image."
+                    csv_info = f"\nThis visualization uses CSV data from './upload/{viz['used_csv']}'. Make sure to maintain this data source in your refinements."
                 
                 refine_prompt = f"""
                 Refine this Streamlit visualization based on the following request: "{refinement_prompt}"
-                {file_info}
+                {csv_info}
 
                 Current Code:
                 ```python
@@ -684,23 +596,12 @@ def main():
                 """
 
                 with st.spinner("Refining visualization..."):  # ⏳
-                    # Use image if available for refinement
-                    image_filename = viz.get('used_image')
-                    if image_filename:
-                        image_path = os.path.join("./upload", image_filename)
-                        if os.path.exists(image_path):
-                            refined_code = chatbot.complete_with_image(refine_prompt, image_path)
-                        else:
-                            refined_code = chatbot.complete(refine_prompt)
-                    else:
-                        refined_code = chatbot.complete(refine_prompt)
-                    
+                    refined_code = chatbot.complete(refine_prompt)
                     refined_code = extract_code_from_response(refined_code)
                     st.session_state.current_code = refined_code
-                    title = generate_title_from_code(refined_code, image_filename)  # Generate a new title based on refined code
+                    title = generate_title_from_code(refined_code)  # Generate a new title based on refined code
                     save_visualization(st.session_state.current_viz_id, title=title)
                     st.rerun()
 
 if __name__ == "__main__":
     main()
-    
