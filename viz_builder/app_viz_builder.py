@@ -193,6 +193,7 @@ def repair_with_llm(code, error_info, image_filename=None):
     ```
 
     Return only the complete fixed Python code with no explanations. Make sure every module used is imported within the code itself.
+    Do not generate output about deprecation.showPyplotGlobalUse.  
     """
 
     # Use image if available for repair
@@ -422,6 +423,8 @@ def create_new_visualization(prompt, csv_filename=None, image_filename=None):
         import pygame
     ```
     Do not write any functions. All codes must be inline.
+    Do not generate output about deprecation.showPyplotGlobalUse.
+    
     Return only the complete Python code with no explanations.
     """
 
@@ -681,6 +684,7 @@ def main():
                 Return the complete updated code with all changes implemented and all required imports.
                 Return only Python code, no explanations or comments about the changes.
                 Do not write any functions. All codes must be inline.
+                Do not generate output about deprecation.showPyplotGlobalUse.
                 """
 
                 with st.spinner("Refining visualization..."):  # ⏳
