@@ -672,7 +672,8 @@ with tab_course:
         )
 
     st.subheader("📝 Notebook Instructions Template")
-    default_instructions = """Include the following sections:
+    default_instructions = """
+Include the following sections:
 1.  **Topic Overview**:
     *   Provide a detailed overview, focusing on building intuition.
     *   Conclude with the importance and relevance of this topic within the broader lecture/course ({course_title}).
@@ -681,7 +682,8 @@ with tab_course:
     *   Cover historical context (if applicable) and theoretical foundations.
     *   Include mathematical derivations (as appropriate) using LaTeX (e.g., `$E=mc^2$`). Define all terms clearly. Explain reasoning behind steps.
     *   Use Mermaid diagrams (in appropriate ```{{mermaid}} ... ``` blocks) or other visualizations if they aid understanding.
-    *   Link to 1-3 high-quality external resources (papers, articles, tutorials) for further reading if possible. If you don't know of valid references, don't create any output.
+    *   Link to 1-3 high-quality external resources (papers, articles, tutorials) for further reading if possible. Include DOI links or other URLs (if known).
+     *  Add appropriate inline references that are linked to the References section.  Use APA format for references.
 3.  **Practical Example / Code Implementation**:
     *   Provide a working code example in {examples_programming_language}.
     *   Use the libraries mentioned ({libraries_used}) or other suitable ones.
@@ -693,12 +695,14 @@ with tab_course:
     *   Provide a clear solution or key steps for the student exercise.
 6.  **Quiz**:
     *   Create a five-question quiz (multiple-choice or true/false) covering key aspects of the topic.
-    *   List the correct answers clearly after the questions.
+    *   Make the answers viewable directly after the question when the user clicks to unfold the answer.
 
 General Formatting Notes:
-*   When creating markdown lists, always have a blank line before the list starts.
-*   Ensure code blocks are correctly specified for {examples_programming_language}.  If the code block is to generate a visualization only, then collapse the code block by default.
+*   Ensure code blocks are correctly specified for {examples_programming_language}. 
 *   Be verbose and pedagogical throughout.
+*   All code blocks should be folded by default.
+*   When creating markdown lists, always have a blank line right before the list starts.
+
 """
     st.session_state.instructions = st.text_area(
         "Notebook Instructions (can use placeholders like {course_title}, {examples_programming_language}, {libraries_used})",
