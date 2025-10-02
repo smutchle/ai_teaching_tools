@@ -7,19 +7,23 @@ class GoogleChatBot:
     ChatBot class for interacting with Google's Gemini models, including image support.
     """
 
-    def __init__(self, api_key, model_name="gemini-pro"):
+    def __init__(self, api_key, model_name="gemini-2.5-pro", keep_history=True):
         """
         Initializes the GoogleChatBot with an API key and model name.
 
         Args:
             api_key (str): The Google Gemini API key.
             model_name (str, optional): The name of the Gemini model to use.
-                                        Defaults to "gemini-pro".  For multi-modal
+                                        Defaults to "gemini-2.5-pro".  For multi-modal
                                         use "gemini-pro-vision".
+            keep_history (bool, optional): Whether to maintain chat history across messages.
+                                          Defaults to True. If False, each message starts
+                                          a new chat session.
         """
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(model_name)
-        self.chat = self.model.start_chat()  # Initialize chat session
+        self.keep_history = keep_history
+        self.chat = self.model.start_chat() if keep_history else None
         self.model_name = model_name
 
     def complete(self, prompt):
@@ -33,7 +37,12 @@ class GoogleChatBot:
             str: The text response from the chatbot, or None if there's an error.
         """
         try:
-            response = self.chat.send_message(prompt)
+            if self.keep_history:
+                response = self.chat.send_message(prompt)
+            else:
+                # Start a new chat session for each message
+                chat = self.model.start_chat()
+                response = chat.send_message(prompt)
             return response.text
         except Exception as e:
             print(f"Error during Google Gemini completion: {e}")
@@ -53,7 +62,12 @@ class GoogleChatBot:
         # Modify prompt to explicitly request JSON (if necessary for Gemini, may depend on model)
         json_prompt = f"{prompt}\n\nPlease respond with valid JSON."
         try:
-            response = self.chat.send_message(json_prompt)
+            if self.keep_history:
+                response = self.chat.send_message(json_prompt)
+            else:
+                # Start a new chat session for each message
+                chat = self.model.start_chat()
+                response = chat.send_message(json_prompt)
             return self.extract_markdown_content(response.text)
         except Exception as e:
             print(f"Error during Google Gemini JSON completion: {e}")
@@ -92,7 +106,12 @@ class GoogleChatBot:
         """
         try:
             img = PIL.Image.open(image_path)
-            response = self.chat.send_message([prompt, img])
+            if self.keep_history:
+                response = self.chat.send_message([prompt, img])
+            else:
+                # Start a new chat session for each message
+                chat = self.model.start_chat()
+                response = chat.send_message([prompt, img])
             return response.text
         except Exception as e:
             print(f"Error during Google Gemini image completion within chat: {e}")
@@ -113,4 +132,4 @@ class GoogleChatBot:
             return (text[start_idx:end_idx]).strip()
 
         return text.strip()
-
+    
