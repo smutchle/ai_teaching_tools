@@ -15,4 +15,7 @@ cd $AI_BASE_DIR/viz_builder
 cd $AI_BASE_DIR/course_creator
 ./run_in_background.sh
 
+cd $AI_BASE_DIR/ai_dataset_generator
+./run_in_background.sh
+
 cd $CURRENT_DIR
