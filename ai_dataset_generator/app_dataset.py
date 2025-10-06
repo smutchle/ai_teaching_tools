@@ -234,7 +234,7 @@ Generate the fixed JSON configuration now:"""
 
 # Streamlit UI
 st.set_page_config(page_title="Dataset Generator", layout="wide")
-st.title("📊 Dataset Generator for Data Science Instruction")
+st.title("📊 Dataset Generator for Instruction")
 
 # Initialize session state
 if 'current_config' not in st.session_state:
