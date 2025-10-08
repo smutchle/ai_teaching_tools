@@ -283,7 +283,19 @@ class Dataset:
                 for i, mult in enumerate(seasonality):
                     if not isinstance(mult, (int, float)):
                         errors.append(f"{prefix}: seasonality_multipliers[{i}] must be numeric")
-        
+
+        # Validate secondary seasonality multipliers if present
+        secondary_seasonality = target.get('secondary_seasonality_multipliers', [])
+        if secondary_seasonality:
+            if not isinstance(secondary_seasonality, list):
+                errors.append(f"{prefix}: secondary_seasonality_multipliers must be a list")
+            elif len(secondary_seasonality) == 0:
+                errors.append(f"{prefix}: secondary_seasonality_multipliers cannot be empty")
+            else:
+                for i, mult in enumerate(secondary_seasonality):
+                    if not isinstance(mult, (int, float)):
+                        errors.append(f"{prefix}: secondary_seasonality_multipliers[{i}] must be numeric")
+
         return errors
     
     def _validate_expression(self, expression: str, feature_names: set) -> List[str]:

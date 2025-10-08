@@ -353,6 +353,79 @@ Datetime features are used for time series data and support various intervals:
 - Datetime features cannot be used in mathematical expressions
 - Outliers are not applicable to datetime features
 
+## Time Series: Smooth Feature Values
+
+**New Feature**: For time series datasets (those with a datetime feature), numeric features are automatically generated with smooth, gradual changes instead of random jumps.
+
+**How it works:**
+- Time series features use a difference-based approach
+- Values change gradually from one time point to the next
+- Creates more realistic time series data
+- Cross-sectional datasets (no datetime feature) use the traditional random sampling
+
+**Example:**
+- **Old approach**: Temperature values might jump from 18°C to 27°C to 14°C (unrealistic)
+- **New approach**: Temperature changes gradually: 18°C → 18.2°C → 18.5°C → 18.3°C (realistic)
+
+This automatic smoothing applies to `normal`, `uniform`, and `weibull` distributions. The `random_walk` and `sequential` distributions are already smooth.
+
+**Important Note about Correlations and Smoothness**:
+
+If you add correlations between features in a time series dataset, there's a trade-off: strong correlations can reduce smoothness because they require reshuffling values. The system applies smoothing after correlations to help, but the result won't be as smooth as without correlations.
+
+**Best Practice**: For very smooth time series, either avoid correlations or use weaker values (0.3-0.5 instead of 0.7-0.9).
+
+## Seasonality in Time Series
+
+For time series targets, you can add seasonal patterns using `seasonality_multipliers`:
+
+```json
+{
+  "target": {
+    "name": "sales",
+    "expression": "base_demand + advertising * 50",
+    "seasonality_multipliers": [0.9, 0.9, 0.95, 1.0, 1.05, 1.0, 1.0, 0.95, 0.95, 1.05, 1.2, 1.3]
+  }
+}
+```
+
+**How it works:**
+- The array length determines the period (12 for monthly, 4 for quarterly, etc.)
+- Values cycle through the multipliers
+- Values > 1.0 indicate high season, < 1.0 indicate low season
+- Applied after expression calculation but before noise
+
+## Secondary Seasonality
+
+**New Feature**: For time series with multiple seasonal patterns (e.g., both monthly and weekly), you can now add `secondary_seasonality_multipliers`:
+
+```json
+{
+  "target": {
+    "name": "sales",
+    "expression": "base_demand + advertising * 50",
+    "seasonality_multipliers": [0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.15, 1.05, 0.9],
+    "secondary_seasonality_multipliers": [0.9, 0.95, 1.0, 1.05, 1.1, 1.05, 0.95]
+  }
+}
+```
+
+**In this example:**
+- **Primary** (12 values): Monthly pattern with holiday season peak
+- **Secondary** (7 values): Weekly pattern with weekend peaks
+
+**Common use cases:**
+- Retail sales: Monthly (holiday shopping) + Weekly (weekend patterns)
+- Energy usage: Yearly (heating/cooling) + Weekly (weekday vs weekend)
+- Website traffic: Monthly trends + Day-of-week patterns
+- Restaurant sales: Monthly trends + Day-of-week patterns (weekend peaks)
+
+**How it works:**
+1. Calculate target from expression
+2. Apply primary seasonality
+3. Apply secondary seasonality (multiplies with primary)
+4. Add noise
+
 # Tips and Best Practices
 
 ## Starting with Chat Assistant

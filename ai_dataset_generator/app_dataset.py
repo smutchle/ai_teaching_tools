@@ -102,8 +102,9 @@ CRITICAL REQUIREMENTS:
 3. Target expressions can ONLY use NUMERIC features (float or int), NOT categorical features
 4. For categorical targets, repeat category labels to create desired class distributions (e.g., ["No", "No", "No", "No", "No", "No", "No", "Yes", "Yes", "Yes"] for 30% "Yes")
 5. For time series with seasonality: Create a "seasonality_multipliers" array in the target with length equal to the periodicity (e.g., 12 values for monthly data). Create realistic seasonal patterns (e.g., retail higher in Nov/Dec, energy higher in summer/winter).
-6. Features can have a "lags" array like [1, 2, 3] which will auto-generate lagged versions (e.g., price_lag1, price_lag2) that can be used in the target expression.
-7. If you reference a lagged variable in the expression, you must have created the lag in the feature definition.
+6. For time series with multiple seasonal patterns: You can optionally add a "secondary_seasonality_multipliers" array to capture a second seasonal pattern (e.g., day-of-week pattern in addition to monthly pattern).
+7. Features can have a "lags" array like [1, 2, 3] which will auto-generate lagged versions (e.g., price_lag1, price_lag2) that can be used in the target expression.
+8. If you reference a lagged variable in the expression, you must have created the lag in the feature definition.
 
 INSTRUCTIONS:
 1. Generate a complete, valid JSON configuration that matches the schema described in the documentation
@@ -118,14 +119,16 @@ INSTRUCTIONS:
    - Outlier rates for features
    - Correlations between features (if requested)
    - Seasonality (if time series with periodicity specified)
+   - Secondary seasonality (if time series with secondary periodicity specified)
    - Noise percentage for target calculation (use "noise_percent" field)
 3. Create meaningful feature names and distributions appropriate for the dataset domain
 4. For categorical features, use normal/uniform distributions, then add exactly 10 labels in the "categories" array
 5. Ensure the target expression ONLY references numeric features (never categorical ones)
 6. If target is categorical, provide exactly 10 category labels
 7. If seasonal time series, create realistic seasonality_multipliers array based on the domain (length = periodicity)
-8. For features with lags, the lagged versions will be auto-generated and can be used in expressions
-9. Return ONLY the JSON configuration starting with {{"dataset_config": {{...}}}}, no additional text or explanation
+8. If secondary seasonal time series, create realistic secondary_seasonality_multipliers array (length = secondary periodicity)
+9. For features with lags, the lagged versions will be auto-generated and can be used in expressions
+10. Return ONLY the JSON configuration starting with {{"dataset_config": {{...}}}}, no additional text or explanation
 
 CORRECT JSON STRUCTURE EXAMPLE:
 {{
@@ -215,8 +218,9 @@ CRITICAL REQUIREMENTS:
 3. Target expressions can ONLY use NUMERIC features (float or int), NOT categorical features
 4. For categorical targets, repeat category labels to create desired class distributions
 5. For time series with seasonality: Create a "seasonality_multipliers" array in the target with length equal to the periodicity
-6. Features can have a "lags" array like [1, 2, 3] which will auto-generate lagged versions
-7. If you reference a lagged variable in the expression, you must have created the lag in the feature definition
+6. For time series with multiple seasonal patterns: You can optionally add a "secondary_seasonality_multipliers" array to capture a second seasonal pattern
+7. Features can have a "lags" array like [1, 2, 3] which will auto-generate lagged versions
+8. If you reference a lagged variable in the expression, you must have created the lag in the feature definition
 
 INSTRUCTIONS:
 1. Analyze the error message to understand what's wrong
@@ -264,7 +268,7 @@ if 'fixing_json' not in st.session_state:
 
 # Define the questions
 QUESTIONS = [
-    "What is the dataset you want to generate (in simple terms).  For example, `unit sales for a heavy equipment manufacturer` or `customer churn` or even `I don't know.  You pick a random industry data example` ?",
+    "What is the dataset you want to generate (in simple terms).  For example, `monthly unit sales for a heavy equipment manufacturer` or `customer churn` or even `I don't know.  You pick a random industry data example` ?",
     "Is the dataset time series or cross-sectional (tabular)?",
     "How many rows do you want to generate?",
     "Is the target variable categorical, int or float?",
@@ -273,9 +277,10 @@ QUESTIONS = [
     "What fraction of the *feature* values are missing (e.g. 0.1 = 10%)?",
     "What fraction of the *feature* values are outliers (e.g. 0.1 = 10%)?",
     "Should there be logical correlations between features (e.g. GDP and domestic exports might be correlated)?",
-    "If the data is time series, what is the periodicity (e.g., 12 for monthly, 4 for quarterly, or None)?",
+    "If the data is time series, what is the periodicity (you can use words like `daily` or numbers like `24` or `None`)?",
+    "If the data is time series, does it have a secondary seasonality pattern? (you can use words like `daily` or numbers like `24` or `None`) ",
     "How much noise should be added as a fraction (e.g. 0.1 = 10%)?",
-    "Any other general directions?  For example, `make all features random walk for my time series features.`"
+    "Any other general directions?"
 ]
 
 # Sidebar for dataset management

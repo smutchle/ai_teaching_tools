@@ -56,7 +56,11 @@ class DatasetGenerator:
         
         # Apply correlations (before type conversions)
         self._apply_correlations()
-        
+
+        # For time series: Apply smoothing filter to preserve temporal smoothness
+        if len(self.datetime_features) > 0:
+            self._smooth_time_series_features()
+
         # Apply outliers (before categorical conversion, skip categorical features)
         self._apply_outliers()
         
@@ -95,12 +99,19 @@ class DatasetGenerator:
     
     def _generate_features(self):
         """Generate all feature variables as float (or object for datetime)."""
+        # Check if this is a time series dataset (has sequential_datetime feature)
+        is_time_series = len(self.datetime_features) > 0
+
         for feature in self.dataset.features:
             name = feature['name']
             distribution = feature['distribution']
 
             # Generate raw values based on distribution
-            values = self._generate_distribution(distribution, self.dataset.n_rows)
+            # For time series, use difference-based approach for non-datetime, non-sequential features
+            if is_time_series and name not in self.datetime_features and distribution['type'] not in ['sequential', 'sequential_datetime']:
+                values = self._generate_time_series_distribution(distribution, self.dataset.n_rows)
+            else:
+                values = self._generate_distribution(distribution, self.dataset.n_rows)
 
             # Keep datetime as object type, convert others to float
             if name in self.datetime_features:
@@ -200,12 +211,101 @@ class DatasetGenerator:
 
         else:
             raise ValueError(f"Unknown distribution type: {dist_type}")
-    
+
+    def _generate_time_series_distribution(self, dist: Dict[str, Any], n: int) -> np.ndarray:
+        """
+        Generate time series values using a difference-based approach.
+        Instead of pulling values directly from distributions, generate differences
+        from the distribution and accumulate them to create smoother time series.
+        """
+        dist_type = dist['type']
+
+        if dist_type == 'uniform':
+            # Generate starting value from distribution
+            start = self.rng.uniform(dist['min'], dist['max'])
+            # Generate differences (smaller range for smoothness)
+            range_size = dist['max'] - dist['min']
+            diff_range = range_size * 0.02  # Changes are 2% of the range
+            diffs = self.rng.uniform(-diff_range, diff_range, n)
+            # Accumulate differences starting from start value
+            values = np.cumsum(diffs)
+            values += start
+            return values
+
+        elif dist_type == 'normal':
+            # Generate starting value from distribution
+            start = self.rng.normal(dist['mean'], dist['std'])
+            # Generate differences (smaller std for smoothness)
+            diff_std = dist['std'] * 0.05  # Changes have 5% of the original std
+            diffs = self.rng.normal(0, diff_std, n)
+            # Accumulate differences starting from start value
+            values = np.cumsum(diffs)
+            values += start
+            # Apply clipping if specified
+            if dist.get('min_clip') is not None:
+                values = np.maximum(values, dist['min_clip'])
+            if dist.get('max_clip') is not None:
+                values = np.minimum(values, dist['max_clip'])
+            return values
+
+        elif dist_type == 'weibull':
+            # Generate starting value from distribution
+            shape = dist['shape']
+            scale = dist['scale']
+            location = dist.get('location', 0)
+            start = location + scale * self.rng.weibull(shape)
+            # Generate differences (smaller scale for smoothness)
+            diff_scale = scale * 0.1
+            diffs = self.rng.normal(0, diff_scale, n)  # Use normal for differences
+            # Accumulate differences starting from start value
+            values = np.cumsum(diffs)
+            values += start
+            return values
+
+        elif dist_type == 'random_walk':
+            # Random walk is already difference-based, use as-is
+            return self._generate_distribution(dist, n)
+
+        else:
+            # For other types, fall back to standard generation
+            return self._generate_distribution(dist, n)
+
+    def _smooth_time_series_features(self):
+        """Apply smoothing filter to time series features to ensure temporal smoothness."""
+        for feature in self.dataset.features:
+            name = feature['name']
+
+            # Skip datetime, categorical, and sequential features
+            if (name in self.datetime_features or
+                name in self.categorical_features or
+                feature['distribution']['type'] in ['sequential', 'sequential_datetime']):
+                continue
+
+            # Apply exponential moving average smoothing
+            values = np.array(self.data[name], dtype=float)
+
+            # Use exponential weighted moving average with span=5
+            # This smooths out rapid changes while preserving the general trend
+            smoothed = pd.Series(values).ewm(span=5, adjust=False).mean().values
+
+            # Preserve the original mean and std
+            orig_mean = np.mean(values)
+            orig_std = np.std(values)
+            smoothed_mean = np.mean(smoothed)
+            smoothed_std = np.std(smoothed)
+
+            if smoothed_std > 0:
+                # Rescale to match original distribution
+                rescaled = (smoothed - smoothed_mean) / smoothed_std * orig_std + orig_mean
+                self.data[name] = rescaled
+            else:
+                self.data[name] = smoothed
+
     def _apply_correlations(self):
         """Apply correlation structure using Cholesky decomposition."""
         if not self.dataset.correlations:
             return
-        
+
         # Build correlation matrix for correlated variables
         # Group by connected components
         corr_groups = self._get_correlation_groups()
@@ -264,7 +364,7 @@ class DatasetGenerator:
                 ranks = np.argsort(np.argsort(correlated[:, i]))
                 sorted_original = np.sort(original_data[:, i])
                 new_values = sorted_original[ranks]
-                
+
                 # Unstandardize
                 self.data[var] = new_values * stds[i] + means[i]
     
@@ -451,13 +551,21 @@ class DatasetGenerator:
         
         # Ensure it's an array
         target_values = np.array(target_values, dtype=float)
-        
-        # Apply seasonality before noise
+
+        # Apply primary seasonality before noise
         if seasonality_multipliers:
             period = len(seasonality_multipliers)
             # Create seasonality array that repeats for all rows
             seasonality_array = np.array([seasonality_multipliers[i % period] for i in range(len(target_values))])
             target_values = target_values * seasonality_array
+
+        # Apply secondary seasonality before noise
+        secondary_seasonality_multipliers = target.get('secondary_seasonality_multipliers', [])
+        if secondary_seasonality_multipliers:
+            period = len(secondary_seasonality_multipliers)
+            # Create secondary seasonality array that repeats for all rows
+            secondary_seasonality_array = np.array([secondary_seasonality_multipliers[i % period] for i in range(len(target_values))])
+            target_values = target_values * secondary_seasonality_array
         
         # Add noise
         if noise_percent > 0:

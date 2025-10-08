@@ -563,7 +563,36 @@ Define the target variable using a Python expression based on features.
 | `categories` | array | Conditional | Required if `data_type: "categorical"` (10 labels) |
 | `missing_rate` | float | No | Proportion missing (0.0-1.0) |
 | `outlier_rate` | float | No | Proportion outliers (0.0-1.0) |
-| `seasonality_multipliers` | array | No | Seasonal multipliers for time series |
+| `seasonality_multipliers` | array | No | Primary seasonal multipliers for time series |
+| `secondary_seasonality_multipliers` | array | No | Secondary seasonal multipliers for time series |
+
+---
+
+## Time Series: Feature Generation (Smooth Values)
+
+**Important**: For time series datasets (identified by the presence of a `datetime` feature), numeric features are generated using a **difference-based approach** to create smooth, realistic time series with gradual changes instead of random jumps.
+
+**How it works:**
+1. A starting value is drawn from the specified distribution
+2. Small changes/differences are generated (2-5% of the distribution scale)
+3. Changes accumulate using cumulative sum to create smooth progression
+4. This only applies to: `uniform`, `normal`, and `weibull` distributions
+5. Excludes: `datetime` features, `sequential`, and `random_walk` (already smooth)
+
+**Cross-sectional datasets** (no datetime feature) continue to use direct random sampling.
+
+**Comparison:**
+- **Old approach**: Each value independently drawn from distribution → large jumps between consecutive values
+- **New approach**: Values evolve gradually → smooth, realistic time series
+
+**Example**: Temperature in a `normal(20, 5)` distribution:
+- Old: Values could jump from 18°C to 27°C to 14°C (unrealistic)
+- New: Values change gradually: 18°C → 18.2°C → 18.5°C → 18.3°C (realistic)
+
+**Important Note on Correlations**:
+There is a fundamental trade-off between correlation strength and temporal smoothness. The rank-based correlation transformation can disrupt smoothness by reshuffling values. To mitigate this, an exponential moving average smoothing filter is applied after correlations, which maintains approximate correlations (within 10-15% of target) while improving smoothness.
+
+**Recommendation**: For time series where smoothness is critical, minimize correlations or use weaker coefficients (0.3-0.5 instead of 0.7-0.9).
 
 ---
 
@@ -586,9 +615,10 @@ For seasonal time series, specify multiplicative seasonality factors that cycle 
 
 **Process:**
 1. Calculate target values from expression
-2. Apply seasonality: `target_value × seasonality_multipliers[row_index % period]`
-3. Add noise (after seasonality)
-4. Apply type conversion
+2. Apply primary seasonality: `target_value × seasonality_multipliers[row_index % period]`
+3. Apply secondary seasonality (if specified)
+4. Add noise (after seasonality)
+5. Apply type conversion
 
 **Seasonality Pattern:**
 - Array length determines the period (12 = monthly, 4 = quarterly, etc.)
@@ -614,6 +644,67 @@ For seasonal time series, specify multiplicative seasonality factors that cycle 
 "seasonality_multipliers": [1.0, 0.95, 1.05, 1.15]
 // Q4 spike
 ```
+
+---
+
+## Time Series: Secondary Seasonality
+
+For time series with **multiple overlapping seasonal patterns**, you can specify both `seasonality_multipliers` and `secondary_seasonality_multipliers`. Both patterns are multiplicative and can have different periodicities.
+
+**Example: Retail Sales (Monthly + Weekly Patterns)**
+```json
+{
+  "target": {
+    "name": "sales",
+    "data_type": "float",
+    "expression": "1000 + 50*advertising + 30*price_lag1",
+    "noise_percent": 5.0,
+    "seasonality_multipliers": [0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.2, 1.15, 1.05, 0.9],
+    "secondary_seasonality_multipliers": [0.9, 0.95, 1.0, 1.05, 1.1, 1.05, 0.95]
+  }
+}
+```
+
+In this example:
+- **Primary** (12 values): Monthly pattern with November-December peak (holiday shopping)
+- **Secondary** (7 values): Weekly pattern with mid-week and weekend peaks
+
+**Process:**
+1. Calculate target values from expression
+2. Apply primary seasonality: `value × seasonality_multipliers[i % 12]`
+3. Apply secondary seasonality: `value × secondary_seasonality_multipliers[i % 7]`
+4. Add noise
+5. Apply type conversion
+
+**Common Use Cases:**
+
+**Energy Usage:**
+```json
+"seasonality_multipliers": [1.2, 1.15, 1.0, 0.85, 0.8, 0.9, 1.1, 1.15, 0.95, 0.85, 0.95, 1.15],
+"secondary_seasonality_multipliers": [1.1, 1.05, 1.0, 0.95, 0.9, 0.85, 0.95]
+// Primary: Yearly (heating/cooling), Secondary: Weekly (weekday vs weekend)
+```
+
+**Website Traffic:**
+```json
+"seasonality_multipliers": [0.9, 0.95, 1.0, 1.05, 1.1, 1.05, 1.0, 0.95, 1.0, 1.05, 1.1, 1.15],
+"secondary_seasonality_multipliers": [0.85, 0.9, 0.95, 1.0, 1.05, 1.15, 1.1]
+// Primary: Monthly, Secondary: Day of week
+```
+
+**Restaurant Sales:**
+```json
+"seasonality_multipliers": [0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.1, 1.0, 0.95, 1.0, 1.15, 1.25],
+"secondary_seasonality_multipliers": [0.7, 0.75, 0.8, 0.85, 0.95, 1.3, 1.4]
+// Primary: Monthly, Secondary: Day of week (Fri-Sat peak)
+```
+
+**Important Notes:**
+- Both seasonality arrays are optional
+- Can use different periodicities (e.g., 12 and 7, or 4 and 52)
+- Both patterns are multiplicative (they multiply together)
+- Applied before noise injection
+- Order: primary first, then secondary
 
 ---
 
@@ -938,7 +1029,7 @@ The generator will validate:
 9. **Distribution parameters** are valid (e.g., std > 0, min < max, valid ISO datetime strings)
 10. **Correlation matrix** is positive semi-definite
 11. **Lags** are positive integers
-12. **Seasonality multipliers** are numeric values
+12. **Seasonality multipliers** (both primary and secondary) are numeric values
 
 ---
 
@@ -950,8 +1041,11 @@ The generator will validate:
 - **Categorical deciles**: Always create 10 equal-sized bins (10% each).
 - **NumPy**: Available in expressions as `np.*`
 - **Lagged features**: First N rows contain NaN where N is the lag period
-- **Seasonality**: Applied to target after expression evaluation but before noise
-- **Time series**: Lagged features are automatically created and available in expressions
+- **Seasonality**: Applied to target after expression evaluation but before noise (primary then secondary)
+- **Time series**:
+  - Lagged features are automatically created and available in expressions
+  - Numeric features use difference-based generation for smooth, gradual changes
+  - Cross-sectional datasets use direct random sampling
 - **Datetime features**:
   - Stored as ISO format strings in the CSV output
   - Cannot be used in mathematical expressions
