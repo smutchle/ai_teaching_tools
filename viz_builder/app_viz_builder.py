@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
-from vt_ads_common.genai.GoogleChatBot import GoogleChatBot
+from AnthropicChatBot import AnthropicChatBot
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -193,7 +193,10 @@ def repair_with_llm(code, error_info, image_filename=None):
     ```
 
     Return only the complete fixed Python code with no explanations. Make sure every module used is imported within the code itself.
-    Do not generate output about deprecation.showPyplotGlobalUse.  
+
+    CRITICAL: DO NOT include any st.set_option() calls in your code.
+    DO NOT use st.set_option('deprecation.showPyplotGlobalUse', False) - this option no longer exists in Streamlit and will cause an error.
+    DO NOT use st.set_page_config() as it's already set by the parent app.  
     """
 
     # Use image if available for repair
@@ -221,9 +224,9 @@ def extract_code_from_response(response_text):
         return response_text.strip()
 
 def get_chatbot():
-    api_key = os.getenv("GOOGLE_API_KEY")
-    model_name = os.getenv("GOOGLE_MODEL").split(",")[0]
-    return GoogleChatBot(api_key, model_name)
+    api_key = os.getenv("CLAUDE_API_KEY")
+    model_name = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
+    return AnthropicChatBot(api_key, model=model_name)
 
 def save_visualization(viz_id=None, auto_save=False, title=None):
     if not viz_id:
@@ -423,8 +426,11 @@ def create_new_visualization(prompt, csv_filename=None, image_filename=None):
         import pygame
     ```
     Do not write any functions. All codes must be inline.
-    Do not generate output about deprecation.showPyplotGlobalUse.
-    
+
+    CRITICAL: DO NOT include any st.set_option() calls in your code.
+    DO NOT use st.set_option('deprecation.showPyplotGlobalUse', False) - this option no longer exists in Streamlit and will cause an error.
+    DO NOT use st.set_page_config() as it's already set by the parent app.
+
     Return only the complete Python code with no explanations.
     """
 
@@ -490,15 +496,17 @@ def main():
     st.set_page_config(page_title="Educational Visualization Platform", layout="wide") # 🖥️
     initialize_state()
 
-    st.title("Educational Visualization Platform")  # 🎓
+    st.title("🎓 Educational Visualization Platform")
+
+    st.warning("⚠️ Do not upload personal information or trade secrets.")
 
     sidebar, main_area = st.columns([1, 3])
 
     with sidebar:
-        st.subheader("Create Visualization")  # ✨
+        st.subheader("✨ Create Visualization")
 
         # File uploader for CSV
-        uploaded_csv = st.file_uploader("Upload CSV Dataset (optional)", type=["csv"])
+        uploaded_csv = st.file_uploader("📊 Upload CSV Dataset (optional)", type=["csv"])
         
         # Handle CSV file upload
         if uploaded_csv is not None:
@@ -509,7 +517,7 @@ def main():
                 st.error(message)
 
         # File uploader for example visualization image
-        uploaded_image = st.file_uploader("Upload Example Visualization (optional)", type=["png", "jpg", "jpeg", "gif", "bmp"])
+        uploaded_image = st.file_uploader("🖼️ Upload Example Visualization (optional)", type=["png", "jpg", "jpeg", "gif", "bmp"])
         
         # Handle image file upload
         if uploaded_image is not None:
@@ -522,20 +530,20 @@ def main():
             else:
                 st.error(message)
 
-        prompt = st.text_area("Describe the visualization you want:")  # 📝
+        prompt = st.text_area("📝 Describe the visualization you want:")
 
-        if st.button("Generate"):  # 💡
+        if st.button("✨ Generate"):
             with st.spinner("Generating visualization..."):  # ⏳
                 # Pass both CSV and image filenames to the create_new_visualization function
                 create_new_visualization(prompt, st.session_state.uploaded_csv, st.session_state.uploaded_image)
 
-        st.subheader("My Visualizations")  # 📚
+        st.subheader("📚 My Visualizations")
 
         # Create a list of visualization titles for the selectbox
         visualization_titles = ["Select a Visualization"] + [viz["title"] for viz in st.session_state.visualizations.values()]
 
         # Use a selectbox to choose the visualization
-        selected_title = st.selectbox("Choose a Visualization", visualization_titles)  # 🗂️
+        selected_title = st.selectbox("🗂️ Choose a Visualization", visualization_titles)
 
         # Find the visualization ID based on the selected title
         selected_viz_id = None
@@ -548,14 +556,14 @@ def main():
         if selected_viz_id:
             col1, col2 = st.columns(2)  # Create two columns for the buttons
             with col1:
-                if st.button("Load"):  # 📂
+                if st.button("📂 Load"):
                     st.session_state.current_viz_id = selected_viz_id
                     st.session_state.current_code = st.session_state.visualizations[selected_viz_id]["code"]
                     st.session_state.uploaded_csv = st.session_state.visualizations[selected_viz_id].get("used_csv")
                     st.session_state.uploaded_image = st.session_state.visualizations[selected_viz_id].get("used_image")
                     st.rerun()
             with col2:
-                if st.button("Delete"):  # 🗑️
+                if st.button("🗑️ Delete"):
                     delete_visualization(selected_viz_id)
 
     with main_area:
@@ -570,19 +578,19 @@ def main():
                 file_info_items.append(f"Example Image: {viz['used_image']}")
             
             if file_info_items:
-                st.info(f"This visualization uses: {', '.join(file_info_items)}")
+                st.info(f"ℹ️ This visualization uses: {', '.join(file_info_items)}")
 
             # Parameters Section (Collapsible)
-            with st.expander(f"Parameters for: {viz['title']}", expanded=True):  # ⚙️
+            with st.expander(f"⚙️ Parameters for: {viz['title']}", expanded=True):
                 new_title = st.text_input("Title", viz["title"])
                 if new_title != viz["title"]:
                     viz["title"] = new_title
                     save_visualization(st.session_state.current_viz_id, True, title=new_title)
 
-            tabs = st.tabs(["Code", "Preview", "History", "Export"])  # 📑
+            tabs = st.tabs(["💻 Code", "👁️ Preview", "📜 History", "📤 Export"])
 
             with tabs[0]:
-                new_code = st.text_area("Code Editor", st.session_state.current_code, height=400)  # 💻
+                new_code = st.text_area("Code Editor", st.session_state.current_code, height=400)
                 if new_code != st.session_state.current_code:
                     st.session_state.current_code = new_code
                     save_visualization(st.session_state.current_viz_id, True, title=viz['title'])
@@ -595,12 +603,12 @@ def main():
                     result = safe_exec_visualization(st.session_state.current_code)
 
                 if not result["success"]:
-                    st.error(f"Error: {result['error_msg']}")  # ❌
-                    with st.expander("Error Details"):  # ℹ️
+                    st.error(f"❌ Error: {result['error_msg']}")
+                    with st.expander("ℹ️ Error Details"):
                         st.code(result["traceback"])
 
-                    if st.button("Auto-repair"):  # 🛠️
-                        with st.spinner("Repairing code..."):  # ⏳
+                    if st.button("🛠️ Auto-repair"):
+                        with st.spinner("⏳ Repairing code..."):
                             fixed_code = repair_with_llm(st.session_state.current_code, result, viz.get('used_image'))
                             st.session_state.current_code = fixed_code
                             save_visualization(st.session_state.current_viz_id, True, title=viz['title'])
@@ -612,26 +620,26 @@ def main():
                     for i, edit in enumerate(reversed(history)):
                         timestamp = datetime.datetime.fromisoformat(edit["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")
                         save_type = "Auto" if edit["auto_save"] else "Manual"
-                        st.caption(f"{timestamp} ({save_type} save)")  # ⏱️
-                        if st.button(f"Restore version {len(history) - i}", key=f"restore_{i}"):  # 🔄
+                        st.caption(f"⏱️ {timestamp} ({save_type} save)")
+                        if st.button(f"🔄 Restore version {len(history) - i}", key=f"restore_{i}"):
                             st.session_state.current_code = edit["code"]
                             save_visualization(st.session_state.current_viz_id, title=viz['title'])
                             st.rerun()
             
             with tabs[3]:  # Export tab
-                if st.button("Export as Quarto (.qmd)"):  # ⬇️
-                    with st.spinner("Generating academic title..."):  # 🔄
+                if st.button("📥 Export as Quarto (.qmd)"):
+                    with st.spinner("🔄 Generating academic title..."):
                         qmd_content, quarto_title = export_to_quarto(st.session_state.current_viz_id)
-                        st.success(f"Generated title: {quarto_title}")  # ✅
+                        st.success(f"✅ Generated title: {quarto_title}")
                         st.download_button(
-                            label="Download Quarto File",
+                            label="⬇️ Download Quarto File",
                             data=qmd_content,
                             file_name=f"{quarto_title.replace(' ', '_')}.qmd",
                             mime="text/markdown",
                         )
 
-            refinement_prompt = st.text_area("Describe what to change:")  # ✍️
-            if st.button("Refine with AI"):  # 🤖
+            refinement_prompt = st.text_area("✍️ Describe what to change:")
+            if st.button("🤖 Refine with AI"):
                 chatbot = get_chatbot()
                 
                 # Include information about the files if used
@@ -684,10 +692,13 @@ def main():
                 Return the complete updated code with all changes implemented and all required imports.
                 Return only Python code, no explanations or comments about the changes.
                 Do not write any functions. All codes must be inline.
-                Do not generate output about deprecation.showPyplotGlobalUse.
+
+                CRITICAL: DO NOT include any st.set_option() calls in your code.
+                DO NOT use st.set_option('deprecation.showPyplotGlobalUse', False) - this option no longer exists in Streamlit and will cause an error.
+                DO NOT use st.set_page_config() as it's already set by the parent app.
                 """
 
-                with st.spinner("Refining visualization..."):  # ⏳
+                with st.spinner("⏳ Refining visualization..."):
                     # Use image if available for refinement
                     image_filename = viz.get('used_image')
                     if image_filename:

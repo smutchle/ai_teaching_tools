@@ -193,5 +193,27 @@
     "tags": [],
     "used_csv": "wind_turbine_energy_generation.csv",
     "used_image": null
+  },
+  "f593b6ea-1af4-4eac-af8f-6d1c774e64dc": {
+    "id": "f593b6ea-1af4-4eac-af8f-6d1c774e64dc",
+    "created_at": "2025-10-08T13:35:42.879770",
+    "updated_at": "2025-10-08T13:36:10.195482",
+    "code": "import streamlit as st\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport numpy as np\nfrom sklearn.datasets import load_iris\nimport warnings\n\nwarnings.filterwarnings('ignore')\n\nst.title(\"Iris Dataset Visualization\")\nst.write(\"Recreating a scatter plot showing Petal Width vs Petal Length for different Iris species\")\n\niris = load_iris()\niris_df = pd.DataFrame(data=iris.data, columns=iris.feature_names)\niris_df['species'] = iris.target\niris_df['species_name'] = iris_df['species'].map({0: 'setosa', 1: 'versicolor', 2: 'virginica'})\n\npetal_length_col = st.selectbox(\"Select Petal Length Column\", iris_df.columns[:4], index=2)\npetal_width_col = st.selectbox(\"Select Petal Width Column\", iris_df.columns[:4], index=3)\n\nfig, ax = plt.subplots(figsize=(6, 5))\n\nspecies_markers = {'setosa': 'o', 'versicolor': 's', 'virginica': '+'}\nspecies_colors = {'setosa': 'red', 'versicolor': 'blue', 'virginica': 'green'}\n\nfor species in ['setosa', 'versicolor', 'virginica']:\n    species_data = iris_df[iris_df['species_name'] == species]\n    ax.scatter(species_data[petal_length_col], \n               species_data[petal_width_col],\n               marker=species_markers[species],\n               color=species_colors[species],\n               label=species,\n               alpha=0.6,\n               s=60 if species != 'virginica' else 100,\n               linewidths=1.5 if species == 'virginica' else 1)\n\nax.set_xlabel('Petal.Length', fontsize=12)\nax.set_ylabel('Petal.Width', fontsize=12)\nax.legend(loc='upper left', frameon=True)\nax.grid(False)\nax.set_xlim(0.5, 7.5)\nax.set_ylim(-0.5, 3)\n\nplt.tight_layout()\nst.pyplot(fig)\n\nst.write(\"### Dataset Statistics\")\nst.dataframe(iris_df.groupby('species_name')[[petal_length_col, petal_width_col]].describe())",
+    "title": "Iris Petal Dimensions by Species",
+    "description": "",
+    "tags": [],
+    "used_csv": null,
+    "used_image": "iris.png"
+  },
+  "9f109cfa-cc85-4c1f-a760-5a2ce81ffed5": {
+    "id": "9f109cfa-cc85-4c1f-a760-5a2ce81ffed5",
+    "created_at": "2025-10-08T13:39:36.100442",
+    "updated_at": "2025-10-08T13:39:36.100442",
+    "code": "import streamlit as st\nimport numpy as np\nimport pandas as pd\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nfrom sklearn import datasets\nimport warnings\n\nwarnings.filterwarnings('ignore')\n\nst.title(\"Iris Dataset Visualization\")\nst.write(\"Recreating the scatter plot of Petal Length vs Petal Width by Species\")\n\n# Load the iris dataset\niris = datasets.load_iris()\niris_df = pd.DataFrame(data=iris.data, columns=iris.feature_names)\niris_df['species'] = iris.target\niris_df['species_name'] = iris_df['species'].map({0: 'setosa', 1: 'versicolor', 2: 'virginica'})\n\n# Create the plot\nfig, ax = plt.subplots(figsize=(8, 6))\n\n# Define colors and markers for each species\nspecies_styles = {\n    'setosa': {'color': 'red', 'marker': 'o', 'facecolors': 'none'},\n    'versicolor': {'color': 'blue', 'marker': '^', 'facecolors': 'none'},\n    'virginica': {'color': 'green', 'marker': '+', 'facecolors': 'green'}\n}\n\n# Plot each species\nfor species_name, style in species_styles.items():\n    species_data = iris_df[iris_df['species_name'] == species_name]\n    if species_name == 'virginica':\n        ax.scatter(species_data['petal length (cm)'], \n                  species_data['petal width (cm)'],\n                  c=style['color'], \n                  marker=style['marker'],\n                  s=80,\n                  label=species_name,\n                  linewidths=1.5)\n    else:\n        ax.scatter(species_data['petal length (cm)'], \n                  species_data['petal width (cm)'],\n                  edgecolors=style['color'], \n                  marker=style['marker'],\n                  facecolors=style['facecolors'],\n                  s=50,\n                  label=species_name,\n                  linewidths=1)\n\n# Set labels and title\nax.set_xlabel('Petal.Length', fontsize=12)\nax.set_ylabel('Petal.Width', fontsize=12)\nax.legend(loc='upper left', frameon=True)\nax.set_xlim(0.5, 7.5)\nax.set_ylim(0, 2.7)\n\n# Display the plot\nst.pyplot(fig)\n\n# Add interactive data exploration\nst.subheader(\"Interactive Data Exploration\")\n\nselected_species = st.multiselect(\n    \"Select species to display:\",\n    options=['setosa', 'versicolor', 'virginica'],\n    default=['setosa', 'versicolor', 'virginica']\n)\n\nif selected_species:\n    filtered_df = iris_df[iris_df['species_name'].isin(selected_species)]\n    st.write(f\"Showing {len(filtered_df)} samples\")\n    st.dataframe(filtered_df[['petal length (cm)', 'petal width (cm)', 'species_name']].head(20))\n    \n    # Summary statistics\n    st.subheader(\"Summary Statistics\")\n    summary = filtered_df.groupby('species_name')[['petal length (cm)', 'petal width (cm)']].describe()\n    st.dataframe(summary)",
+    "title": "Iris Petal Dimensions by Species Visualization",
+    "description": "",
+    "tags": [],
+    "used_csv": null,
+    "used_image": "iris.png"
   }
 }
