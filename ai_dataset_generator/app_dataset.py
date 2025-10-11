@@ -265,6 +265,8 @@ if 'last_error_message' not in st.session_state:
     st.session_state.last_error_message = None
 if 'fixing_json' not in st.session_state:
     st.session_state.fixing_json = False
+if 'save_name_preview' not in st.session_state:
+    st.session_state.save_name_preview = ""
 
 # Define the questions
 QUESTIONS = [
@@ -335,6 +337,14 @@ if selected and selected != st.session_state.selected_dataset:
     st.session_state.config_text = json.dumps(config, indent=2)
     st.session_state.current_config = config
 
+    # Also load the .qmd description if it exists
+    qmd_filepath = DATASETS_DIR / f"{selected}.qmd"
+    if qmd_filepath.exists():
+        with open(qmd_filepath, 'r') as f:
+            st.session_state.dataset_description = f.read()
+    else:
+        st.session_state.dataset_description = ""
+
 # Action buttons
 col1, col2, col3 = st.sidebar.columns(3)
 
@@ -376,11 +386,8 @@ if col1.button("➕ New", use_container_width=True):
 if col2.button("💾 Save", use_container_width=True):
     try:
         config = json.loads(st.session_state.config_text)
-        name = config['dataset_config']['name']
-        save_dataset_config(name, config)
-        st.sidebar.success(f"✅ Saved '{name}'")
-        st.session_state.selected_dataset = name
-        st.session_state.last_error_message = None  # Clear error on success
+        auto_name = config['dataset_config']['name']
+        st.session_state.save_name_preview = auto_name
         st.rerun()
     except json.JSONDecodeError as e:
         error_msg = f"JSON syntax error: {str(e)}"
@@ -391,12 +398,67 @@ if col2.button("💾 Save", use_container_width=True):
         st.session_state.last_error_message = error_msg
         st.sidebar.error(f"❌ Error: {str(e)}")
 
+# Show dataset name input if save was clicked
+if st.session_state.save_name_preview:
+    st.sidebar.divider()
+    st.sidebar.subheader("💾 Save Dataset")
+
+    # Text input for dataset name
+    save_name = st.sidebar.text_input(
+        "Dataset Name",
+        value=st.session_state.save_name_preview,
+        key="save_name_input",
+        help="Edit the dataset name if needed, then click Confirm Save"
+    )
+
+    col_save1, col_save2 = st.sidebar.columns(2)
+
+    with col_save1:
+        if st.button("✅ Confirm Save", use_container_width=True, type="primary"):
+            try:
+                config = json.loads(st.session_state.config_text)
+                # Update the name in the config
+                config['dataset_config']['name'] = save_name
+                st.session_state.config_text = json.dumps(config, indent=2)
+                # Save with the (possibly edited) name
+                save_dataset_config(save_name, config)
+
+                # Also save the dataset description as .qmd file if it exists
+                if st.session_state.dataset_description:
+                    qmd_filepath = DATASETS_DIR / f"{save_name}.qmd"
+                    with open(qmd_filepath, 'w') as f:
+                        f.write(st.session_state.dataset_description)
+                    st.sidebar.success(f"✅ Saved '{save_name}.json' and '{save_name}.qmd'")
+                else:
+                    st.sidebar.success(f"✅ Saved '{save_name}.json'")
+
+                st.session_state.selected_dataset = save_name
+                st.session_state.save_name_preview = ""  # Clear the preview
+                st.session_state.last_error_message = None  # Clear error on success
+                st.rerun()
+            except Exception as e:
+                error_msg = f"Save error: {str(e)}"
+                st.session_state.last_error_message = error_msg
+                st.sidebar.error(f"❌ Error: {str(e)}")
+
+    with col_save2:
+        if st.button("❌ Cancel", use_container_width=True):
+            st.session_state.save_name_preview = ""  # Clear the preview
+            st.rerun()
+
 if col3.button("🗑️ Delete", use_container_width=True, disabled=not st.session_state.selected_dataset):
     if st.session_state.selected_dataset:
         delete_dataset_config(st.session_state.selected_dataset)
+
+        # Also delete the .qmd file if it exists
+        qmd_filepath = DATASETS_DIR / f"{st.session_state.selected_dataset}.qmd"
+        if qmd_filepath.exists():
+            qmd_filepath.unlink()
+
         st.sidebar.success(f"🗑️ Deleted '{st.session_state.selected_dataset}'")
         st.session_state.selected_dataset = None
         st.session_state.config_text = ""
+        st.session_state.dataset_description = ""
         st.rerun()
 
 st.sidebar.divider()
