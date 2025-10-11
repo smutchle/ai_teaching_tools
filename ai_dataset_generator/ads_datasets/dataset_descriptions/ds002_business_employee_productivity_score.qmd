@@ -1,0 +1,82 @@
+---
+title: "Dataset 2: Employee Productivity Prediction in Modern Workplaces"
+format: html
+---
+
+# Overview
+
+This dataset captures key factors influencing employee productivity in today's dynamic business environment. With the rise of hybrid work models, flexible schedules, and emphasis on professional development, organizations need data-driven approaches to understand what drives employee performance. This regression dataset provides an excellent foundation for exploring how workplace variables impact individual productivity scores.
+
+# Background and Use Case
+
+TechFlow Solutions, a mid-sized software consulting company, has been experiencing varying levels of employee productivity across its 200+ workforce. With the company's recent adoption of hybrid work policies and increased investment in employee training programs, HR leadership wants to understand which factors most significantly impact employee output and efficiency.
+
+The company has been tracking various employee metrics including years of experience, training hours completed, team sizes, and work-from-home frequency. They've also developed a comprehensive productivity scoring system that combines objective measures (tasks completed, deadlines met, code quality) with subjective assessments (collaboration, innovation, problem-solving). Now, they want to build a predictive model to help with workforce planning, identify high-potential employees, and optimize team compositions.
+
+This analysis could help TechFlow make evidence-based decisions about training investments, team structuring, and remote work policies. It could also assist in performance management, career development planning, and resource allocation across different projects and departments.
+
+# Problem Statement
+
+The challenge is to predict an employee's productivity score based on their professional characteristics and work arrangements. This regression problem aims to quantify the relationship between workplace factors and individual performance, enabling organizations to optimize their human resource strategies and create conditions that maximize employee productivity.
+
+# Target Variable
+
+**Employee Productivity Score**: A composite metric ranging from 0-100 that measures individual employee output and efficiency. This score combines quantitative measures such as project completion rates, quality metrics, and deadline adherence with qualitative assessments including collaboration effectiveness, innovation contributions, and problem-solving capabilities. The score is calculated monthly and represents a standardized measure that allows for fair comparison across different roles and departments within the organization.
+
+# Predictor Variables
+
+- **Years Experience**: Total years of professional experience in the employee's field (0-20 years). This variable captures the impact of professional maturity, skill development, and domain expertise on productivity.
+
+- **Training Hours**: Number of professional development hours completed in the past year (0-120 hours). Reflects the organization's investment in employee growth and the individual's commitment to skill enhancement.
+
+- **Team Size**: Number of people in the employee's immediate working team (2-15 members). This variable helps understand how team dynamics and collaboration complexity affect individual productivity.
+
+- **Work-from-Home Days**: Average number of days per week the employee works remotely (0-5 days). Captures the impact of workplace flexibility and remote work arrangements on productivity outcomes.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds002_business_employee_productivity_score.csv`): Ideal for initial model development and learning. Contains complete data with no missing values or extreme outliers, perfect for students to focus on modeling techniques and interpretation.
+
+- **Dirty Version** (`ds002_business_employee_productivity_score_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues. This version challenges students to apply data cleaning techniques, handle missing data appropriately, and deal with outliers before modeling.
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with simple linear regression to understand basic relationships between individual predictors and productivity scores. Excellent for interpretation and establishing baseline performance.
+
+- **Multiple Linear Regression**: Incorporate all predictor variables to understand their combined effect on productivity. Include interaction terms to explore how variables might work together (e.g., experience × training hours).
+
+- **Polynomial Regression**: Explore non-linear relationships, particularly for variables like experience where productivity gains might diminish at higher levels or follow curved patterns.
+
+- **Regularized Regression** (Ridge/Lasso): Apply regularization techniques to prevent overfitting and perform feature selection, especially useful when exploring interaction terms and polynomial features.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 2 |
+| Domain | Business |
+| Problem Type | Regression |
+| Number of Rows | 1,000 |
+| Number of Features | 4 |
+| Target Variable | Employee Productivity Score (0-100) |
+| Clean Version | `csv/ds002_business_employee_productivity_score.csv` |
+| Dirty Version | `csv/ds002_business_employee_productivity_score_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+Working with this dataset will help students:
+
+- Practice regression modeling techniques and evaluation metrics
+- Understand the importance of data quality and preprocessing
+- Explore feature engineering and interaction effects
+- Learn to interpret model coefficients in a business context
+- Develop skills in handling missing data and outliers
+- Gain experience with real-world HR analytics problems
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The productivity scores and their relationships to workplace factors reflect patterns commonly observed in organizational psychology and human resources research, making this an excellent dataset for learning both technical skills and domain knowledge in business analytics.

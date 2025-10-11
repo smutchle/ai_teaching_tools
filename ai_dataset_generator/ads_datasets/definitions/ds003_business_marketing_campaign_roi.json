@@ -1,0 +1,131 @@
+{
+  "dataset_config": {
+    "name": "ds003_business_marketing_campaign_roi",
+    "description": "Estimate return on investment for marketing initiatives based on budget allocation, channel mix, audience size, seasonality, and creative quality",
+    "random_seed": 3,
+    "n_rows": 1000,
+    "correlations": [
+      {
+        "variables": [
+          "budget_thousands",
+          "audience_size_millions"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "creative_score",
+          "digital_channel_pct"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "budget_thousands",
+          "creative_score"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "budget_thousands",
+        "description": "Marketing campaign budget in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 150,
+          "std": 50,
+          "min_clip": 20,
+          "max_clip": 500
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "digital_channel_pct",
+        "description": "Percentage of budget allocated to digital channels",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "traditional_channel_pct",
+        "description": "Percentage of budget allocated to traditional channels",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "audience_size_millions",
+        "description": "Target audience size in millions of people",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 1.2,
+          "min_clip": 0.1,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "seasonality_index",
+        "description": "Seasonal demand index (1.0 = average, >1.0 = high season)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.6,
+          "max": 1.4
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "creative_score",
+        "description": "Creative quality score from 1-10 based on professional evaluation",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 1.5,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "competitor_activity",
+        "description": "Competitor advertising activity level (1-5 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1,
+          "max": 5
+        },
+        "missing_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "marketing_campaign_roi",
+      "description": "Estimate return on investment for marketing initiatives",
+      "data_type": "float",
+      "expression": "1.5 + 0.008*budget_thousands + 0.02*digital_channel_pct + 0.3*audience_size_millions + 0.8*seasonality_index + 0.15*creative_score - 0.1*competitor_activity",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0
+    }
+  }
+}

@@ -1,0 +1,142 @@
+{
+  "dataset_config": {
+    "name": "ds001_business_customer_lifetime_value",
+    "description": "Predict total revenue from a customer over their relationship with company based on purchase behavior and customer characteristics",
+    "random_seed": 1,
+    "n_rows": 1000,
+    "correlations": [
+      {
+        "variables": [
+          "purchase_frequency_monthly",
+          "avg_transaction_value"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "tenure_months",
+          "purchase_frequency_monthly"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "avg_transaction_value",
+          "premium_products_purchased"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "product_categories_purchased",
+          "total_orders"
+        ],
+        "correlation": 0.6,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "purchase_frequency_monthly",
+        "description": "Average number of purchases per month",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 1.2,
+          "min_clip": 0.1,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "avg_transaction_value",
+        "description": "Average value per transaction in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 85,
+          "std": 35,
+          "min_clip": 15,
+          "max_clip": 300
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "tenure_months",
+        "description": "Number of months as customer",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 18,
+          "location": 1
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "product_categories_purchased",
+        "description": "Number of different product categories purchased",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.5,
+          "std": 1.8,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "total_orders",
+        "description": "Total number of orders placed",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 25,
+          "std": 15,
+          "min_clip": 1,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "premium_products_purchased",
+        "description": "Number of premium products purchased",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 4,
+          "std": 3,
+          "min_clip": 0,
+          "max_clip": 20
+        },
+        "missing_rate": 0.0
+      },
+      {
+        "name": "support_interactions",
+        "description": "Number of customer support interactions",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 2.5,
+          "min_clip": 0,
+          "max_clip": 15
+        },
+        "missing_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "customer_lifetime_value",
+      "description": "Predict total revenue from a customer over their relationship with company",
+      "data_type": "float",
+      "expression": "tenure_months * avg_transaction_value * purchase_frequency_monthly + premium_products_purchased * 45 + product_categories_purchased * 120 + total_orders * 8 - support_interactions * 25",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0
+    }
+  }
+}

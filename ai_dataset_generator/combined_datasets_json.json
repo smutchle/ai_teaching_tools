@@ -1,0 +1,805 @@
+{
+  "datasets": [
+    {
+      "id": 1,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Customer Lifetime Value",
+      "predictors": "Purchase frequency, avg transaction value, tenure, product categories",
+      "description": "Predict total revenue from a customer over their relationship with company"
+    },
+    {
+      "id": 2,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Employee Productivity Score",
+      "predictors": "Years experience, training hours, team size, work-from-home days",
+      "description": "Quantify individual employee output and efficiency"
+    },
+    {
+      "id": 3,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Marketing Campaign ROI",
+      "predictors": "Budget, channel mix, audience size, seasonality, creative score",
+      "description": "Estimate return on investment for marketing initiatives"
+    },
+    {
+      "id": 4,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Real Estate Price",
+      "predictors": "Square footage, bedrooms, location score, age, amenities count",
+      "description": "Predict property sale or rental prices"
+    },
+    {
+      "id": 5,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "Cognitive Test Score",
+      "predictors": "Age, education years, sleep hours, exercise frequency, stress level",
+      "description": "Predict performance on standardized cognitive assessments"
+    },
+    {
+      "id": 6,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "Brain Region Volume",
+      "predictors": "Age, sex, genetic markers, lifestyle factors, comorbidities",
+      "description": "Estimate volumetric measurements of specific brain structures"
+    },
+    {
+      "id": 7,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "Reaction Time",
+      "predictors": "Age, fatigue level, task complexity, caffeine intake, prior training",
+      "description": "Predict speed of response to stimuli in milliseconds"
+    },
+    {
+      "id": 8,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "Memory Recall Accuracy",
+      "predictors": "Study duration, interference level, sleep quality, stress, age",
+      "description": "Predict percentage of correctly recalled items"
+    },
+    {
+      "id": 9,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Species Abundance",
+      "predictors": "Temperature, precipitation, elevation, habitat area, predator density",
+      "description": "Estimate population count of a species in a given area"
+    },
+    {
+      "id": 10,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Forest Biomass",
+      "predictors": "Tree density, species richness, soil nutrients, rainfall, temperature",
+      "description": "Predict total organic matter per hectare"
+    },
+    {
+      "id": 11,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Water Quality Index",
+      "predictors": "pH, dissolved oxygen, turbidity, nutrient levels, temperature",
+      "description": "Quantify overall water body health on continuous scale"
+    },
+    {
+      "id": 12,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Pollinator Visitation Rate",
+      "predictors": "Flower density, color diversity, temperature, wind speed, habitat type",
+      "description": "Predict number of pollinator visits per hour"
+    },
+    {
+      "id": 13,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Social Mobility Score",
+      "predictors": "Parental education, income quintile, neighborhood quality, access to resources",
+      "description": "Measure economic advancement across generations"
+    },
+    {
+      "id": 14,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Community Trust Index",
+      "predictors": "Crime rate, diversity, median income, civic participation, tenure",
+      "description": "Quantify interpersonal trust levels within communities"
+    },
+    {
+      "id": 15,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Education Attainment Years",
+      "predictors": "Parental education, household income, school quality, peer influence",
+      "description": "Predict total years of formal education completed"
+    },
+    {
+      "id": 16,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Volunteer Hours per Year",
+      "predictors": "Age, income, education, employment status, community ties",
+      "description": "Estimate annual time devoted to unpaid community service"
+    },
+    {
+      "id": 17,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Soil Erosion Rate",
+      "predictors": "Slope, vegetation cover, rainfall intensity, soil type, land use",
+      "description": "Predict soil loss in tons per hectare per year"
+    },
+    {
+      "id": 18,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Groundwater Depth",
+      "predictors": "Elevation, precipitation, aquifer type, extraction rate, soil porosity",
+      "description": "Estimate depth to water table in meters"
+    },
+    {
+      "id": 19,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Earthquake Magnitude",
+      "predictors": "Fault displacement, focal depth, fault length, stress accumulation",
+      "description": "Predict seismic event strength on Richter scale"
+    },
+    {
+      "id": 20,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Mineral Concentration",
+      "predictors": "Rock type, depth, temperature, pressure, weathering index",
+      "description": "Estimate ore grade or mineral content percentage"
+    },
+    {
+      "id": 21,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Plant Growth Rate",
+      "predictors": "Light intensity, nutrient levels, temperature, water availability, CO2",
+      "description": "Predict biomass increase per day in grams"
+    },
+    {
+      "id": 22,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Protein Expression Level",
+      "predictors": "Gene promoter strength, cell type, stressors, time since induction",
+      "description": "Quantify protein abundance in cells"
+    },
+    {
+      "id": 23,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Enzyme Activity",
+      "predictors": "Temperature, pH, substrate concentration, inhibitor presence, cofactors",
+      "description": "Measure reaction rate in micromoles per minute"
+    },
+    {
+      "id": 24,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Organism Lifespan",
+      "predictors": "Diet quality, genetic factors, stress exposure, reproduction events",
+      "description": "Predict survival duration in days or years"
+    },
+    {
+      "id": 25,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Inventory Turnover Days",
+      "predictors": "Product category, seasonality, price point, storage costs, demand variability",
+      "description": "Estimate days to sell through current stock"
+    },
+    {
+      "id": 26,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Customer Churn (Yes/No)",
+      "predictors": "Contract length, support tickets, usage frequency, payment delays",
+      "description": "Predict whether customer will cancel service"
+    },
+    {
+      "id": 27,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Loan Default Risk (Low/Med/High)",
+      "predictors": "Credit score, income, debt-to-income ratio, employment history",
+      "description": "Classify creditworthiness into risk categories"
+    },
+    {
+      "id": 28,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Product Purchase (Yes/No)",
+      "predictors": "Browsing time, cart additions, email opens, demographic info",
+      "description": "Predict whether visitor will complete purchase"
+    },
+    {
+      "id": 29,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Employee Attrition (Stay/Leave)",
+      "predictors": "Salary, commute time, job satisfaction, years at company, promotions",
+      "description": "Forecast employee retention or departure"
+    },
+    {
+      "id": 30,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Cognitive Impairment (Normal/MCI/Dementia)",
+      "predictors": "Age, biomarkers, imaging features, cognitive scores, genetics",
+      "description": "Classify degree of cognitive decline"
+    },
+    {
+      "id": 31,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Seizure Occurrence (Yes/No)",
+      "predictors": "EEG patterns, medication adherence, sleep quality, stress triggers",
+      "description": "Predict epileptic event likelihood"
+    },
+    {
+      "id": 32,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Brain Tumor Type (4 classes)",
+      "predictors": "MRI features, age, symptoms, genetic markers, tumor location",
+      "description": "Classify malignancy and tumor subtype"
+    },
+    {
+      "id": 33,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Mental Health Diagnosis (5 categories)",
+      "predictors": "Symptom checklist, sleep patterns, social function, trauma history",
+      "description": "Categorize psychiatric conditions"
+    },
+    {
+      "id": 34,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Habitat Quality (Poor/Fair/Good/Excellent)",
+      "predictors": "Species richness, vegetation health, disturbance level, connectivity",
+      "description": "Classify ecosystem condition"
+    },
+    {
+      "id": 35,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Invasive Species Presence (Yes/No)",
+      "predictors": "Native diversity, disturbance, propagule pressure, climate match",
+      "description": "Detect non-native species establishment"
+    },
+    {
+      "id": 36,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Conservation Priority (Low/Med/High/Critical)",
+      "predictors": "Endemism, threat level, ecosystem services, rarity, legal status",
+      "description": "Rank areas for protection efforts"
+    },
+    {
+      "id": 37,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Migration Status (Resident/Migratory)",
+      "predictors": "Species traits, habitat type, latitude, resource availability, climate",
+      "description": "Classify movement patterns of organisms"
+    },
+    {
+      "id": 38,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Voting Behavior (5 party choices)",
+      "predictors": "Age, income, education, urban/rural, social values",
+      "description": "Predict electoral preferences"
+    },
+    {
+      "id": 39,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Social Class (Working/Middle/Upper)",
+      "predictors": "Occupation, education, income, wealth, cultural capital",
+      "description": "Categorize socioeconomic stratification"
+    },
+    {
+      "id": 40,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Technology Adoption (Early/Late/Non-adopter)",
+      "predictors": "Age, education, income, tech literacy, peer influence",
+      "description": "Classify innovation diffusion groups"
+    },
+    {
+      "id": 41,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Marriage Stability (Stable/At-risk/Dissolved)",
+      "predictors": "Duration, age at marriage, income, children, conflict frequency",
+      "description": "Predict relationship outcome categories"
+    },
+    {
+      "id": 42,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Landslide Risk (Low/Moderate/High)",
+      "predictors": "Slope, soil type, vegetation, rainfall, seismic activity",
+      "description": "Classify terrain stability hazard levels"
+    },
+    {
+      "id": 43,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Rock Type (Igneous/Sedimentary/Metamorphic)",
+      "predictors": "Mineral composition, texture, structure, formation depth, age",
+      "description": "Identify geological material categories"
+    },
+    {
+      "id": 44,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Drought Severity (5 levels)",
+      "predictors": "Precipitation deficit, soil moisture, temperature, vegetation stress",
+      "description": "Classify water scarcity intensity"
+    },
+    {
+      "id": 45,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Volcanic Activity Level (Dormant/Active/Erupting)",
+      "predictors": "Seismicity, gas emissions, deformation, thermal anomalies",
+      "description": "Categorize volcano status"
+    },
+    {
+      "id": 46,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Disease Status (Healthy/Infected/Resistant)",
+      "predictors": "Immune markers, exposure level, genetic factors, nutrition, stress",
+      "description": "Classify organism health state"
+    },
+    {
+      "id": 47,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Cell Type (6 tissue classes)",
+      "predictors": "Gene expression profile, morphology, markers, location",
+      "description": "Identify cellular identity and function"
+    },
+    {
+      "id": 48,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Treatment Response (Responder/Non-responder)",
+      "predictors": "Genetic profile, disease severity, age, comorbidities, biomarkers",
+      "description": "Predict therapeutic efficacy"
+    },
+    {
+      "id": 49,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Organism Sex (Male/Female/Hermaphrodite)",
+      "predictors": "Morphological traits, genetic markers, hormone levels, behavior",
+      "description": "Determine biological sex classification"
+    },
+    {
+      "id": 50,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Market Segment (4 customer types)",
+      "predictors": "Purchase patterns, demographics, psychographics, channel preference",
+      "description": "Group customers by shared characteristics"
+    },
+    {
+      "id": 51,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Website Conversion Rate",
+      "predictors": "Page load time, mobile responsiveness, call-to-action clarity, trust signals",
+      "description": "Predict percentage of visitors who complete desired action"
+    },
+    {
+      "id": 52,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Supply Chain Lead Time",
+      "predictors": "Supplier distance, order complexity, customs requirements, shipping method",
+      "description": "Estimate days from order to delivery"
+    },
+    {
+      "id": 53,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Brand Sentiment Score",
+      "predictors": "Social media mentions, review ratings, PR events, competitor activity",
+      "description": "Quantify public perception on continuous scale"
+    },
+    {
+      "id": 54,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Sales Commission Amount",
+      "predictors": "Deal size, product mix, negotiation duration, client industry, region",
+      "description": "Calculate compensation for sales personnel"
+    },
+    {
+      "id": 55,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "Dopamine Receptor Density",
+      "predictors": "Age, genetic variants, substance use history, medication, brain region",
+      "description": "Measure receptor availability in neural tissue"
+    },
+    {
+      "id": 56,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "Neural Firing Rate",
+      "predictors": "Stimulus intensity, neuron type, network connectivity, neuromodulators",
+      "description": "Predict action potentials per second"
+    },
+    {
+      "id": 57,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "Learning Curve Slope",
+      "predictors": "Task difficulty, prior knowledge, motivation, feedback quality, age",
+      "description": "Estimate rate of skill acquisition over trials"
+    },
+    {
+      "id": 58,
+      "type": "regression",
+      "domain": "Neuroscience",
+      "target": "White Matter Integrity",
+      "predictors": "Age, cardiovascular health, education, head trauma history, genetics",
+      "description": "Quantify neural pathway quality using diffusion metrics"
+    },
+    {
+      "id": 59,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Carbon Sequestration Rate",
+      "predictors": "Vegetation type, soil organic matter, rainfall, temperature, land management",
+      "description": "Predict tons of CO2 absorbed per hectare annually"
+    },
+    {
+      "id": 60,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Stream Flow Rate",
+      "predictors": "Watershed area, precipitation, snowpack, vegetation cover, soil type",
+      "description": "Estimate cubic meters per second in waterways"
+    },
+    {
+      "id": 61,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Seed Dispersal Distance",
+      "predictors": "Seed morphology, wind speed, animal vectors, plant height, habitat openness",
+      "description": "Predict mean dispersal distance in meters"
+    },
+    {
+      "id": 62,
+      "type": "regression",
+      "domain": "Ecology",
+      "target": "Algae Bloom Intensity",
+      "predictors": "Nutrient loading, water temperature, light availability, flow rate",
+      "description": "Measure chlorophyll concentration in water bodies"
+    },
+    {
+      "id": 63,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Crime Rate per Capita",
+      "predictors": "Unemployment, poverty rate, police presence, education, housing density",
+      "description": "Predict offenses per 1000 residents annually"
+    },
+    {
+      "id": 64,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Social Network Size",
+      "predictors": "Personality traits, age, occupation, urbanization, digital literacy",
+      "description": "Estimate number of meaningful social connections"
+    },
+    {
+      "id": 65,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Income Inequality Index",
+      "predictors": "Education distribution, tax policy, union strength, industry composition",
+      "description": "Quantify wealth disparity using Gini coefficient"
+    },
+    {
+      "id": 66,
+      "type": "regression",
+      "domain": "Sociology",
+      "target": "Voter Turnout Percentage",
+      "predictors": "Competitiveness, weather, registration barriers, civic education, age demographics",
+      "description": "Predict electoral participation rate"
+    },
+    {
+      "id": 67,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Glacier Retreat Rate",
+      "predictors": "Temperature anomaly, precipitation, elevation, aspect, albedo",
+      "description": "Estimate meters of terminus retreat per year"
+    },
+    {
+      "id": 68,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Soil pH Level",
+      "predictors": "Parent material, rainfall, vegetation type, land use, time",
+      "description": "Predict acidity-alkalinity on continuous scale"
+    },
+    {
+      "id": 69,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Coastal Erosion Rate",
+      "predictors": "Wave energy, tidal range, sediment type, vegetation, sea level trend",
+      "description": "Measure shoreline retreat in meters per year"
+    },
+    {
+      "id": 70,
+      "type": "regression",
+      "domain": "Geoscience",
+      "target": "Geothermal Gradient",
+      "predictors": "Depth, crustal thickness, volcanic proximity, rock conductivity, heat flow",
+      "description": "Predict temperature increase per kilometer depth"
+    },
+    {
+      "id": 71,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Metabolic Rate",
+      "predictors": "Body mass, temperature, activity level, diet composition, age",
+      "description": "Estimate energy expenditure in kilocalories per day"
+    },
+    {
+      "id": 72,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Photosynthesis Efficiency",
+      "predictors": "Light wavelength, CO2 concentration, temperature, water stress, leaf age",
+      "description": "Measure carbon fixation rate per unit area"
+    },
+    {
+      "id": 73,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Antibody Titer",
+      "predictors": "Days post-vaccination, age, immune status, booster doses, adjuvant type",
+      "description": "Quantify immune response concentration in serum"
+    },
+    {
+      "id": 74,
+      "type": "regression",
+      "domain": "Biology",
+      "target": "Root Depth",
+      "predictors": "Soil moisture, texture, compaction, species, nutrient distribution",
+      "description": "Predict maximum rooting depth in centimeters"
+    },
+    {
+      "id": 75,
+      "type": "regression",
+      "domain": "Business",
+      "target": "Customer Satisfaction Score",
+      "predictors": "Wait time, resolution rate, agent empathy, product quality, price fairness",
+      "description": "Predict CSAT rating on continuous scale"
+    },
+    {
+      "id": 76,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Fraud Detection (Genuine/Fraudulent)",
+      "predictors": "Transaction amount, location, time, merchant type, velocity",
+      "description": "Identify suspicious financial activities"
+    },
+    {
+      "id": 77,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Hiring Decision (Reject/Interview/Offer)",
+      "predictors": "Resume keywords, experience years, education level, skills match, references",
+      "description": "Categorize candidate progression stages"
+    },
+    {
+      "id": 78,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Warehouse Location Suitability (3 levels)",
+      "predictors": "Transportation access, labor costs, proximity to markets, land cost, utilities",
+      "description": "Rank site appropriateness for distribution center"
+    },
+    {
+      "id": 79,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Ad Click (Yes/No)",
+      "predictors": "Ad position, image content, headline relevance, user demographics, time of day",
+      "description": "Predict engagement with digital advertisement"
+    },
+    {
+      "id": 80,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Sleep Stage (Wake/REM/Light/Deep)",
+      "predictors": "EEG frequency bands, eye movement, muscle tone, heart rate, time of night",
+      "description": "Classify polysomnography recordings"
+    },
+    {
+      "id": 81,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Pain Perception Level (None/Mild/Moderate/Severe)",
+      "predictors": "Stimulus intensity, genetics, prior experience, attention, mood",
+      "description": "Categorize subjective pain intensity"
+    },
+    {
+      "id": 82,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Handedness (Left/Right/Ambidextrous)",
+      "predictors": "Genetic markers, family history, early training, task performance patterns",
+      "description": "Determine motor dominance preference"
+    },
+    {
+      "id": 83,
+      "type": "classification",
+      "domain": "Neuroscience",
+      "target": "Addiction Risk (Low/Medium/High)",
+      "predictors": "Genetics, trauma history, social environment, personality traits, substance exposure",
+      "description": "Stratify vulnerability to dependence"
+    },
+    {
+      "id": 84,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Wetland Type (Marsh/Swamp/Bog/Fen)",
+      "predictors": "Hydrology, vegetation, soil chemistry, climate, topography",
+      "description": "Classify wetland ecosystem categories"
+    },
+    {
+      "id": 85,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Coral Reef Health (Healthy/Stressed/Bleached/Dead)",
+      "predictors": "Temperature, pH, nutrient pollution, sedimentation, fishing pressure",
+      "description": "Assess reef ecosystem condition"
+    },
+    {
+      "id": 86,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Pest Outbreak (None/Minor/Major)",
+      "predictors": "Temperature, host density, natural enemy abundance, pesticide history",
+      "description": "Predict agricultural pest severity levels"
+    },
+    {
+      "id": 87,
+      "type": "classification",
+      "domain": "Ecology",
+      "target": "Vegetation Type (6 biome classes)",
+      "predictors": "Temperature, precipitation, elevation, soil type, disturbance regime",
+      "description": "Classify dominant plant community"
+    },
+    {
+      "id": 88,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Work-Life Balance (Poor/Fair/Good)",
+      "predictors": "Work hours, commute, flexibility, family demands, supervisor support",
+      "description": "Categorize personal time allocation satisfaction"
+    },
+    {
+      "id": 89,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Religious Affiliation (6 categories)",
+      "predictors": "Family background, geography, education, age, social networks",
+      "description": "Classify spiritual or secular identity"
+    },
+    {
+      "id": 90,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Housing Tenure (Own/Rent/Other)",
+      "predictors": "Income, age, family size, location, employment stability",
+      "description": "Determine residential ownership status"
+    },
+    {
+      "id": 91,
+      "type": "classification",
+      "domain": "Sociology",
+      "target": "Media Consumption Type (4 platforms)",
+      "predictors": "Age, education, income, tech access, content preferences",
+      "description": "Predict primary information source"
+    },
+    {
+      "id": 92,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Aquifer Vulnerability (Low/Moderate/High)",
+      "predictors": "Depth to water, soil permeability, recharge rate, land use, geology",
+      "description": "Assess groundwater contamination risk"
+    },
+    {
+      "id": 93,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Soil Texture Class (Sand/Silt/Clay/Loam)",
+      "predictors": "Particle size distribution, parent material, weathering, organic content",
+      "description": "Categorize soil physical properties"
+    },
+    {
+      "id": 94,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Flood Risk Zone (Low/Medium/High/Extreme)",
+      "predictors": "Elevation, proximity to water, rainfall intensity, land cover, drainage",
+      "description": "Map inundation hazard categories"
+    },
+    {
+      "id": 95,
+      "type": "classification",
+      "domain": "Geoscience",
+      "target": "Mineral Deposit Type (5 ore classes)",
+      "predictors": "Host rock, alteration, structure, geochemistry, tectonic setting",
+      "description": "Identify economic mineralization category"
+    },
+    {
+      "id": 96,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Pollination Syndrome (Wind/Insect/Bird/Bat)",
+      "predictors": "Flower morphology, color, scent, nectar, blooming time",
+      "description": "Classify plant reproductive strategy"
+    },
+    {
+      "id": 97,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Antimicrobial Resistance (Susceptible/Resistant)",
+      "predictors": "Antibiotic exposure, genetic mutations, plasmids, bacterial species",
+      "description": "Predict drug efficacy against pathogens"
+    },
+    {
+      "id": 98,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Developmental Stage (5 life phases)",
+      "predictors": "Size, morphological features, time since birth, environmental cues",
+      "description": "Classify organism maturation level"
+    },
+    {
+      "id": 99,
+      "type": "classification",
+      "domain": "Biology",
+      "target": "Nutritional Status (Deficient/Adequate/Excess)",
+      "predictors": "Diet quality, biomarkers, anthropometry, absorption capacity",
+      "description": "Categorize micronutrient levels"
+    },
+    {
+      "id": 100,
+      "type": "classification",
+      "domain": "Business",
+      "target": "Delivery Success (On-time/Delayed/Failed)",
+      "predictors": "Distance, traffic, weather, package size, carrier, time window",
+      "description": "Predict shipment outcome categories"
+    }
+  ]
+}
+      

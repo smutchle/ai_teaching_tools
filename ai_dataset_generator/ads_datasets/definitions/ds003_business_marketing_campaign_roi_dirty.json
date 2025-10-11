@@ -1,0 +1,145 @@
+{
+  "dataset_config": {
+    "name": "ds003_business_marketing_campaign_roi_dirty",
+    "description": "Estimate return on investment for marketing initiatives based on budget, channel mix, audience size, seasonality, and creative score",
+    "random_seed": 3,
+    "n_rows": 1000,
+    "correlations": [
+      {
+        "variables": [
+          "budget_thousands",
+          "audience_size_millions"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "creative_score",
+          "digital_channel_mix"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "budget_thousands",
+          "creative_score"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "budget_thousands",
+        "description": "Marketing campaign budget in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 150,
+          "std": 75,
+          "min_clip": 10,
+          "max_clip": 500
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both"
+      },
+      {
+        "name": "digital_channel_mix",
+        "description": "Percentage of budget allocated to digital channels",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.2,
+          "max": 0.95
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both"
+      },
+      {
+        "name": "audience_size_millions",
+        "description": "Target audience size in millions of people",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.2,
+          "std": 2.8,
+          "min_clip": 0.5,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both"
+      },
+      {
+        "name": "seasonality_index",
+        "description": "Seasonal demand multiplier (1.0 = average, >1.0 = high season)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.7,
+          "max": 1.4
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both"
+      },
+      {
+        "name": "creative_score",
+        "description": "Creative quality score from 1-10 based on A/B testing",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 1.8,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both"
+      },
+      {
+        "name": "market_competition",
+        "description": "Market competition level from 1-5 (higher = more competitive)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.0,
+          "std": 1.0,
+          "min_clip": 1.0,
+          "max_clip": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both"
+      },
+      {
+        "name": "brand_awareness",
+        "description": "Pre-campaign brand awareness percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.05,
+          "max": 0.85
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both"
+      }
+    ],
+    "target": {
+      "name": "marketing_campaign_roi",
+      "description": "Return on investment for marketing campaign as a ratio",
+      "data_type": "float",
+      "expression": "1.5 + 0.008*budget_thousands + 1.2*digital_channel_mix + 0.15*audience_size_millions + 0.8*seasonality_index + 0.25*creative_score - 0.3*market_competition + 0.6*brand_awareness",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both"
+    }
+  }
+}
