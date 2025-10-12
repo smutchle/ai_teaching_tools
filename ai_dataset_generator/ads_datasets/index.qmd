@@ -31,6 +31,23 @@ All datasets are synthetic and generated for educational purposes.
 | Domains | 6 |
 | Rows per Dataset | 500,000 |
 
+# Downsizing the CSV to N-Rows (e.g. N=5000)
+
+## Windows (PowerShell)
+```powershell
+Get-Content my_dataset.csv -Head 5000 | Set-Content my_dataset_small.csv
+```
+
+## Linux
+```bash
+head -n 5000 my_dataset.csv > my_dataset_small.csv
+```
+
+## macOS
+```bash
+head -n 5000 my_dataset.csv > my_dataset_small.csv
+```
+
 # Using These Datasets 🚀
 
 1. **🔍 Choose a Dataset**: Browse by domain or problem type
@@ -123,6 +140,7 @@ All datasets are synthetic and generated for educational purposes.
 
 ## Neuroscience
 
+- 📊 [000: Cytokine Depression Study](dataset_descriptions/ds000_depression_cytokine_study.qmd)
 - 📊 [005: Cognitive Test Score](dataset_descriptions/ds005_neuroscience_cognitive_test_score.qmd)
 - 📊 [006: Brain Region Volume](dataset_descriptions/ds006_neuroscience_brain_region_volume.qmd)
 - 📊 [007: Reaction Time](dataset_descriptions/ds007_neuroscience_reaction_time.qmd)

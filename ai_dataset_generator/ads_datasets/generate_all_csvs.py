@@ -3,26 +3,32 @@
 Generate CSV files from all dataset definitions with self-healing error recovery.
 
 This script:
-1. Reads all dataset definition JSON files from ./ads_datasets/definitions/
+1. Reads all dataset definition JSON files from ./definitions/
 2. Generates CSV files using DatasetGenerator
-3. Outputs CSVs to ./ads_datasets/csv/
+3. Outputs CSVs to ./csv/
 4. Uses LLM to automatically fix errors in dataset definitions when generation fails
 5. Tracks progress and provides detailed reporting
 """
 
 import json
 import os
+import sys
 import traceback
 from pathlib import Path
 from dotenv import load_dotenv
+
+# Add parent directory to Python path for imports
+parent_dir = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(parent_dir))
+
 from AnthropicChatBot import AnthropicChatBot
 from dataset import Dataset
 from dataset_generator import DatasetGenerator
 
 
 # Configuration
-DEFINITIONS_DIR = Path("./ads_datasets/definitions")
-OUTPUT_DIR = Path("./ads_datasets/csv")
+DEFINITIONS_DIR = Path("./definitions")
+OUTPUT_DIR = Path("./csv")
 MAX_HEALING_ATTEMPTS = 2  # Maximum number of self-healing attempts per dataset
 
 
@@ -33,7 +39,7 @@ def setup_directories():
 
 def load_api_documentation():
     """Load the API documentation to provide context to the LLM."""
-    api_doc_path = Path("api_documentation.qmd")
+    api_doc_path = Path("../api_documentation.qmd")
     if api_doc_path.exists():
         with open(api_doc_path, 'r') as f:
             return f.read()
@@ -293,8 +299,9 @@ def main():
     print("CSV Dataset Generator with Self-Healing")
     print("=" * 80)
 
-    # Load environment variables
-    load_dotenv()
+    # Load environment variables from parent directory
+    env_path = Path(__file__).resolve().parent.parent / '.env'
+    load_dotenv(env_path)
     api_key = os.getenv('CLAUDE_API_KEY')
 
     if not api_key:

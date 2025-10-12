@@ -1,0 +1,244 @@
+{
+  "dataset_config": {
+    "name": "depression_cytokine_study",
+    "description": "Depression diagnosis based on cytokine biomarker readings",
+    "random_seed": 42,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "IL6",
+          "CRP"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "TNF_alpha",
+          "IL1_beta"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "IL6",
+          "TNF_alpha"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "cortisol",
+          "IL6"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "IL6",
+        "description": "Interleukin-6 levels (pg/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 3.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "TNF_alpha",
+        "description": "Tumor Necrosis Factor alpha (pg/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.3,
+          "scale": 8.2,
+          "location": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "IL1_beta",
+        "description": "Interleukin-1 beta (pg/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 2.8,
+          "location": 0.3
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "CRP",
+        "description": "C-Reactive Protein (mg/L)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 4.5,
+          "location": 0.8
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "cortisol",
+        "description": "Cortisol levels (\u03bcg/dL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.5,
+          "std": 4.2,
+          "min_clip": 3.0,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "IL10",
+        "description": "Interleukin-10 anti-inflammatory (pg/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.8,
+          "std": 2.1,
+          "min_clip": 1.0,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "IFN_gamma",
+        "description": "Interferon gamma (pg/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 6.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "age",
+        "description": "Patient age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 14,
+          "min_clip": 18,
+          "max_clip": 75
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "BMI",
+        "description": "Body Mass Index",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 26.5,
+          "std": 5.2,
+          "min_clip": 16.0,
+          "max_clip": 45.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "sleep_hours",
+        "description": "Average sleep hours per night",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.8,
+          "std": 1.3,
+          "min_clip": 3.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "gender",
+        "description": "Patient gender",
+        "data_type": "categorical",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 1
+        },
+        "categories": [
+          "Male",
+          "Male",
+          "Male",
+          "Male",
+          "Male",
+          "Female",
+          "Female",
+          "Female",
+          "Female",
+          "Female"
+        ],
+        "missing_rate": 0.0
+      },
+      {
+        "name": "smoking_status",
+        "description": "Smoking status",
+        "data_type": "categorical",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 1
+        },
+        "categories": [
+          "Non-smoker",
+          "Non-smoker",
+          "Non-smoker",
+          "Non-smoker",
+          "Non-smoker",
+          "Non-smoker",
+          "Non-smoker",
+          "Smoker",
+          "Smoker",
+          "Smoker"
+        ],
+        "missing_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "depression",
+      "description": "Depression diagnosis",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-8.5 + 0.85*IL6 + 0.45*TNF_alpha + 0.65*IL1_beta + 0.35*CRP + 0.28*cortisol - 0.42*IL10 + 0.38*IFN_gamma + 0.02*age + 0.08*BMI - 0.35*sleep_hours)))",
+      "noise_percent": 1.0,
+      "categories": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "Yes",
+        "Yes"
+      ]
+    }
+  }
+}
