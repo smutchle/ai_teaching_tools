@@ -1,19 +1,45 @@
 ---
-title: "ADS Datasets - Synthetic Datasets for Data Science Education"
+title: "📚 ADS Datasets - Synthetic Datasets for Data Science Education"
 format: html
 ---
 
-# Welcome
+# Welcome 👋
 
 This collection contains 100 synthetic datasets designed for teaching and learning data science concepts. Each dataset is provided in two versions:
 
-- **Clean Version**: No missing values or outliers - ideal for initial model development
-- **Dirty Version**: Contains 2% missing values and 1% outliers - simulates real-world data challenges
+- **✨ Clean Version**: No missing values or outliers - ideal for initial model development
+- **🔧 Dirty Version**: Contains 2% missing values and 1% outliers - simulates real-world data challenges
 
 All datasets are synthetic and generated for educational purposes.
 
-# Dataset Catalog
+# Domains Covered 🌍
 
+- **🧬 Biology**: 16 datasets (8 regression, 8 classification)
+- **💼 Business**: 20 datasets (10 regression, 10 classification)
+- **🌿 Ecology**: 16 datasets (8 regression, 8 classification)
+- **🌋 Geoscience**: 16 datasets (8 regression, 8 classification)
+- **🧠 Neuroscience**: 16 datasets (8 regression, 8 classification)
+- **👥 Sociology**: 16 datasets (8 regression, 8 classification)
+
+# Dataset Statistics 📈
+
+| Metric | Count |
+|--------|-------|
+| Total Datasets | 100 |
+| Regression Problems | 50 |
+| Classification Problems | 50 |
+| Domains | 6 |
+| Rows per Dataset | 500,000 |
+
+# Using These Datasets 🚀
+
+1. **🔍 Choose a Dataset**: Browse by domain or problem type
+2. **📥 Download CSV Files**: Access from `csv/` directory
+3. **✨ Start with Clean**: Use clean version for initial exploration
+4. **🔧 Practice with Dirty**: Test data cleaning and outlier detection on dirty version
+5. **📊 Compare Results**: See how data quality affects model performance
+
+# Dataset Catalog
 
 ## Biology
 
@@ -132,35 +158,6 @@ All datasets are synthetic and generated for educational purposes.
 - 🏷️ [089: Religious Affiliation (6 categories)](dataset_descriptions/ds089_sociology_religious_affiliation_6_categories.qmd)
 - 🏷️ [090: Housing Tenure (Own/Rent/Other)](dataset_descriptions/ds090_sociology_housing_tenure_ownrentother.qmd)
 - 🏷️ [091: Media Consumption Type (4 platforms)](dataset_descriptions/ds091_sociology_media_consumption_type_4_platforms.qmd)
-
-
-# Dataset Statistics
-
-
-| Metric | Count |
-|--------|-------|
-| Total Datasets | 100 |
-| Regression Problems | 50 |
-| Classification Problems | 50 |
-| Domains | 6 |
-| Total Rows (all datasets) | 100,000,000 |
-
-# Using These Datasets
-
-1. **Choose a Dataset**: Browse by domain or problem type
-2. **Download CSV Files**: Access from `csv/` directory
-3. **Start with Clean**: Use clean version for initial exploration
-4. **Practice with Dirty**: Test data cleaning and outlier detection on dirty version
-5. **Compare Results**: See how data quality affects model performance
-
-# Domains Covered
-
-- **Biology**: 16 datasets (8 regression, 8 classification)
-- **Business**: 20 datasets (10 regression, 10 classification)
-- **Ecology**: 16 datasets (8 regression, 8 classification)
-- **Geoscience**: 16 datasets (8 regression, 8 classification)
-- **Neuroscience**: 16 datasets (8 regression, 8 classification)
-- **Sociology**: 16 datasets (8 regression, 8 classification)
 
 
 # About
