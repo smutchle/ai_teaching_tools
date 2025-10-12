@@ -1,0 +1,96 @@
+---
+title: "Dataset 36: Ecological Conservation Priority Assessment"
+format: html
+---
+
+# Overview
+
+This dataset contains ecological assessments of 500,000 different geographical areas, each evaluated for conservation priority based on multiple environmental and biological factors. The goal is to predict whether an area should receive Low, Medium, High, or Critical conservation priority to guide resource allocation for biodiversity protection efforts.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds036_ecology_conservation_priority_lowmedhighcritical.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds036_ecology_conservation_priority_lowmedhighcritical_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Conservation organizations and government agencies face the challenging task of allocating limited resources across vast landscapes to maximize biodiversity protection. With increasing habitat loss, climate change, and species extinction rates, decision-makers need systematic approaches to identify which areas deserve immediate attention versus those that can wait for future conservation efforts.
+
+Imagine you're working for a national environmental protection agency that has just received a substantial budget increase for conservation initiatives. Your team needs to evaluate hundreds of potential conservation sites across the country, each with different characteristics in terms of species diversity, threat levels, and ecological value. Traditional field assessments are time-consuming and expensive, making it difficult to rapidly prioritize areas for protection.
+
+This dataset represents ecological assessments that could be used to develop predictive models for conservation triage. By training algorithms on areas where conservation priorities have already been established by expert ecologists, agencies can quickly assess new areas and make informed decisions about where to focus their limited conservation resources most effectively.
+
+# Problem Statement
+
+Given ecological and environmental characteristics of a geographical area, predict its conservation priority level to help guide resource allocation decisions in biodiversity protection efforts. This is a multi-class classification problem where accurate predictions can significantly impact conservation outcomes and species survival.
+
+# Target Variable
+
+**Conservation Priority (Low/Med/High/Critical)**: This categorical variable represents the urgency level assigned to each area for conservation action. 
+
+- **Low**: Areas with stable ecosystems, low threat levels, and common species that can be addressed in long-term planning cycles
+- **Medium**: Areas with moderate conservation value that would benefit from protection but are not under immediate severe threat
+- **High**: Areas with significant ecological value or moderate threat levels requiring near-term conservation action
+- **Critical**: Areas facing immediate threats to irreplaceable biodiversity that require urgent intervention to prevent permanent ecological loss
+
+This classification is crucial because it directly translates to funding allocation, staff deployment, and timeline for conservation interventions. Misclassifying a Critical area as Low priority could result in irreversible biodiversity loss, while overestimating priorities leads to inefficient resource use.
+
+# Predictor Variables
+
+- **Endemism**: Measures the proportion of species found exclusively in this area and nowhere else on Earth. Higher endemism scores indicate greater conservation value since losing these areas would result in global species extinctions. Values typically range from 0-100, representing the percentage of endemic species.
+
+- **Threat Level**: Quantifies immediate and projected human-induced pressures on the ecosystem, including habitat destruction, pollution, invasive species, and climate change impacts. Higher values indicate more severe threats requiring urgent intervention. Measured on a scale from 1-10.
+
+- **Ecosystem Services**: Evaluates the economic and ecological value of services provided by the area, such as water purification, carbon sequestration, pollination, and climate regulation. Areas providing critical ecosystem services may warrant higher conservation priority due to their broader environmental and economic impact. Scored from 0-100.
+
+- **Rarity**: Assesses how uncommon or unique the habitat type and species assemblages are within the broader region. Rare ecosystems often harbor specialized species and ecological processes that cannot be replicated elsewhere. Measured as a rarity index from 0-10.
+
+- **Legal Status**: Indicates existing legal protections or designations that may influence conservation priority and available protection mechanisms. Categories include None, Partial, Protected, and Strictly Protected, representing increasing levels of existing legal conservation framework.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds036_ecology_conservation_priority_lowmedhighcritical.csv`): Contains complete data with no missing values or outliers, ideal for initial model development and learning fundamental classification techniques
+- **Dirty Version** (`ds036_ecology_conservation_priority_lowmedhighcritical_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete field surveys, measurement errors, and data entry mistakes commonly encountered in ecological datasets
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling mixed data types and providing feature importance rankings to understand which ecological factors most strongly influence conservation priorities. The ensemble approach helps manage the complexity of ecological relationships.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Particularly effective for capturing non-linear relationships between ecological variables and can handle the ordinal nature of the priority levels while providing strong predictive performance.
+
+- **Ordinal Logistic Regression**: Since conservation priorities have a natural ordering (Low < Medium < High < Critical), ordinal regression can leverage this structure while maintaining interpretability for conservation decision-makers who need to understand model reasoning.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 36 |
+| Domain | Ecology |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 4 (Low/Med/High/Critical) |
+| Clean Version | `csv/ds036_ecology_conservation_priority_lowmedhighcritical.csv` |
+| Dirty Version | `csv/ds036_ecology_conservation_priority_lowmedhighcritical_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes in data science and conservation biology courses. While the data is artificial, the relationships between variables have been designed to reflect realistic ecological patterns and conservation decision-making processes. The dataset provides an excellent opportunity to explore multi-class classification techniques while engaging with important environmental challenges facing our planet.
+
+Students working with this dataset will gain experience in handling both clean and messy ecological data, understanding the trade-offs in conservation decision-making, and developing machine learning solutions for environmental applications.

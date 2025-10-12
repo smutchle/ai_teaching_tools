@@ -1,0 +1,181 @@
+{
+  "dataset_config": {
+    "name": "ds008_neuroscience_memory_recall_accuracy_dirty",
+    "description": "Predict percentage of correctly recalled items based on study duration, interference level, sleep quality, stress, and age",
+    "random_seed": 8,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "sleep_quality_hours",
+          "stress_level"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age_years",
+          "baseline_cognitive_score"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "interference_tasks_count",
+          "stress_level"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "sleep_quality_hours",
+          "baseline_cognitive_score"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "study_duration_minutes",
+        "description": "Duration of study session in minutes",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 15,
+          "min_clip": 5,
+          "max_clip": 120
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "interference_tasks_count",
+        "description": "Number of interfering tasks during recall period",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 3.5,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "sleep_quality_hours",
+        "description": "Hours of quality sleep before testing",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.2,
+          "std": 1.3,
+          "min_clip": 3.0,
+          "max_clip": 10.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "stress_level",
+        "description": "Self-reported stress level on 1-10 scale",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 2.1,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "age_years",
+        "description": "Age of participant in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 32,
+          "std": 12,
+          "min_clip": 18,
+          "max_clip": 75
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "baseline_cognitive_score",
+        "description": "Baseline cognitive assessment score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 75,
+          "std": 12,
+          "min_clip": 40,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "caffeine_intake_mg",
+        "description": "Caffeine intake in milligrams before testing",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 85,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "attention_span_minutes",
+        "description": "Measured attention span in minutes",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18,
+          "std": 5,
+          "min_clip": 5,
+          "max_clip": 35
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "memory_recall_accuracy",
+      "description": "Percentage of correctly recalled items",
+      "data_type": "float",
+      "expression": "45 + 0.8*study_duration_minutes + 0.35*baseline_cognitive_score + 2.5*sleep_quality_hours - 3.2*interference_tasks_count - 1.8*stress_level - 0.15*age_years + 0.05*caffeine_intake_mg + 0.6*attention_span_minutes",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

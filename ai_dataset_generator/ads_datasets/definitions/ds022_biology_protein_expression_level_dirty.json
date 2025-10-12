@@ -1,0 +1,169 @@
+{
+  "dataset_config": {
+    "name": "ds022_biology_protein_expression_level_dirty",
+    "description": "Quantify protein abundance in cells based on gene promoter strength, cell type, stressors, and time since induction",
+    "random_seed": 22,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "promoter_strength",
+          "basal_expression"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "heat_stress",
+          "oxidative_stress"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "cell_viability",
+          "oxidative_stress"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "promoter_strength",
+        "description": "Gene promoter activity score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 18.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "cell_type_index",
+        "description": "Cell type differentiation index",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.0,
+          "max": 8.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "heat_stress",
+        "description": "Heat stress level (temperature deviation from optimal)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 5.2,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "oxidative_stress",
+        "description": "Oxidative stress marker concentration (mM)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 1.2,
+          "min_clip": 0.0,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "time_since_induction",
+        "description": "Hours since protein expression induction",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.5,
+          "max": 48.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "cell_viability",
+        "description": "Cell viability percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 92.5,
+          "std": 8.5,
+          "min_clip": 40.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "basal_expression",
+        "description": "Baseline gene expression level without induction",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.5,
+          "std": 4.2,
+          "min_clip": 0.1,
+          "max_clip": 30.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nutrient_availability",
+        "description": "Media nutrient concentration score",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 75.0,
+          "location": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "protein_expression_level",
+      "description": "Protein abundance measured in relative fluorescence units",
+      "data_type": "float",
+      "expression": "15.0 + 1.8*promoter_strength + 0.6*basal_expression + 2.2*cell_type_index - 0.8*heat_stress - 1.1*oxidative_stress + 0.4*cell_viability + 0.15*nutrient_availability + np.log(time_since_induction + 1)*8.5",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

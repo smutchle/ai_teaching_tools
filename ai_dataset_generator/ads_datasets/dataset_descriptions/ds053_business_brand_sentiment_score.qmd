@@ -1,0 +1,83 @@
+---
+title: "Dataset 53: Brand Sentiment Analysis in Digital Marketing"
+format: html
+---
+
+# Overview
+
+This dataset captures the relationship between various marketing activities and public brand perception, measured through a comprehensive Brand Sentiment Score. It provides an excellent opportunity to explore how different digital marketing channels and external factors influence consumer sentiment in the modern business landscape.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds053_business_brand_sentiment_score.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds053_business_brand_sentiment_score_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+**GlobalTech Solutions**, a mid-sized software company, has been struggling to understand how their various marketing efforts translate into actual brand perception. With increasing competition in the tech space and growing importance of online reputation, the company's CMO needs to develop a data-driven approach to predict and optimize brand sentiment.
+
+The marketing team tracks multiple touchpoints: social media engagement campaigns, customer review management, strategic PR events, and competitive landscape monitoring. However, they lack a systematic way to understand how these activities collectively impact their brand's public perception. The ability to predict sentiment scores would enable them to allocate marketing budgets more effectively, time PR campaigns optimally, and respond proactively to competitive threats.
+
+This scenario is increasingly common across industries where brand perception directly impacts customer acquisition, retention, and premium pricing power. Companies invest millions in brand building but often struggle to quantify the return on these investments or predict the impact of strategic decisions on public sentiment.
+
+# Problem Statement
+
+The challenge is to develop a predictive model that can accurately forecast Brand Sentiment Scores based on measurable marketing activities and external factors. This regression problem requires understanding both the individual impact of each predictor variable and their complex interactions in shaping public opinion.
+
+# Target Variable
+
+**Brand Sentiment Score**: A continuous metric ranging from -100 to +100 that quantifies overall public perception of the brand. This score is derived from natural language processing of social media posts, news articles, customer reviews, and survey responses. Negative scores indicate predominantly negative sentiment, positive scores reflect favorable perception, and scores near zero suggest neutral or mixed sentiment. This metric is crucial for businesses as it correlates strongly with customer loyalty, willingness to pay premium prices, and long-term revenue growth. Predicting this score allows companies to proactively manage their reputation and optimize marketing strategies.
+
+# Predictor Variables
+
+- **Social Media Mentions**: The volume of brand mentions across major social platforms (Twitter, Facebook, LinkedIn, Instagram) within the measurement period. Higher mention volumes typically indicate increased brand awareness but can correlate with either positive or negative sentiment depending on context.
+
+- **Review Ratings**: Average customer rating across review platforms (Google Reviews, Yelp, industry-specific sites) weighted by review volume. This directly reflects customer satisfaction and significantly influences potential customers' purchasing decisions.
+
+- **PR Events**: Number and estimated reach of public relations activities including press releases, media interviews, conference presentations, and sponsored content. Strategic PR can significantly boost positive sentiment when timed and executed effectively.
+
+- **Competitor Activity**: A composite metric measuring competitive pressure including competitor product launches, pricing changes, marketing campaign intensity, and market share movements. High competitor activity can negatively impact sentiment even without changes in the company's own performance.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds053_business_brand_sentiment_score.csv`): Perfect for initial exploration and model prototyping, with no missing values or data quality issues
+- **Dirty Version** (`ds053_business_brand_sentiment_score_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world scenarios where data collection systems fail, measurements are corrupted, or extreme events occur
+
+# Suggested Approaches
+
+- **Linear Regression with Feature Engineering**: Start with multiple linear regression to understand baseline relationships, then engineer interaction terms and polynomial features to capture non-linear effects between marketing activities.
+
+- **Random Forest Regression**: Leverage ensemble methods to automatically capture complex interactions between predictor variables and handle potential non-linear relationships between marketing activities and sentiment outcomes.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Implement advanced boosting algorithms to maximize predictive accuracy, particularly useful for identifying subtle patterns in how different marketing channels amplify or dampen each other's effects.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 53 |
+| Domain | Business |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds053_business_brand_sentiment_score.csv` |
+| Dirty Version | `csv/ds053_business_brand_sentiment_score_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The dataset reflects common patterns observed in digital marketing analytics, including seasonal effects, interaction between marketing channels, and the complex relationship between brand activities and public perception.

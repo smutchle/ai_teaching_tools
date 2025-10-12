@@ -1,0 +1,167 @@
+{
+  "dataset_config": {
+    "name": "ds049_biology_organism_sex_malefemalehermaphrodite",
+    "description": "Biological sex classification based on morphological traits, genetic markers, hormone levels, and behavior",
+    "random_seed": 49,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "testosterone_level",
+          "aggression_score"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "estrogen_level",
+          "reproductive_organ_size"
+        ],
+        "correlation": 0.54,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "body_size_mm",
+          "territorial_behavior"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "genetic_marker_xy",
+          "testosterone_level"
+        ],
+        "correlation": 0.68,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "estrogen_level",
+          "testosterone_level"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "body_size_mm",
+        "description": "Body length in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 85.0,
+          "std": 22.0,
+          "min_clip": 15.0,
+          "max_clip": 180.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "testosterone_level",
+        "description": "Testosterone concentration in ng/ml",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "estrogen_level",
+        "description": "Estrogen concentration in pg/ml",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 45.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "genetic_marker_xy",
+        "description": "XY chromosome marker expression level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.65,
+          "std": 0.28,
+          "min_clip": 0.0,
+          "max_clip": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "reproductive_organ_size",
+        "description": "Primary reproductive organ size index",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.8,
+          "std": 6.2,
+          "min_clip": 2.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "aggression_score",
+        "description": "Behavioral aggression index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 5.0,
+          "max": 95.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "territorial_behavior",
+        "description": "Territorial behavior frequency score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 42.0,
+          "std": 18.5,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "organism_sex_malefemalehermaphrodite",
+      "description": "Biological sex classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 + 0.15*testosterone_level - 0.08*estrogen_level + 3.2*genetic_marker_xy + 0.02*aggression_score + 0.01*territorial_behavior - 0.05*reproductive_organ_size + 0.008*body_size_mm)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "Female",
+        "Female",
+        "Female",
+        "Hermaphrodite",
+        "Hermaphrodite",
+        "Male",
+        "Male",
+        "Male",
+        "Male",
+        "Male"
+      ]
+    }
+  }
+}

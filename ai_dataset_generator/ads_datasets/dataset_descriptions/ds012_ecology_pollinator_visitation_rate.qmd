@@ -1,0 +1,85 @@
+---
+title: "Dataset 12: Pollinator Visitation Patterns in Natural Habitats"
+format: html
+---
+
+# Overview
+
+This dataset captures pollinator visitation patterns across diverse ecological habitats, providing insights into the environmental factors that influence pollinator activity. With growing concerns about pollinator decline and its impact on ecosystem health, understanding what drives pollinator visits to flowering plants has become crucial for conservation efforts and sustainable agriculture.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds012_ecology_pollinator_visitation_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds012_ecology_pollinator_visitation_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Global Pollinator Monitoring Network has been collecting data on pollinator activity across various natural habitats to better understand the factors that influence pollinator behavior. This dataset represents observations from 50 monitoring sites across temperate grasslands, forest edges, and meadow ecosystems during peak flowering season.
+
+Conservation biologists and ecological restoration specialists use this type of data to design pollinator-friendly habitats and predict the success of restoration projects. For instance, when planning a new pollinator corridor to connect fragmented habitats, managers need to understand how flower density, plant diversity, and environmental conditions will affect pollinator activity. Similarly, researchers studying climate change impacts on pollinator communities rely on such data to model how changing temperature and wind patterns might alter pollinator visitation rates.
+
+The dataset has been collected using standardized observation protocols, where trained observers record pollinator visits during 1-hour observation periods across different habitat types and environmental conditions. Each observation represents a snapshot of pollinator activity that can help predict ecosystem health and guide conservation decisions.
+
+# Problem Statement
+
+Predict the number of pollinator visits per hour based on habitat characteristics and environmental conditions. This regression problem helps ecologists understand which factors most strongly influence pollinator activity, enabling better habitat management and conservation planning.
+
+# Target Variable
+
+**Pollinator Visitation Rate**: The number of individual pollinator visits observed per hour during standardized observation periods. This includes visits from bees, butterflies, flies, beetles, and other flower-visiting insects. Higher visitation rates typically indicate healthier ecosystems with better pollination services, which are essential for plant reproduction and food web stability. Predicting visitation rates helps conservationists identify optimal conditions for pollinator support and assess the potential success of habitat restoration efforts.
+
+# Predictor Variables
+
+- **Flower Density**: Number of flowering plants per square meter in the observation area. Higher flower density typically provides more foraging opportunities and attracts more pollinators, though extremely high densities might lead to resource competition.
+
+- **Color Diversity**: Shannon diversity index of flower colors present (0-3 scale). Greater color diversity often attracts a wider variety of pollinator species, as different pollinators have preferences for different flower colors and may be adapted to specific color ranges.
+
+- **Temperature**: Ambient air temperature in Celsius during observation period. Temperature directly affects pollinator activity, as most pollinators are ectothermic and require adequate warmth for flight, though extreme heat can reduce activity.
+
+- **Wind Speed**: Average wind speed in km/h during observation. Wind affects pollinator flight ability and foraging efficiency, with higher wind speeds generally reducing visitation rates, especially for smaller pollinators.
+
+- **Habitat Type**: Categorical variable indicating the primary habitat type (grassland, forest edge, meadow). Different habitat types support different plant communities and microclimates, influencing both flower resources and pollinator communities.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds012_ecology_pollinator_visitation_rate.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds012_ecology_pollinator_visitation_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as equipment malfunctions, observer absences, or extreme weather events
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with this interpretable approach to understand the linear relationships between environmental factors and pollinator visitation, providing clear insights into which variables have the strongest effects.
+
+- **Random Forest Regression**: Capture non-linear relationships and interactions between variables (e.g., temperature and wind speed interactions, or flower density effects varying by habitat type) while providing feature importance rankings.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Achieve high predictive accuracy while handling the mixed data types (continuous environmental variables and categorical habitat types) and potential complex interactions between ecological factors.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 12 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds012_ecology_pollinator_visitation_rate.csv` |
+| Dirty Version | `csv/ds012_ecology_pollinator_visitation_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects known ecological principles such as the positive relationship between flower resources and pollinator activity, the effects of weather on insect behavior, and habitat-specific differences in pollinator communities. Students can use this dataset to explore both regression modeling techniques and ecological data analysis methods.

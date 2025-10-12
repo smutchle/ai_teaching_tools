@@ -1,0 +1,140 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "ADS Datasets"
+  subtitle: "Synthetic Datasets for Data Science Education"
+  author: "AI Dataset Generator"
+  date: today
+
+  chapters:
+    - index.qmd
+    - part: "Biology"
+      chapters:
+        - dataset_descriptions/ds021_biology_plant_growth_rate.qmd
+        - dataset_descriptions/ds022_biology_protein_expression_level.qmd
+        - dataset_descriptions/ds023_biology_enzyme_activity.qmd
+        - dataset_descriptions/ds024_biology_organism_lifespan.qmd
+        - dataset_descriptions/ds046_biology_disease_status_healthyinfectedresistant.qmd
+        - dataset_descriptions/ds047_biology_cell_type_6_tissue_classes.qmd
+        - dataset_descriptions/ds048_biology_treatment_response_respondernon_responder.qmd
+        - dataset_descriptions/ds049_biology_organism_sex_malefemalehermaphrodite.qmd
+        - dataset_descriptions/ds071_biology_metabolic_rate.qmd
+        - dataset_descriptions/ds072_biology_photosynthesis_efficiency.qmd
+        - dataset_descriptions/ds073_biology_antibody_titer.qmd
+        - dataset_descriptions/ds074_biology_root_depth.qmd
+        - dataset_descriptions/ds096_biology_pollination_syndrome_windinsectbirdbat.qmd
+        - dataset_descriptions/ds097_biology_antimicrobial_resistance_susceptibleresistant.qmd
+        - dataset_descriptions/ds098_biology_developmental_stage_5_life_phases.qmd
+        - dataset_descriptions/ds099_biology_nutritional_status_deficientadequateexcess.qmd
+    - part: "Business"
+      chapters:
+        - dataset_descriptions/ds001_business_customer_lifetime_value.qmd
+        - dataset_descriptions/ds002_business_employee_productivity_score.qmd
+        - dataset_descriptions/ds003_business_marketing_campaign_roi.qmd
+        - dataset_descriptions/ds004_business_real_estate_price.qmd
+        - dataset_descriptions/ds025_business_inventory_turnover_days.qmd
+        - dataset_descriptions/ds026_business_customer_churn_yesno.qmd
+        - dataset_descriptions/ds027_business_loan_default_risk_lowmedhigh.qmd
+        - dataset_descriptions/ds028_business_product_purchase_yesno.qmd
+        - dataset_descriptions/ds029_business_employee_attrition_stayleave.qmd
+        - dataset_descriptions/ds050_business_market_segment_4_customer_types.qmd
+        - dataset_descriptions/ds051_business_website_conversion_rate.qmd
+        - dataset_descriptions/ds052_business_supply_chain_lead_time.qmd
+        - dataset_descriptions/ds053_business_brand_sentiment_score.qmd
+        - dataset_descriptions/ds054_business_sales_commission_amount.qmd
+        - dataset_descriptions/ds075_business_customer_satisfaction_score.qmd
+        - dataset_descriptions/ds076_business_fraud_detection_genuinefraudulent.qmd
+        - dataset_descriptions/ds077_business_hiring_decision_rejectinterviewoffer.qmd
+        - dataset_descriptions/ds078_business_warehouse_location_suitability_3_levels.qmd
+        - dataset_descriptions/ds079_business_ad_click_yesno.qmd
+        - dataset_descriptions/ds100_business_delivery_success_on_timedelayedfailed.qmd
+    - part: "Ecology"
+      chapters:
+        - dataset_descriptions/ds009_ecology_species_abundance.qmd
+        - dataset_descriptions/ds010_ecology_forest_biomass.qmd
+        - dataset_descriptions/ds011_ecology_water_quality_index.qmd
+        - dataset_descriptions/ds012_ecology_pollinator_visitation_rate.qmd
+        - dataset_descriptions/ds034_ecology_habitat_quality_poorfairgoodexcellent.qmd
+        - dataset_descriptions/ds035_ecology_invasive_species_presence_yesno.qmd
+        - dataset_descriptions/ds036_ecology_conservation_priority_lowmedhighcritical.qmd
+        - dataset_descriptions/ds037_ecology_migration_status_residentmigratory.qmd
+        - dataset_descriptions/ds059_ecology_carbon_sequestration_rate.qmd
+        - dataset_descriptions/ds060_ecology_stream_flow_rate.qmd
+        - dataset_descriptions/ds061_ecology_seed_dispersal_distance.qmd
+        - dataset_descriptions/ds062_ecology_algae_bloom_intensity.qmd
+        - dataset_descriptions/ds084_ecology_wetland_type_marshswampbogfen.qmd
+        - dataset_descriptions/ds085_ecology_coral_reef_health_healthystressedbleacheddead.qmd
+        - dataset_descriptions/ds086_ecology_pest_outbreak_noneminormajor.qmd
+        - dataset_descriptions/ds087_ecology_vegetation_type_6_biome_classes.qmd
+    - part: "Geoscience"
+      chapters:
+        - dataset_descriptions/ds017_geoscience_soil_erosion_rate.qmd
+        - dataset_descriptions/ds018_geoscience_groundwater_depth.qmd
+        - dataset_descriptions/ds019_geoscience_earthquake_magnitude.qmd
+        - dataset_descriptions/ds020_geoscience_mineral_concentration.qmd
+        - dataset_descriptions/ds042_geoscience_landslide_risk_lowmoderatehigh.qmd
+        - dataset_descriptions/ds043_geoscience_rock_type_igneoussedimentarymetamorphic.qmd
+        - dataset_descriptions/ds044_geoscience_drought_severity_5_levels.qmd
+        - dataset_descriptions/ds045_geoscience_volcanic_activity_level_dormantactiveerupting.qmd
+        - dataset_descriptions/ds067_geoscience_glacier_retreat_rate.qmd
+        - dataset_descriptions/ds068_geoscience_soil_ph_level.qmd
+        - dataset_descriptions/ds069_geoscience_coastal_erosion_rate.qmd
+        - dataset_descriptions/ds070_geoscience_geothermal_gradient.qmd
+        - dataset_descriptions/ds092_geoscience_aquifer_vulnerability_lowmoderatehigh.qmd
+        - dataset_descriptions/ds093_geoscience_soil_texture_class_sandsiltclayloam.qmd
+        - dataset_descriptions/ds094_geoscience_flood_risk_zone_lowmediumhighextreme.qmd
+        - dataset_descriptions/ds095_geoscience_mineral_deposit_type_5_ore_classes.qmd
+    - part: "Neuroscience"
+      chapters:
+        - dataset_descriptions/ds005_neuroscience_cognitive_test_score.qmd
+        - dataset_descriptions/ds006_neuroscience_brain_region_volume.qmd
+        - dataset_descriptions/ds007_neuroscience_reaction_time.qmd
+        - dataset_descriptions/ds008_neuroscience_memory_recall_accuracy.qmd
+        - dataset_descriptions/ds030_neuroscience_cognitive_impairment_normalmcidementia.qmd
+        - dataset_descriptions/ds031_neuroscience_seizure_occurrence_yesno.qmd
+        - dataset_descriptions/ds032_neuroscience_brain_tumor_type_4_classes.qmd
+        - dataset_descriptions/ds033_neuroscience_mental_health_diagnosis_5_categories.qmd
+        - dataset_descriptions/ds055_neuroscience_dopamine_receptor_density.qmd
+        - dataset_descriptions/ds056_neuroscience_neural_firing_rate.qmd
+        - dataset_descriptions/ds057_neuroscience_learning_curve_slope.qmd
+        - dataset_descriptions/ds058_neuroscience_white_matter_integrity.qmd
+        - dataset_descriptions/ds080_neuroscience_sleep_stage_wakeremlightdeep.qmd
+        - dataset_descriptions/ds081_neuroscience_pain_perception_level_nonemildmoderatesevere.qmd
+        - dataset_descriptions/ds082_neuroscience_handedness_leftrightambidextrous.qmd
+        - dataset_descriptions/ds083_neuroscience_addiction_risk_lowmediumhigh.qmd
+    - part: "Sociology"
+      chapters:
+        - dataset_descriptions/ds013_sociology_social_mobility_score.qmd
+        - dataset_descriptions/ds014_sociology_community_trust_index.qmd
+        - dataset_descriptions/ds015_sociology_education_attainment_years.qmd
+        - dataset_descriptions/ds016_sociology_volunteer_hours_per_year.qmd
+        - dataset_descriptions/ds038_sociology_voting_behavior_5_party_choices.qmd
+        - dataset_descriptions/ds039_sociology_social_class_workingmiddleupper.qmd
+        - dataset_descriptions/ds040_sociology_technology_adoption_earlylatenon_adopter.qmd
+        - dataset_descriptions/ds041_sociology_marriage_stability_stableat_riskdissolved.qmd
+        - dataset_descriptions/ds063_sociology_crime_rate_per_capita.qmd
+        - dataset_descriptions/ds064_sociology_social_network_size.qmd
+        - dataset_descriptions/ds065_sociology_income_inequality_index.qmd
+        - dataset_descriptions/ds066_sociology_voter_turnout_percentage.qmd
+        - dataset_descriptions/ds088_sociology_work_life_balance_poorfairgood.qmd
+        - dataset_descriptions/ds089_sociology_religious_affiliation_6_categories.qmd
+        - dataset_descriptions/ds090_sociology_housing_tenure_ownrentother.qmd
+        - dataset_descriptions/ds091_sociology_media_consumption_type_4_platforms.qmd
+
+
+format:
+  html:
+    theme: cosmo
+    toc: true
+    toc-depth: 2
+    number-sections: false
+    code-fold: false
+    code-tools: true
+    css: styles.css
+
+execute:
+  echo: false
+  warning: false
+  freeze: auto

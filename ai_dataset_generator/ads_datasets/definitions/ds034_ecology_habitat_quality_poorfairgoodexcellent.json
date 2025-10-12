@@ -1,0 +1,180 @@
+{
+  "dataset_config": {
+    "name": "ds034_ecology_habitat_quality_poorfairgoodexcellent",
+    "description": "Classify ecosystem condition based on species richness, vegetation health, disturbance level, and connectivity",
+    "random_seed": 34,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "species_richness",
+          "vegetation_health_index"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "vegetation_health_index",
+          "canopy_cover_percent"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "human_disturbance_index",
+          "noise_pollution_db"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "habitat_connectivity_score",
+          "species_richness"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "human_disturbance_index",
+          "vegetation_health_index"
+        ],
+        "correlation": -0.52,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "species_richness",
+        "description": "Number of different species observed in the habitat",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 25,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "vegetation_health_index",
+        "description": "Composite index of vegetation health (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 18,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "human_disturbance_index",
+        "description": "Level of human impact on the ecosystem (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 4.2,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "habitat_connectivity_score",
+        "description": "Measure of habitat fragmentation and connectivity (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 55,
+          "std": 22,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "canopy_cover_percent",
+        "description": "Percentage of area covered by tree canopy",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 15,
+          "max": 95
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "water_quality_index",
+        "description": "Water quality assessment score (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 70,
+          "std": 16,
+          "min_clip": 20,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "soil_ph_level",
+        "description": "Soil pH measurement",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.8,
+          "std": 0.9,
+          "min_clip": 4.0,
+          "max_clip": 9.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "noise_pollution_db",
+        "description": "Average noise level in decibels",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 15,
+          "location": 35
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "habitat_quality_poorfairgoodexcellent",
+      "description": "Overall habitat quality classification",
+      "data_type": "categorical",
+      "expression": "2.5*species_richness + 0.8*vegetation_health_index + 0.6*habitat_connectivity_score + 0.4*canopy_cover_percent + 0.5*water_quality_index - 15*human_disturbance_index - 0.3*noise_pollution_db + 8*soil_ph_level",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "Poor",
+        "Poor",
+        "Poor",
+        "Fair",
+        "Fair",
+        "Fair",
+        "Good",
+        "Good",
+        "Excellent",
+        "Excellent"
+      ]
+    }
+  }
+}

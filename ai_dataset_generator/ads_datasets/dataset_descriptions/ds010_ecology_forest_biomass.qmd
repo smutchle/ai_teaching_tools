@@ -1,0 +1,95 @@
+---
+title: "Dataset 10: Forest Carbon Storage Prediction - Modeling Ecosystem Biomass from Environmental Factors"
+format: html
+---
+
+# Overview
+
+This dataset enables prediction of forest biomass (total organic matter per hectare) based on key environmental and ecological factors. Students will explore how tree density, biodiversity, soil conditions, and climate variables interact to determine carbon storage capacity in forest ecosystems - a critical component in understanding climate change mitigation strategies.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds010_ecology_forest_biomass.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds010_ecology_forest_biomass_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Amazon Conservation Institute has partnered with local governments across South America to develop rapid forest assessment protocols for carbon credit programs. Traditional methods of measuring forest biomass require expensive field surveys involving core sampling, tree measurements, and laboratory analysis of organic matter content - processes that can take months and cost thousands of dollars per site.
+
+Conservation scientists need a reliable method to estimate forest biomass using readily available environmental data collected through satellite imagery, weather stations, and basic field surveys. This predictive capability would enable rapid assessment of potential carbon credit sites, help prioritize conservation efforts, and support reforestation planning by identifying environmental conditions that maximize carbon storage potential.
+
+The dataset represents measurements from 500,000 forest plots across diverse ecosystems, from tropical rainforests to temperate deciduous forests. Each plot was surveyed over a two-year period, with biomass measurements validated through comprehensive field sampling and laboratory analysis.
+
+# Problem Statement
+
+**Objective**: Develop a predictive model to estimate total forest biomass (organic matter per hectare) using environmental and ecological predictor variables that can be measured cost-effectively at scale.
+
+**Business Impact**: Accurate biomass prediction could reduce assessment costs by 80% while enabling conservation organizations to evaluate 10x more potential sites for carbon credit programs and conservation initiatives.
+
+# Target Variable
+
+**Forest Biomass**: Measured in metric tons of organic matter per hectare, this represents the total carbon storage capacity of the forest ecosystem. This includes above-ground biomass (tree trunks, branches, leaves) and below-ground biomass (root systems and soil organic matter). 
+
+Forest biomass is a critical metric for:
+- **Carbon Credit Valuation**: Higher biomass forests generate more valuable carbon credits
+- **Climate Change Mitigation**: Forests with greater biomass store more atmospheric CO2
+- **Ecosystem Health Assessment**: Biomass levels indicate forest productivity and resilience
+- **Conservation Prioritization**: High-biomass areas may warrant greater protection efforts
+
+Values typically range from 50-500 tons per hectare, with old-growth tropical forests showing the highest biomass levels.
+
+# Predictor Variables
+
+- **Tree Density**: Number of trees per hectare (trees/ha). Higher density generally correlates with increased biomass, though the relationship may plateau due to competition effects. Range: 200-2,000 trees/ha.
+
+- **Species Richness**: Number of distinct tree species present in the plot. Biodiversity often enhances ecosystem productivity through complementary resource use and reduced pest/disease impacts. Range: 5-150 species.
+
+- **Soil Nutrients**: Composite index (0-100) measuring nitrogen, phosphorus, and potassium availability. Nutrient-rich soils support faster tree growth and higher biomass accumulation. Higher values indicate better soil fertility.
+
+- **Rainfall**: Annual precipitation in millimeters. Water availability is fundamental to tree growth, but excessive rainfall may leach nutrients. Range: 400-4,000mm annually.
+
+- **Temperature**: Mean annual temperature in Celsius. Affects growing season length and metabolic rates, with optimal ranges varying by species composition. Range: 5-28°C.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds010_ecology_forest_biomass.csv`): Ideal for initial model development and learning core regression techniques without data quality complications
+- **Dirty Version** (`ds010_ecology_forest_biomass_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as sensor failures, measurement errors, and extreme environmental conditions
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with this interpretable baseline to understand individual variable relationships and identify the most important predictors for biomass estimation.
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships and interactions between environmental variables (e.g., temperature-rainfall interactions affecting growth rates).
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Often achieves highest predictive accuracy for ecological data by modeling complex environmental interactions and threshold effects.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 10 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds010_ecology_forest_biomass.csv` |
+| Dirty Version | `csv/ds010_ecology_forest_biomass_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects real-world ecological relationships, including non-linear effects and interaction patterns commonly observed in forest ecosystem research.

@@ -1,0 +1,188 @@
+{
+  "dataset_config": {
+    "name": "ds035_ecology_invasive_species_presence_yesno_dirty",
+    "description": "Detect non-native species establishment based on ecological factors",
+    "random_seed": 35,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "native_species_richness",
+          "habitat_heterogeneity"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "human_disturbance_index",
+          "propagule_pressure"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature_match",
+          "precipitation_match"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "native_species_richness",
+          "human_disturbance_index"
+        ],
+        "correlation": -0.48,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "native_species_richness",
+        "description": "Number of native species in the habitat",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 35,
+          "location": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "habitat_heterogeneity",
+        "description": "Habitat complexity index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 18,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "human_disturbance_index",
+        "description": "Level of human disturbance (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 4.2,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "propagule_pressure",
+        "description": "Number of introduction events per year",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 8,
+          "location": 1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "temperature_match",
+        "description": "Climate temperature match index (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.72,
+          "std": 0.18,
+          "min_clip": 0,
+          "max_clip": 1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "precipitation_match",
+        "description": "Climate precipitation match index (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.68,
+          "std": 0.22,
+          "min_clip": 0,
+          "max_clip": 1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_nitrogen_content",
+        "description": "Soil nitrogen concentration (mg/kg)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 145,
+          "std": 35,
+          "min_clip": 20,
+          "max_clip": 300
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "distance_to_transport",
+        "description": "Distance to nearest transportation corridor (km)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 12,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "invasive_species_presence_yesno",
+      "description": "Presence of invasive species (Yes/No)",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.8 - 0.08*native_species_richness + 0.45*human_disturbance_index + 0.32*propagule_pressure + 1.8*temperature_match + 1.2*precipitation_match + 0.012*soil_nitrogen_content - 0.15*distance_to_transport)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "Yes",
+        "Yes",
+        "Yes"
+      ]
+    }
+  }
+}

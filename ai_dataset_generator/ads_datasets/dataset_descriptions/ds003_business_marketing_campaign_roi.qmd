@@ -1,0 +1,90 @@
+---
+title: "Dataset 3: Marketing Campaign ROI Prediction"
+format: html
+---
+
+# Overview
+
+This regression dataset focuses on predicting marketing campaign return on investment (ROI) in the business domain. It contains data from various marketing campaigns with information about budget allocation, channel strategies, audience metrics, temporal factors, and creative quality scores. The dataset is designed to help students learn predictive modeling techniques while working with realistic business scenarios that marketing analysts and data scientists encounter daily.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds003_business_marketing_campaign_roi.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds003_business_marketing_campaign_roi_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+GlobalTech Solutions, a mid-sized software company, runs dozens of marketing campaigns annually across multiple channels including social media, search engines, email, and traditional advertising. The marketing team has been collecting comprehensive data on campaign performance, but they struggle to predict which campaigns will deliver the highest ROI before launch. This uncertainty leads to suboptimal budget allocation and missed opportunities.
+
+The company's Chief Marketing Officer has tasked the analytics team with developing a predictive model that can estimate campaign ROI based on planned campaign characteristics. This would enable the marketing team to optimize their strategy before campaigns go live, rather than relying solely on post-campaign analysis.
+
+The dataset represents two years of historical campaign data, where each row corresponds to a completed marketing campaign. The company wants to use this historical performance data to build a model that can guide future campaign planning and budget allocation decisions.
+
+# Problem Statement
+
+The goal is to develop a regression model that accurately predicts the ROI of marketing campaigns based on campaign characteristics known at the planning stage. This predictive capability would allow marketing teams to:
+
+- Optimize budget allocation across different campaigns
+- Identify the most promising campaign strategies before execution
+- Reduce financial risk by avoiding low-performing campaign configurations
+- Maximize overall marketing effectiveness and business impact
+
+# Target Variable
+
+**Marketing Campaign ROI**: This measures the return on investment as a percentage, calculated as (Revenue Generated - Campaign Cost) / Campaign Cost × 100. For example, an ROI of 150% means that for every dollar spent on the campaign, the company generated $2.50 in revenue ($1.50 profit plus the original $1 investment). This metric is crucial because it directly ties marketing activities to business outcomes and profitability. Predicting ROI enables data-driven decision making in marketing strategy, helping organizations maximize the efficiency of their marketing spend and demonstrate the value of marketing investments to stakeholders.
+
+# Predictor Variables
+
+- **Budget**: Total campaign budget in thousands of dollars. Higher budgets typically enable broader reach and more sophisticated creative content, but may show diminishing returns at very high levels.
+
+- **Channel Mix**: A composite score (0-100) representing the diversity and strategic allocation across marketing channels (social media, search, email, display, etc.). Higher scores indicate more balanced, multi-channel approaches that can capture audiences across different touchpoints.
+
+- **Audience Size**: The estimated number of unique individuals in the target audience (in thousands). Larger audiences provide more potential customers but may also indicate less precise targeting.
+
+- **Seasonality**: A numerical score (0-100) capturing seasonal factors affecting campaign timing, such as holiday shopping periods, back-to-school seasons, or industry-specific cycles. Higher scores represent periods with traditionally higher consumer engagement and conversion rates.
+
+- **Creative Score**: A composite quality rating (0-100) based on creative elements like visual appeal, message clarity, brand consistency, and A/B testing results. Higher scores indicate more engaging and effective creative content that resonates better with target audiences.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds003_business_marketing_campaign_roi.csv`): Ideal for initial model development and learning core regression techniques without data quality complications
+- **Dirty Version** (`ds003_business_marketing_campaign_roi_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues that require preprocessing and robust modeling approaches
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand baseline relationships and variable importance, providing interpretable coefficients that marketing teams can easily understand and act upon.
+
+- **Random Forest**: Implement ensemble methods to capture non-linear relationships and interactions between variables (e.g., how budget effectiveness varies by seasonality), while providing feature importance rankings.
+
+- **Gradient Boosting**: Use advanced ensemble techniques like XGBoost or LightGBM for potentially higher accuracy, especially useful when dealing with complex interactions between budget, timing, and creative factors.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 3 |
+| Domain | Business |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds003_business_marketing_campaign_roi.csv` |
+| Dirty Version | `csv/ds003_business_marketing_campaign_roi_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The dataset incorporates common patterns found in real marketing data, such as diminishing returns on budget increases and the multiplicative effects of combining high-quality creative content with optimal timing.

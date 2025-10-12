@@ -1,0 +1,170 @@
+{
+  "dataset_config": {
+    "name": "ds047_biology_cell_type_6_tissue_classes_dirty",
+    "description": "Identify cellular identity and function across 6 tissue classes using gene expression profile, morphology, markers, and location",
+    "random_seed": 47,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "gene_expression_intensity",
+          "protein_marker_density"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "cell_diameter",
+          "nucleus_area"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "mitochondrial_activity",
+          "gene_expression_intensity"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "tissue_depth",
+          "oxygen_gradient"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "gene_expression_intensity",
+        "description": "Normalized gene expression intensity level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.2,
+          "std": 1.8,
+          "min_clip": 0.1,
+          "max_clip": 12.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "cell_diameter",
+        "description": "Cell diameter in micrometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 15.5,
+          "location": 3.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nucleus_area",
+        "description": "Nuclear area in square micrometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45.0,
+          "std": 12.0,
+          "min_clip": 8.0,
+          "max_clip": 120.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "protein_marker_density",
+        "description": "Surface protein marker density per unit area",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.5,
+          "max": 8.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "mitochondrial_activity",
+        "description": "Mitochondrial metabolic activity score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.8,
+          "std": 1.2,
+          "min_clip": 0.2,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "tissue_depth",
+        "description": "Depth within tissue structure in micrometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 10.0,
+          "max": 500.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "oxygen_gradient",
+        "description": "Local oxygen concentration gradient",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 2.5,
+          "location": 0.3
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "cell_type_6_tissue_classes",
+      "description": "Cellular identity classification across 6 tissue types",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(2.1*gene_expression_intensity + 0.08*cell_diameter + 0.03*nucleus_area + 1.2*protein_marker_density + 0.9*mitochondrial_activity - 0.005*tissue_depth + 1.5*oxygen_gradient - 8.5)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Epithelial",
+        "Epithelial",
+        "Connective",
+        "Muscle",
+        "Nervous",
+        "Nervous",
+        "Adipose",
+        "Vascular",
+        "Vascular",
+        "Immune"
+      ]
+    }
+  }
+}

@@ -1,0 +1,163 @@
+{
+  "dataset_config": {
+    "name": "ds012_ecology_pollinator_visitation_rate_dirty",
+    "description": "Predict number of pollinator visits per hour based on ecological factors",
+    "random_seed": 12,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "flower_density",
+          "color_diversity"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature",
+          "wind_speed"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "flower_density",
+          "habitat_quality_index"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "color_diversity",
+          "habitat_quality_index"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "flower_density",
+        "description": "Number of flowers per square meter",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 45.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "color_diversity",
+        "description": "Number of distinct flower colors in area",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 2.2,
+          "min_clip": 1,
+          "max_clip": 15
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "temperature",
+        "description": "Air temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 22.5,
+          "std": 6.8,
+          "min_clip": 5.0,
+          "max_clip": 38.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "wind_speed",
+        "description": "Wind speed in meters per second",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 3.5,
+          "location": 0.2
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "habitat_quality_index",
+        "description": "Composite habitat quality score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 18.5,
+          "min_clip": 10.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "bloom_season_intensity",
+        "description": "Seasonal bloom intensity factor (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.15,
+          "max": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "humidity",
+        "description": "Relative humidity percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 58.0,
+          "std": 15.2,
+          "min_clip": 20.0,
+          "max_clip": 95.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "pollinator_visitation_rate",
+      "description": "Number of pollinator visits per hour",
+      "data_type": "float",
+      "expression": "2.5 + 0.8*flower_density + 1.2*color_diversity + 0.15*temperature - 1.8*wind_speed + 0.12*habitat_quality_index + 8.5*bloom_season_intensity + 0.05*humidity",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

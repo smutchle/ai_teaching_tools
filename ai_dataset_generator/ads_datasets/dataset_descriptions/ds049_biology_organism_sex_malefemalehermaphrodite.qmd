@@ -1,0 +1,101 @@
+---
+title: "Dataset 49: Biological Sex Classification in Marine Invertebrates"
+format: html
+---
+
+# Overview
+
+This dataset contains morphological, genetic, and behavioral measurements from marine invertebrate species to predict biological sex classification. The dataset includes organisms that exhibit male, female, and hermaphroditic reproductive strategies, making it an excellent resource for exploring multi-class classification problems in biological systems.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds049_biology_organism_sex_malefemalehermaphrodite.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds049_biology_organism_sex_malefemalehermaphrodite_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Marine biology research stations and aquaculture facilities frequently encounter the challenge of sex determination in invertebrate species, particularly in commercially important organisms like sea urchins, mollusks, and crustaceans. Traditional methods of sex identification often require invasive procedures or extensive expertise, making automated classification systems highly valuable.
+
+Consider a marine research facility studying the reproductive ecology of sea urchin populations. Researchers need to quickly and accurately classify thousands of specimens to understand population dynamics, breeding patterns, and environmental impacts on reproductive success. Manual identification by experts is time-consuming and may not be feasible for large-scale studies. Additionally, some species exhibit sequential hermaphroditism or simultaneous hermaphroditism, adding complexity to the classification task.
+
+This automated classification system would enable researchers to process specimens more efficiently, reduce handling stress on organisms, and provide consistent classification criteria across different studies and researchers. Such a system would be particularly valuable in aquaculture settings where sex ratios directly impact breeding programs and commercial yields.
+
+# Problem Statement
+
+Develop a machine learning model that can accurately classify marine invertebrates into three reproductive categories (Male, Female, Hermaphrodite) based on non-invasive measurements of morphological traits, genetic markers, hormone levels, and behavioral observations. The model should be robust enough to handle the natural variation within species while maintaining high accuracy across different environmental conditions.
+
+# Target Variable
+
+**Organism Sex (Male/Female/Hermaphrodite)**: This categorical variable represents the reproductive classification of each organism at the time of measurement. In marine invertebrates, sex determination can be complex, with some species exhibiting:
+
+- **Male**: Organisms producing sperm and displaying male-specific morphological and behavioral traits
+- **Female**: Organisms producing eggs and exhibiting female-specific characteristics  
+- **Hermaphrodite**: Organisms capable of producing both gamete types, either simultaneously or sequentially
+
+Accurate prediction of this variable is crucial for understanding reproductive strategies, population dynamics, and evolutionary adaptations in marine ecosystems. It also has practical applications in aquaculture breeding programs and conservation efforts.
+
+# Predictor Variables
+
+The dataset includes four main categories of predictor variables:
+
+**Morphological Traits**: Physical measurements including body size, shell dimensions, appendage length, coloration patterns, and secondary sexual characteristics. These traits often show sexual dimorphism and are readily observable without invasive procedures.
+
+**Genetic Markers**: Molecular indicators including sex-linked gene expression levels, chromosomal markers, and DNA methylation patterns associated with sex determination pathways. These provide the most definitive biological evidence of sex classification.
+
+**Hormone Levels**: Concentrations of reproductive hormones such as estradiol, testosterone, and species-specific reproductive peptides. Hormone profiles often differ significantly between sexes and reproductive states.
+
+**Behavioral Observations**: Quantified behavioral patterns including mating displays, territorial behaviors, nest-building activities, and social interactions. Many marine invertebrates exhibit sex-specific behaviors that can be reliable classification indicators.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds049_biology_organism_sex_malefemalehermaphrodite.csv`): Ideal for initial model development and learning fundamental classification techniques. Contains complete measurements for all variables with no outliers.
+- **Dirty Version** (`ds049_biology_organism_sex_malefemalehermaphrodite_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as measurement errors, equipment malfunctions, and incomplete specimen observations.
+
+# Suggested Approaches
+
+**Random Forest Classifier**: Excellent for handling mixed data types and providing feature importance rankings. Particularly useful for identifying which morphological or behavioral traits are most predictive of sex classification.
+
+**Support Vector Machine (SVM)**: Well-suited for multi-class problems with complex decision boundaries. Can effectively separate the three reproductive categories using both linear and non-linear kernel functions.
+
+**Gradient Boosting Methods (XGBoost/LightGBM)**: Powerful ensemble methods that can capture complex interactions between genetic, morphological, and behavioral variables while providing robust performance on imbalanced datasets.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 49 |
+| Domain | Biology |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Classes | 3 (Male/Female/Hermaphrodite) |
+| Clean Version | `csv/ds049_biology_organism_sex_malefemalehermaphrodite.csv` |
+| Dirty Version | `csv/ds049_biology_organism_sex_malefemalehermaphrodite_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+- Practice multi-class classification techniques
+- Handle mixed data types (continuous measurements, categorical genetic markers)
+- Explore feature importance in biological classification
+- Compare model performance across clean vs. realistic (dirty) datasets
+- Understand class imbalance issues in biological data
+- Apply domain knowledge to feature engineering and model interpretation
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic biological patterns while maintaining interpretability for learning objectives. The dataset incorporates known principles of sex determination in marine invertebrates, making it suitable for both machine learning education and biological data science applications.

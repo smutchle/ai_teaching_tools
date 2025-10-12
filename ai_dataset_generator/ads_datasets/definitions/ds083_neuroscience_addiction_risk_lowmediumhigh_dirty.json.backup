@@ -1,0 +1,198 @@
+{
+  "dataset_config": {
+    "name": "ds083_neuroscience_addiction_risk_lowmediumhigh_dirty",
+    "description": "Neuroscience dataset to stratify vulnerability to addiction dependence based on genetics, trauma history, social environment, personality traits, and substance exposure",
+    "random_seed": 83,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "genetic_risk_score",
+          "family_addiction_history"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "trauma_severity_index",
+          "social_support_score"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "impulsivity_score",
+          "sensation_seeking_score"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "early_substance_exposure",
+          "family_addiction_history"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "stress_reactivity_score",
+          "trauma_severity_index"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "genetic_risk_score",
+        "description": "Polygenic risk score for addiction susceptibility (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45.0,
+          "std": 18.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "family_addiction_history",
+        "description": "Number of family members with addiction history",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 1.8,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "trauma_severity_index",
+        "description": "Childhood trauma severity score (0-50 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 12.0,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "social_support_score",
+        "description": "Social support network strength (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 20.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "impulsivity_score",
+        "description": "Impulsivity trait measurement (20-80 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50.0,
+          "std": 12.0,
+          "min_clip": 20.0,
+          "max_clip": 80.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "sensation_seeking_score",
+        "description": "Sensation seeking personality trait (10-70 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 40.0,
+          "std": 15.0,
+          "min_clip": 10.0,
+          "max_clip": 70.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "early_substance_exposure",
+        "description": "Age of first substance exposure (years)",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 16.5,
+          "std": 3.2,
+          "min_clip": 10,
+          "max_clip": 25
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "stress_reactivity_score",
+        "description": "Physiological stress reactivity measure (0-60 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 30.0,
+          "std": 10.0,
+          "min_clip": 0.0,
+          "max_clip": 60.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "addiction_risk_lowmediumhigh",
+      "description": "Addiction risk stratification (Low/Medium/High)",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(\u22124.5 + 0.08*genetic_risk_score + 0.6*family_addiction_history + 0.12*trauma_severity_index - 0.04*social_support_score + 0.09*impulsivity_score + 0.07*sensation_seeking_score - 0.15*(early_substance_exposure-16) + 0.06*stress_reactivity_score)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Low",
+        "Low",
+        "Low",
+        "Low",
+        "Medium",
+        "Medium",
+        "Medium",
+        "High",
+        "High",
+        "High"
+      ]
+    }
+  }
+}

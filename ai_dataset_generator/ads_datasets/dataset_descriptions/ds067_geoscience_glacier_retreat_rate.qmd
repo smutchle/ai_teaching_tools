@@ -1,0 +1,94 @@
+---
+title: "Dataset 67: Glacier Retreat Rate Prediction in a Changing Climate"
+format: html
+---
+
+# Overview
+
+This dataset contains measurements from 500,000 glacier monitoring stations across various mountain ranges, designed to predict annual glacier terminus retreat rates based on climatic and topographical factors. It provides an excellent opportunity to explore regression techniques while addressing one of the most pressing environmental challenges of our time - understanding and predicting glacier dynamics in response to climate change.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds067_geoscience_glacier_retreat_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds067_geoscience_glacier_retreat_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Cascade Mountain Research Institute has been monitoring glacier health across the Pacific Northwest for the past three decades. With accelerating climate change, park managers, hydrologists, and climate scientists urgently need predictive models to forecast glacier retreat rates and plan for downstream impacts on water resources, ecosystems, and communities.
+
+Imagine you're working with the National Park Service to develop an early warning system for glacier-fed watersheds. Accurate predictions of glacier retreat rates are crucial for water resource management, as these ice masses serve as natural reservoirs that regulate seasonal water flow. Communities downstream depend on this water for agriculture, hydroelectric power, and municipal supplies.
+
+The research team has collected comprehensive data from automated weather stations, satellite imagery, and annual field surveys. They need a robust predictive model that can estimate how many meters of glacier terminus will retreat each year based on readily observable environmental conditions. This model will inform long-term planning decisions and help prioritize conservation efforts across multiple glacier systems.
+
+# Problem Statement
+
+Develop a regression model to predict the annual glacier retreat rate (in meters per year) based on climatic and topographical variables. The model should be interpretable to help scientists understand which factors most strongly influence glacier dynamics, while being accurate enough to support real-world decision-making in water resource management and climate adaptation planning.
+
+# Target Variable
+
+**Glacier Retreat Rate**: Measured in meters per year, this represents the annual rate at which a glacier's terminus (front edge) retreats up-valley. This metric is calculated by comparing satellite imagery and GPS measurements of the glacier front position between consecutive years. Values typically range from 0-50 meters per year, with higher values indicating more rapid ice loss. Predicting retreat rates is essential for understanding regional climate impacts, forecasting water availability, and assessing long-term ecosystem changes in alpine environments.
+
+# Predictor Variables
+
+- **Temperature Anomaly**: Deviation from long-term average temperature (°C) at the glacier site. Positive values indicate warmer-than-normal conditions that accelerate melting. This is often the strongest predictor of glacier behavior.
+
+- **Precipitation**: Annual precipitation in millimeters, including both rain and snow. Higher precipitation can slow retreat by adding mass to the glacier, while rain (versus snow) can accelerate melting through heat transfer.
+
+- **Elevation**: Glacier terminus elevation in meters above sea level. Higher elevations typically experience colder temperatures and different precipitation patterns, generally leading to slower retreat rates.
+
+- **Aspect**: Compass direction the glacier faces (0-360 degrees). South-facing glaciers in the Northern Hemisphere receive more direct solar radiation and typically retreat faster than north-facing ones.
+
+- **Albedo**: Surface reflectivity coefficient (0-1 scale). Fresh snow has high albedo (~0.9) while dirty ice has low albedo (~0.3). Lower albedo means more solar energy absorption and faster melting.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds067_geoscience_glacier_retreat_rate.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds067_geoscience_glacier_retreat_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as sensor malfunctions, extreme weather events disrupting measurements, and data transmission errors
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to establish baseline performance and understand linear relationships between predictors and retreat rates. This provides excellent interpretability for scientific communication.
+
+- **Random Forest**: Handle potential non-linear relationships and interactions between variables (e.g., temperature effects may vary by elevation). The feature importance metrics can reveal which variables are most predictive.
+
+- **Gradient Boosting**: For maximum predictive accuracy, especially useful when dealing with the dirty dataset version where robust handling of outliers and missing values is important.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 67 |
+| Domain | Geoscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds067_geoscience_glacier_retreat_rate.csv` |
+| Dirty Version | `csv/ds067_geoscience_glacier_retreat_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+This dataset is particularly valuable for:
+- Understanding environmental data analysis and climate science applications
+- Practicing feature engineering with physical variables (e.g., converting aspect to north/south components)
+- Exploring the trade-offs between model interpretability and predictive accuracy
+- Learning to handle missing data and outliers in scientific datasets
+- Developing domain expertise in glaciology and climate science
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic glaciological processes while maintaining interpretability for learning. Variable ranges and correlations are based on published research in glacier dynamics and climate science, making this an authentic representation of real-world geoscience data analysis challenges.

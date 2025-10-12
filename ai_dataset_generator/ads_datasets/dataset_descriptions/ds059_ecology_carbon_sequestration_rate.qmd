@@ -1,0 +1,103 @@
+---
+title: "Dataset 59: Forest Carbon Sequestration Prediction for Climate Change Mitigation"
+format: html
+---
+
+# Overview
+
+This dataset contains measurements from 500,000 forest plots across different ecological zones, designed to predict annual carbon sequestration rates. The data supports the development of predictive models that can help land managers, policymakers, and conservation organizations optimize forest management strategies for maximum carbon capture in the fight against climate change.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds059_ecology_carbon_sequestration_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds059_ecology_carbon_sequestration_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Global Forest Carbon Initiative (GFCI), a fictional international consortium of environmental scientists and policy makers, has been tasked with identifying optimal locations and management practices for carbon offset projects. With governments and corporations increasingly investing in forest-based carbon credits, there's an urgent need to accurately predict how much CO₂ different forest ecosystems can absorb annually.
+
+Forest carbon sequestration varies dramatically based on environmental conditions and human management practices. A temperate deciduous forest in optimal conditions might sequester 15-20 tons of CO₂ per hectare annually, while a stressed ecosystem might only capture 2-3 tons. This variation makes it challenging for project managers to estimate the carbon impact of reforestation or improved forest management initiatives.
+
+The GFCI has collected comprehensive data from forest plots worldwide, measuring not just carbon absorption rates but also the key environmental and management factors that influence sequestration. This dataset represents a subset of their findings, focusing on the most predictive variables that can be readily measured or estimated for new forest sites.
+
+# Problem Statement
+
+**Objective**: Develop a regression model to predict annual carbon sequestration rates (tons CO₂ per hectare) based on vegetation characteristics, environmental conditions, and management practices.
+
+This predictive capability would enable:
+- Prioritizing locations for new carbon offset projects
+- Optimizing forest management strategies for maximum carbon capture
+- Providing accurate carbon credit estimates for financial planning
+- Supporting evidence-based climate policy decisions
+
+# Target Variable
+
+**Carbon Sequestration Rate**: Measured in tons of CO₂ absorbed per hectare per year, this variable represents the net annual carbon capture of a forest ecosystem. Values typically range from 1-25 tons CO₂/ha/year, with higher values indicating more effective carbon sinks.
+
+This metric is crucial because it directly translates to climate impact - each ton of CO₂ sequestered represents carbon removed from the atmosphere that would otherwise contribute to global warming. For carbon offset markets, accurate prediction of sequestration rates is essential for pricing carbon credits and ensuring environmental integrity of offset projects.
+
+# Predictor Variables
+
+**Vegetation Type**: Categorical variable indicating the dominant forest type (e.g., temperate deciduous, boreal coniferous, tropical rainforest, mixed forest). Different vegetation types have vastly different growth rates, biomass accumulation patterns, and carbon storage capacities.
+
+**Soil Organic Matter**: Percentage of organic carbon content in soil (0-15%). Higher organic matter indicates healthier soil that can support more vigorous plant growth and represents significant carbon storage in its own right. Soil carbon can account for 50-80% of total forest ecosystem carbon.
+
+**Rainfall**: Annual precipitation in millimeters (200-3000mm). Water availability is often the limiting factor for forest growth and photosynthesis, directly impacting how much CO₂ trees can convert into biomass.
+
+**Temperature**: Mean annual temperature in degrees Celsius (-5°C to 30°C). Temperature affects photosynthetic rates, growing season length, and decomposition rates, all of which influence net carbon sequestration.
+
+**Land Management**: Categorical variable describing management intensity (protected/natural, sustainable harvest, intensive management, recently disturbed). Management practices significantly impact forest carbon dynamics through effects on tree growth, harvesting, and soil disturbance.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds059_ecology_carbon_sequestration_rate.csv`): Ideal for initial model development and learning core regression techniques without data quality complications
+- **Dirty Version** (`ds059_ecology_carbon_sequestration_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as measurement errors, equipment failures, and extreme weather events affecting data collection
+
+# Suggested Approaches
+
+**Random Forest Regression**: Excellent for handling the mix of categorical and continuous variables, capturing non-linear relationships between environmental factors, and providing feature importance rankings to identify the most critical predictors.
+
+**Gradient Boosting (XGBoost/LightGBM)**: Particularly effective for this type of ecological data where interactions between variables (e.g., temperature × rainfall) significantly influence outcomes. Can handle missing values naturally when working with the dirty dataset.
+
+**Multiple Linear Regression with Polynomial Features**: Useful as a baseline approach and for interpretability. Can incorporate interaction terms between climate variables and vegetation types to capture ecological relationships that domain experts can validate.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 59 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds059_ecology_carbon_sequestration_rate.csv` |
+| Dirty Version | `csv/ds059_ecology_carbon_sequestration_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Range | 1.2 - 24.8 tons CO₂/ha/year |
+| Key Challenge | Non-linear interactions between climate and vegetation |
+
+# Educational Learning Objectives
+
+- Practice regression modeling with mixed data types (categorical + continuous)
+- Explore feature engineering for ecological interactions
+- Compare model performance on clean vs. realistic messy data
+- Interpret model results in the context of environmental science
+- Understand the practical applications of predictive modeling in climate change mitigation
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic ecological principles while maintaining interpretability for learning. Variable ranges and relationships are based on published forest ecology research, but specific values are simulated to provide optimal learning experiences for data science students.

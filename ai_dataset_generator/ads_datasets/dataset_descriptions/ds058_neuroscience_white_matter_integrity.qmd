@@ -1,0 +1,87 @@
+---
+title: "Dataset 58: Neural Pathway Quality Assessment - White Matter Integrity Prediction"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting white matter integrity in the human brain using diffusion tensor imaging (DTI) metrics. White matter integrity is a crucial indicator of neural pathway health and cognitive function, making it an important biomarker for neurodegenerative diseases, aging studies, and brain health assessment. The dataset includes demographic, health, and genetic factors that influence brain structure over time.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds058_neuroscience_white_matter_integrity.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds058_neuroscience_white_matter_integrity_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Dr. Sarah Chen leads a longitudinal brain aging study at the Metropolitan Neuroimaging Research Center. Her team is investigating how various lifestyle and biological factors contribute to the preservation or deterioration of white matter integrity across the adult lifespan. White matter consists of myelinated axons that connect different brain regions, and its integrity is essential for efficient neural communication.
+
+The research team has collected DTI scans from 500,000 participants aged 25-85, along with comprehensive health assessments, cognitive testing, and genetic profiles. The goal is to develop a predictive model that can identify individuals at risk for accelerated white matter deterioration, potentially enabling early interventions to preserve cognitive function.
+
+This research has significant implications for understanding normal brain aging versus pathological changes, developing personalized treatment strategies, and identifying modifiable risk factors that could be targeted through lifestyle interventions or medical treatments.
+
+# Problem Statement
+
+Given demographic, health, cardiovascular, educational, and genetic information about an individual, can we accurately predict their white matter integrity score? This regression problem aims to quantify the relationship between various risk factors and neural pathway quality, enabling clinicians to assess brain health and identify individuals who might benefit from preventive interventions.
+
+# Target Variable
+
+**White Matter Integrity**: A composite score (0-100) derived from diffusion tensor imaging metrics, including fractional anisotropy (FA), mean diffusivity (MD), and radial diffusivity (RD). Higher scores indicate better white matter microstructural organization and more efficient neural transmission. This measure reflects the health of myelin sheaths and axonal integrity across major white matter tracts including the corpus callosum, cingulum bundle, and association fibers. White matter integrity is strongly associated with processing speed, executive function, and overall cognitive performance, making it a valuable predictor of brain health and aging trajectories.
+
+# Predictor Variables
+
+- **Age**: Participant age in years (25-85). Age is the strongest predictor of white matter changes, with integrity typically declining after age 40 due to myelin breakdown and axonal damage.
+
+- **Cardiovascular Health**: Composite cardiovascular risk score (0-100) incorporating blood pressure, cholesterol levels, BMI, and exercise habits. Poor cardiovascular health reduces cerebral blood flow and oxygen delivery, accelerating white matter deterioration.
+
+- **Education**: Years of formal education completed. Higher education is associated with greater cognitive reserve and may provide protection against age-related white matter decline through enhanced neural plasticity.
+
+- **Head Trauma History**: Binary indicator (0/1) of significant head injury or concussion history. Traumatic brain injury can cause immediate and long-term white matter damage through axonal shearing and inflammatory processes.
+
+- **Genetics**: Polygenic risk score (0-1) for white matter-related genetic variants, including APOE status and other SNPs associated with myelin maintenance and repair. Genetic factors influence individual susceptibility to white matter aging and neurodegenerative processes.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds058_neuroscience_white_matter_integrity.csv`): Ideal for initial model development and learning core regression techniques without data quality complications
+- **Dirty Version** (`ds058_neuroscience_white_matter_integrity_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world neuroimaging data where participants may have incomplete assessments or extreme measurements due to scanning artifacts or unusual biological variation
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with interpretable linear models to understand the relative contribution of each predictor and identify significant relationships between risk factors and white matter integrity.
+
+- **Random Forest Regression**: Capture non-linear relationships and interactions between variables (e.g., age × cardiovascular health interactions) while providing feature importance rankings to identify the most predictive factors.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Achieve high predictive accuracy by modeling complex patterns in the data, particularly useful for identifying subtle genetic effects and multi-factor interactions that influence brain aging trajectories.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 58 |
+| Domain | Neuroscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Variable | White Matter Integrity (0-100) |
+| Clean Version | `csv/ds058_neuroscience_white_matter_integrity.csv` |
+| Dirty Version | `csv/ds058_neuroscience_white_matter_integrity_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect current understanding of factors affecting white matter integrity based on neuroimaging literature. While synthetic, the data structure and relationships are realistic and pedagogically useful for learning regression techniques in the context of neuroscience research. Students can explore how demographic, health, and genetic factors contribute to brain aging patterns while practicing essential data science skills including handling missing data, outlier detection, and model interpretation in a biomedical context.

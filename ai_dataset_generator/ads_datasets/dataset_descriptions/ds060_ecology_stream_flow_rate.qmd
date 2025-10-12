@@ -1,0 +1,95 @@
+---
+title: "Dataset 60: Predicting Stream Flow Rates for Watershed Management"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting stream flow rates in cubic meters per second across various watersheds, a critical measurement for water resource management and ecological conservation. By analyzing the relationship between environmental factors and stream flow, this dataset provides an excellent foundation for understanding regression modeling in ecological contexts while addressing real-world water management challenges.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds060_ecology_stream_flow_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds060_ecology_stream_flow_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Pacific Northwest Water Authority is developing a comprehensive watershed monitoring system to better manage water resources across 50 different river basins. With climate change affecting precipitation patterns and increasing demand for water resources, accurate prediction of stream flow rates has become essential for flood prevention, drought management, and ecosystem preservation.
+
+Traditional stream flow monitoring requires expensive gauging stations and continuous maintenance. However, many remote watersheds lack these monitoring systems, creating gaps in critical water resource data. The authority needs a predictive model that can estimate stream flow rates using readily available environmental and geographical data, enabling them to monitor previously unmeasured watersheds and make informed decisions about water allocation, flood warnings, and habitat protection.
+
+This predictive capability would support multiple stakeholders: municipal water managers planning reservoir releases, agricultural coordinators scheduling irrigation, emergency management teams preparing for flood events, and conservation biologists monitoring fish habitat conditions. The model would serve as an early warning system and planning tool, ultimately protecting both human communities and aquatic ecosystems.
+
+# Problem Statement
+
+Develop a regression model to predict stream flow rates (cubic meters per second) in watersheds based on environmental and geographical characteristics. The model should be robust enough to provide accurate predictions across diverse watershed conditions and seasons, enabling water resource managers to estimate flow rates in ungauged basins and support data-driven decision making for water resource allocation and flood management.
+
+# Target Variable
+
+**Stream Flow Rate**: Measured in cubic meters per second (m³/s), this represents the volume of water flowing past a specific point in a stream or river per unit time. Stream flow rate is a fundamental hydrological measurement that directly impacts:
+
+- **Flood Risk Assessment**: High flow rates indicate potential flooding conditions
+- **Water Supply Planning**: Consistent flow rates ensure adequate water availability for municipal and agricultural use
+- **Ecosystem Health**: Many aquatic species require specific flow conditions for spawning, feeding, and habitat maintenance
+- **Hydroelectric Power Generation**: Flow rates determine energy production capacity
+- **Sediment Transport**: Flow rates affect erosion patterns and downstream sediment deposition
+
+Accurate prediction of stream flow rates enables proactive water management, reduces flood damage, protects aquatic habitats, and optimizes water resource allocation across competing demands.
+
+# Predictor Variables
+
+- **Watershed Area** (km²): The total drainage area contributing water to the stream. Larger watersheds typically generate higher flow rates due to greater water collection capacity, though the relationship may be non-linear depending on topography and land use patterns.
+
+- **Precipitation** (mm/month): Average monthly precipitation within the watershed. This is often the primary driver of stream flow, with higher precipitation generally leading to increased flow rates, though the timing and intensity of precipitation events significantly affect this relationship.
+
+- **Snowpack** (cm): Average snow depth within the watershed, representing stored water that will contribute to stream flow during melting periods. Snowpack acts as a natural reservoir, providing sustained flow during dry seasons and creating seasonal flow patterns in snow-dominated watersheds.
+
+- **Vegetation Cover** (%): Percentage of watershed area covered by vegetation. Vegetation affects stream flow through evapotranspiration (reducing available water), interception of precipitation, and soil stabilization that influences infiltration rates versus surface runoff.
+
+- **Soil Type**: Categorical variable representing dominant soil characteristics affecting water retention and runoff patterns. Different soil types have varying permeability, water-holding capacity, and infiltration rates, directly influencing how precipitation becomes stream flow versus groundwater recharge.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds060_ecology_stream_flow_rate.csv`): Ideal for initial model development and learning fundamental regression concepts without data quality complications
+- **Dirty Version** (`ds060_ecology_stream_flow_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in environmental monitoring where equipment failures, measurement errors, and extreme weather events create data gaps and anomalous readings
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with linear relationships to understand basic variable interactions and establish baseline performance, particularly useful for interpreting the individual contribution of each environmental factor.
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships and interactions between variables (e.g., how precipitation effects vary by soil type), while providing feature importance rankings to identify the most critical predictors.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful ensemble methods that can model complex relationships between watershed characteristics and flow rates, particularly effective for handling the seasonal and threshold effects common in hydrological systems.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 60 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds060_ecology_stream_flow_rate.csv` |
+| Dirty Version | `csv/ds060_ecology_stream_flow_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Range | 0.5 - 45.2 m³/s |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects common patterns observed in watershed hydrology, including seasonal variations, threshold effects in precipitation-runoff relationships, and the moderating influence of watershed characteristics on flow generation. Students working with this dataset will encounter realistic challenges in environmental data analysis while learning fundamental regression modeling techniques.

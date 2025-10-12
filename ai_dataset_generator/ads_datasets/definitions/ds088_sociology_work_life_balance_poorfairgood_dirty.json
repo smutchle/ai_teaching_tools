@@ -1,0 +1,182 @@
+{
+  "dataset_config": {
+    "name": "ds088_sociology_work_life_balance_poorfairgood_dirty",
+    "description": "Categorize personal time allocation satisfaction based on work hours, commute, flexibility, family demands, and supervisor support",
+    "random_seed": 88,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "weekly_work_hours",
+          "work_flexibility_score"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "commute_time_minutes",
+          "work_flexibility_score"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "family_demands_score",
+          "supervisor_support_score"
+        ],
+        "correlation": -0.4,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "weekly_work_hours",
+          "supervisor_support_score"
+        ],
+        "correlation": -0.3,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "household_responsibilities_hours",
+          "family_demands_score"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "weekly_work_hours",
+        "description": "Total hours worked per week",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 42.5,
+          "std": 8.5,
+          "min_clip": 20,
+          "max_clip": 70
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "commute_time_minutes",
+        "description": "Daily one-way commute time in minutes",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 35,
+          "location": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "work_flexibility_score",
+        "description": "Work schedule flexibility rating (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.8,
+          "std": 2.2,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "family_demands_score",
+        "description": "Level of family obligations and demands (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 2.5,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "supervisor_support_score",
+        "description": "Quality of supervisor support for work-life balance (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 2.0,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "household_responsibilities_hours",
+        "description": "Weekly hours spent on household tasks and childcare",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 18,
+          "location": 2
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "personal_time_hours",
+        "description": "Weekly hours available for personal activities and relaxation",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.5,
+          "std": 5.5,
+          "min_clip": 0,
+          "max_clip": 35
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "work_life_balance_poorfairgood",
+      "description": "Overall work-life balance satisfaction rating",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 - 0.08*weekly_work_hours - 0.02*commute_time_minutes + 0.35*work_flexibility_score - 0.25*family_demands_score + 0.30*supervisor_support_score - 0.05*household_responsibilities_hours + 0.15*personal_time_hours)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Poor",
+        "Poor",
+        "Poor",
+        "Fair",
+        "Fair",
+        "Fair",
+        "Good",
+        "Good",
+        "Good",
+        "Good"
+      ]
+    }
+  }
+}

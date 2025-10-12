@@ -1,0 +1,96 @@
+---
+title: "Dataset 9: Ecological Species Abundance Prediction"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting species abundance in various ecological habitats, a critical task for wildlife conservation and ecosystem management. Using environmental and habitat characteristics, researchers can estimate population counts to inform conservation strategies and monitor biodiversity changes over time.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds009_ecology_species_abundance.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds009_ecology_species_abundance_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Pacific Northwest Wildlife Conservation Institute has been monitoring the population dynamics of the Northern Spotted Owl (*Strix occidentalis caurina*) across various forest ecosystems for the past decade. As climate change and habitat fragmentation continue to threaten this endangered species, accurate population estimates have become crucial for effective conservation planning.
+
+Traditional field surveys are expensive, time-intensive, and often logistically challenging in remote mountainous terrain. The institute has collected comprehensive environmental data across 500,000 survey sites and seeks to develop a predictive model that can estimate species abundance based on readily available environmental variables. This approach would allow conservationists to prioritize monitoring efforts, identify critical habitats, and predict population responses to environmental changes.
+
+The ability to predict species abundance from environmental factors has broader implications beyond single-species conservation. These models can inform habitat restoration projects, guide land-use planning decisions, and help predict how species distributions might shift under future climate scenarios.
+
+# Problem Statement
+
+Given environmental and habitat characteristics of a survey site, predict the abundance (population count) of the target species. This regression problem aims to understand the complex relationships between environmental factors and species population density, enabling more efficient and targeted conservation efforts.
+
+# Target Variable
+
+**Species Abundance**: The number of individual organisms of the target species observed or estimated within a standardized survey area (typically per square kilometer). This continuous variable represents population density and is crucial for:
+
+- Assessing conservation status and population trends
+- Identifying optimal habitats and environmental conditions
+- Predicting species responses to environmental changes
+- Allocating limited conservation resources effectively
+- Monitoring the success of habitat restoration efforts
+
+Species abundance values in this dataset range from 0 to approximately 50 individuals per survey area, reflecting natural population density variations across different habitat types and environmental conditions.
+
+# Predictor Variables
+
+- **Temperature** (°C): Mean annual temperature at the survey site. Temperature affects metabolic rates, breeding cycles, prey availability, and habitat suitability. Optimal temperature ranges vary by species but generally show strong correlations with abundance patterns.
+
+- **Precipitation** (mm/year): Annual precipitation levels influence vegetation growth, water availability, and prey abundance. Many species show non-linear relationships with precipitation, preferring moderate levels over extremes.
+
+- **Elevation** (meters): Altitude above sea level affects temperature, vegetation types, and habitat characteristics. Elevation often serves as a proxy for multiple environmental gradients and can indicate preferred habitat zones.
+
+- **Habitat Area** (km²): Size of suitable habitat patches in the surrounding landscape. Larger habitat areas typically support higher populations due to reduced edge effects, lower extinction risk, and greater resource availability.
+
+- **Predator Density** (individuals/km²): Abundance of primary predators in the area. Higher predator densities generally correlate with reduced prey species abundance through direct predation pressure and behavioral modifications.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds009_ecology_species_abundance.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds009_ecology_species_abundance_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world ecological data collection challenges such as equipment failures, extreme weather events, and measurement errors
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand baseline relationships and variable importance. Examine residuals to identify non-linear patterns and interaction effects.
+
+- **Random Forest**: Excellent for capturing non-linear relationships and variable interactions common in ecological systems. Provides feature importance rankings and handles mixed data types well.
+
+- **Gradient Boosting Models**: Consider XGBoost or LightGBM for potentially superior predictive performance. These models excel at capturing complex ecological relationships and threshold effects often present in species-environment interactions.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 9 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds009_ecology_species_abundance.csv` |
+| Dirty Version | `csv/ds009_ecology_species_abundance_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Variable | Species Abundance (count) |
+| Evaluation Metrics | RMSE, MAE, R² |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between environmental variables and species abundance have been designed to reflect realistic ecological patterns while maintaining interpretability for learning objectives. The data incorporates common ecological phenomena such as optimal temperature ranges, habitat area thresholds, and predator-prey dynamics to provide students with authentic modeling challenges encountered in conservation biology and ecological research.

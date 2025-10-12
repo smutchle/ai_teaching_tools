@@ -1,0 +1,106 @@
+---
+title: "Dataset 100: E-Commerce Delivery Success Prediction"
+format: html
+---
+
+# Overview
+
+This dataset contains shipping and logistics data for predicting delivery outcomes in the e-commerce industry. With over 500,000 shipment records, students can build classification models to predict whether packages will be delivered on-time, delayed, or fail to reach their destination. This real-world business problem combines operational logistics with machine learning to optimize supply chain performance.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds100_business_delivery_success_on_timedelayedfailed.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds100_business_delivery_success_on_timedelayedfailed_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+GlobalShip Express, a major e-commerce logistics provider, handles millions of package deliveries annually for online retailers. With the explosive growth of online shopping, especially accelerated by the pandemic, delivery performance has become a critical competitive advantage. Customers increasingly expect fast, reliable delivery, with studies showing that 96% of consumers consider delivery speed important when making online purchases.
+
+The company's operations team currently relies on basic heuristics and manual processes to identify potentially problematic shipments. However, with increasing package volumes and complexity, they need a more sophisticated approach to proactively identify deliveries at risk of delays or failures. By implementing predictive models, GlobalShip can allocate resources more effectively, reroute high-risk packages, communicate proactively with customers, and ultimately improve their delivery success rate from the current 78% to their target of 85%.
+
+This dataset represents a sample of shipments from their network, capturing the key factors that influence delivery outcomes. The goal is to build a machine learning system that can flag problematic shipments in real-time, allowing the operations team to take corrective action before issues occur.
+
+# Problem Statement
+
+The challenge is to predict the final delivery outcome for each shipment based on initial shipping characteristics and environmental conditions. This is a multi-class classification problem where accurate predictions enable proactive logistics management, improved customer satisfaction, and reduced operational costs.
+
+# Target Variable
+
+**Delivery Success (On-time/Delayed/Failed)**: This categorical variable represents the final outcome of each shipment attempt:
+
+- **On-time**: Package delivered within the promised time window (typically 1-3 business days)
+- **Delayed**: Package delivered but outside the promised window, usually 1-7 days late
+- **Failed**: Package never reached the customer due to various issues (incorrect address, multiple failed delivery attempts, damage, loss, etc.)
+
+Predicting this outcome is crucial for logistics optimization, customer communication, and resource allocation. Companies can use these predictions to implement interventions like expedited shipping for at-risk packages, proactive customer notifications for likely delays, or alternative delivery arrangements for high-failure-risk shipments.
+
+# Predictor Variables
+
+- **Distance**: Total shipping distance in miles from origin to destination. Longer distances typically increase delivery time and failure risk due to more handling points and transportation complexity.
+
+- **Traffic**: Average traffic congestion index (0-100) along the delivery route. Higher traffic scores indicate urban areas or congested routes that can cause significant delays, especially for last-mile delivery.
+
+- **Weather**: Weather condition category during the shipping period (Clear, Rain, Snow, Storm). Adverse weather conditions can disrupt transportation networks, cause delays, and increase package damage risk.
+
+- **Package Size**: Physical package dimensions category (Small, Medium, Large, Oversized). Larger packages require special handling, may not fit in standard delivery vehicles, and have higher damage/loss rates.
+
+- **Carrier**: The shipping company or service level (Standard, Express, Premium, Economy). Different carriers have varying reliability, speed, and handling quality, directly impacting delivery success rates.
+
+- **Time Window**: Promised delivery timeframe in hours (24, 48, 72, 168). Tighter time windows increase the likelihood of delays, while longer windows provide more flexibility for successful delivery.
+
+# Dataset Versions
+
+This dataset is provided in two versions to support different learning objectives:
+
+- **Clean Version** (`ds100_business_delivery_success_on_timedelayedfailed.csv`): Ideal for initial model development and learning core classification techniques. Contains complete data with no missing values or outliers, allowing students to focus on algorithm selection and evaluation.
+
+- **Dirty Version** (`ds100_business_delivery_success_on_timedelayedfailed_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues. Perfect for teaching data preprocessing, outlier detection, and imputation techniques that are essential in production environments.
+
+# Suggested Approaches
+
+- **Random Forest**: Excellent for this problem due to its ability to handle mixed data types, provide feature importance rankings, and maintain good performance with minimal hyperparameter tuning. The ensemble nature helps capture complex interactions between shipping variables.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Ideal for achieving high predictive accuracy in logistics applications. These algorithms excel at learning non-linear relationships and can effectively handle the sequential nature of delivery processes.
+
+- **Logistic Regression with Feature Engineering**: A interpretable baseline approach that works well after proper feature engineering (e.g., distance-to-time ratios, weather-traffic interactions). Provides clear coefficient interpretations valuable for business stakeholders.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 100 |
+| Domain | Business |
+| Problem Type | Classification (Multi-class) |
+| Number of Rows | 500,000 |
+| Number of Features | 6 |
+| Target Classes | 3 (On-time, Delayed, Failed) |
+| Clean Version | `csv/ds100_business_delivery_success_on_timedelayedfailed.csv` |
+| Dirty Version | `csv/ds100_business_delivery_success_on_timedelayedfailed_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+Students working with this dataset will gain experience in:
+- Multi-class classification problem formulation
+- Business metric evaluation (precision/recall for each delivery outcome)
+- Feature importance analysis for operational insights
+- Data quality assessment and preprocessing
+- Model interpretability for stakeholder communication
+- Cost-sensitive learning (failed deliveries cost more than delays)
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic logistics patterns while maintaining interpretability for learning. The data generation process incorporates domain knowledge from supply chain management and e-commerce operations to ensure pedagogical value and real-world applicability.

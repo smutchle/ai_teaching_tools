@@ -1,0 +1,97 @@
+---
+title: "Dataset 79: Digital Advertisement Click Prediction"
+format: html
+---
+
+# Overview
+
+This dataset contains information about digital advertisement performance and user interactions, designed to predict whether users will click on online advertisements. The dataset includes advertisement characteristics, user demographics, and contextual factors that influence click-through rates in digital marketing campaigns.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds079_business_ad_click_yesno.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds079_business_ad_click_yesno_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+**AdTech Solutions Inc.** is a digital marketing agency that manages online advertising campaigns for e-commerce clients. With over $2 million in monthly ad spend across various platforms, the company needs to optimize advertisement placement and targeting to maximize return on investment (ROI). Currently, their average click-through rate (CTR) is 2.3%, but they believe this can be significantly improved through data-driven decision making.
+
+The marketing team has been collecting comprehensive data on advertisement performance, including creative elements, placement details, and user characteristics. However, they struggle to identify which combinations of factors lead to successful clicks. Manual optimization is time-consuming and often relies on intuition rather than data-driven insights.
+
+By developing a predictive model for advertisement clicks, AdTech Solutions can automatically optimize their campaigns in real-time, allocate budget more effectively to high-performing ad combinations, and provide better ROI for their clients. This approach could potentially increase their CTR by 15-25% while reducing wasted ad spend on poorly performing placements.
+
+# Problem Statement
+
+The goal is to predict whether a user will click on a digital advertisement based on advertisement characteristics and contextual factors. This binary classification problem helps digital marketers optimize their campaigns by identifying the most effective combinations of ad elements, targeting parameters, and timing strategies.
+
+# Target Variable
+
+**Ad Click (Yes/No)**: A binary indicator of whether a user clicked on the displayed advertisement. This metric is crucial for digital marketing success as it represents the first step in the conversion funnel. Click-through rate directly impacts campaign cost-effectiveness, quality scores on advertising platforms, and ultimately drives traffic to client websites. Predicting clicks enables proactive campaign optimization, automated bidding strategies, and improved resource allocation across different advertisement variations.
+
+# Predictor Variables
+
+- **Ad Position**: The placement location of the advertisement on the webpage (top, sidebar, bottom, in-feed). Position significantly affects visibility and user attention patterns, with premium positions typically commanding higher costs but potentially better performance.
+
+- **Image Content**: The type or category of visual content used in the advertisement (product photos, lifestyle images, graphics, text-heavy designs). Visual elements are critical for capturing user attention and conveying brand messages effectively.
+
+- **Headline Relevance**: A measure of how well the advertisement headline matches user interests or search intent, typically scored on a relevance scale. Relevant headlines improve user engagement and quality scores on advertising platforms.
+
+- **User Demographics**: Characteristics of the target audience including age groups, geographic location, and device type. Demographics help identify which audience segments are most responsive to specific advertisement types.
+
+- **Time of Day**: The hour when the advertisement was displayed, capturing daily usage patterns and user behavior cycles. Timing optimization can significantly impact campaign performance as user engagement varies throughout the day.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds079_business_ad_click_yesno.csv`): Ideal for initial model development and learning, with complete data and no anomalies
+- **Dirty Version** (`ds079_business_ad_click_yesno_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as tracking failures, incomplete user profiles, or measurement errors
+
+# Suggested Approaches
+
+- **Logistic Regression**: Excellent starting point for interpretability, allowing marketers to understand the impact of each factor on click probability and calculate odds ratios for business insights.
+
+- **Random Forest**: Handles feature interactions well and provides feature importance rankings, helping identify which advertisement elements and targeting factors contribute most to successful clicks.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Often achieves high predictive performance for click prediction tasks and handles mixed data types effectively, making it suitable for production deployment in real-time bidding systems.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 79 |
+| Domain | Business |
+| Problem Type | Binary Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds079_business_ad_click_yesno.csv` |
+| Dirty Version | `csv/ds079_business_ad_click_yesno_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Class Balance | Approximately 25% positive clicks |
+
+# Learning Objectives
+
+This dataset is particularly valuable for teaching:
+- Binary classification techniques and evaluation metrics
+- Feature engineering for categorical variables
+- Handling class imbalance in business contexts
+- Data preprocessing and cleaning workflows
+- Model interpretation for business stakeholders
+- A/B testing concepts in digital marketing
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic patterns observed in digital advertising while maintaining interpretability for learning objectives. The dataset simulates common challenges in marketing analytics, including categorical features, temporal patterns, and business-relevant class imbalance.

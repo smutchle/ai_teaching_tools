@@ -1,0 +1,156 @@
+{
+  "dataset_config": {
+    "name": "ds088_sociology_work_life_balance_poorfairgood",
+    "description": "Categorize personal time allocation satisfaction based on work hours, commute, flexibility, family demands, and supervisor support",
+    "random_seed": 88,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "work_hours_per_week",
+          "commute_time_minutes"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "work_flexibility_score",
+          "supervisor_support_score"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "family_demands_score",
+          "work_hours_per_week"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "work_flexibility_score",
+          "work_hours_per_week"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "supervisor_support_score",
+          "work_hours_per_week"
+        ],
+        "correlation": -0.28,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "work_hours_per_week",
+        "description": "Average number of work hours per week",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 8,
+          "min_clip": 20,
+          "max_clip": 70
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "commute_time_minutes",
+        "description": "Daily one-way commute time in minutes",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 25,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "work_flexibility_score",
+        "description": "Work schedule flexibility rating (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 2.1,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "family_demands_score",
+        "description": "Family obligations and demands intensity (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.8,
+          "std": 2.3,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "supervisor_support_score",
+        "description": "Supervisor support and understanding rating (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 2.0,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "personal_time_hours",
+        "description": "Hours of personal time available per week",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 25,
+          "std": 8,
+          "min_clip": 5,
+          "max_clip": 50
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "work_life_balance_poorfairgood",
+      "description": "Work-life balance satisfaction category",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 - 0.08*work_hours_per_week - 0.02*commute_time_minutes + 0.35*work_flexibility_score - 0.25*family_demands_score + 0.30*supervisor_support_score + 0.15*personal_time_hours)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "Poor",
+        "Poor",
+        "Poor",
+        "Fair",
+        "Fair",
+        "Fair",
+        "Good",
+        "Good",
+        "Good",
+        "Good"
+      ]
+    }
+  }
+}

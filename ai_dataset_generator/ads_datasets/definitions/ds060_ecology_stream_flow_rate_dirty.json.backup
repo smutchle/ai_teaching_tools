@@ -1,0 +1,163 @@
+{
+  "dataset_config": {
+    "name": "ds060_ecology_stream_flow_rate_dirty",
+    "description": "Estimate cubic meters per second in waterways based on watershed characteristics",
+    "random_seed": 60,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "watershed_area_km2",
+          "stream_flow_rate"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_precipitation_mm",
+          "vegetation_cover_percent"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "snowpack_depth_cm",
+          "annual_precipitation_mm"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "soil_permeability_index",
+          "vegetation_cover_percent"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "watershed_area_km2",
+        "description": "Total watershed drainage area in square kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 850,
+          "location": 50
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "annual_precipitation_mm",
+        "description": "Average annual precipitation in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1200,
+          "std": 350,
+          "min_clip": 300,
+          "max_clip": 2500
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "snowpack_depth_cm",
+        "description": "Average peak snowpack depth in centimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 85,
+          "std": 45,
+          "min_clip": 0,
+          "max_clip": 300
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "vegetation_cover_percent",
+        "description": "Percentage of watershed covered by vegetation",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72,
+          "std": 18,
+          "min_clip": 15,
+          "max_clip": 95
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_permeability_index",
+        "description": "Soil permeability index (0-10 scale, higher = more permeable)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 2.0,
+          "max": 9.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "elevation_gradient_m_km",
+        "description": "Average elevation gradient in meters per kilometer",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 45,
+          "location": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "channel_roughness_coeff",
+        "description": "Manning's roughness coefficient for stream channel",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.035,
+          "std": 0.012,
+          "min_clip": 0.015,
+          "max_clip": 0.08
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "stream_flow_rate",
+      "description": "Stream flow rate in cubic meters per second",
+      "data_type": "float",
+      "expression": "2.5 + 0.008*watershed_area_km2 + 0.012*annual_precipitation_mm + 0.15*snowpack_depth_cm + 0.08*vegetation_cover_percent - 0.45*soil_permeability_index + 0.35*elevation_gradient_m_km - 25*channel_roughness_coeff",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "dataset_config": {
+    "name": "ds094_geoscience_flood_risk_zone_lowmediumhighextreme",
+    "description": "Geoscience dataset for mapping flood risk zones based on elevation, water proximity, rainfall, land cover, and drainage characteristics",
+    "random_seed": 94,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "elevation_meters",
+          "proximity_to_water_km"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "rainfall_intensity_mmh",
+          "drainage_capacity_m3s"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "land_cover_permeability",
+          "drainage_capacity_m3s"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "elevation_meters",
+          "slope_gradient_percent"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "proximity_to_water_km",
+          "soil_saturation_percent"
+        ],
+        "correlation": -0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "elevation_meters",
+        "description": "Elevation above sea level in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 150,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "proximity_to_water_km",
+        "description": "Distance to nearest water body in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 8,
+          "location": 0.1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "rainfall_intensity_mmh",
+        "description": "Average rainfall intensity in millimeters per hour",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 12,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "land_cover_permeability",
+        "description": "Land cover permeability index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "drainage_capacity_m3s",
+        "description": "Local drainage system capacity in cubic meters per second",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 25,
+          "std": 12,
+          "min_clip": 2,
+          "max_clip": 80
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "slope_gradient_percent",
+        "description": "Terrain slope gradient as percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.3,
+          "scale": 8,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "soil_saturation_percent",
+        "description": "Soil moisture saturation percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35,
+          "std": 15,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "flood_risk_zone_lowmediumhighextreme",
+      "description": "Flood risk zone classification based on inundation hazard assessment",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(2.5 - 0.08*elevation_meters - 0.6*proximity_to_water_km + 0.4*rainfall_intensity_mmh - 0.03*land_cover_permeability - 0.1*drainage_capacity_m3s - 0.2*slope_gradient_percent + 0.05*soil_saturation_percent)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "categories": [
+        "Low",
+        "Low",
+        "Low",
+        "Medium",
+        "Medium",
+        "Medium",
+        "High",
+        "High",
+        "Extreme",
+        "Extreme"
+      ]
+    }
+  }
+}

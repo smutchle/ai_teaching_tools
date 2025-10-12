@@ -1,0 +1,156 @@
+{
+  "dataset_config": {
+    "name": "ds097_biology_antimicrobial_resistance_susceptibleresistant_dirty",
+    "description": "Predict antimicrobial resistance in bacterial pathogens based on antibiotic exposure, genetic mutations, plasmids, and bacterial species",
+    "random_seed": 97,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "antibiotic_exposure_days",
+          "resistance_gene_count"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "plasmid_copy_number",
+          "resistance_gene_count"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "mutation_burden_score",
+          "resistance_gene_count"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "biofilm_formation_index",
+          "antibiotic_exposure_days"
+        ],
+        "correlation": 0.31,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "antibiotic_exposure_days",
+        "description": "Number of days of antibiotic exposure in past 6 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 15.0,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "resistance_gene_count",
+        "description": "Number of antimicrobial resistance genes detected",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.2,
+          "std": 1.8,
+          "min_clip": 0,
+          "max_clip": 12
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "plasmid_copy_number",
+        "description": "Average plasmid copy number per bacterial cell",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 4.5,
+          "std": 2.1,
+          "min_clip": 0.5,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "mutation_burden_score",
+        "description": "Cumulative mutation burden score affecting drug targets",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "bacterial_virulence_factor",
+        "description": "Virulence factor expression level score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50.0,
+          "std": 18.0,
+          "min_clip": 10.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "biofilm_formation_index",
+        "description": "Biofilm formation capacity index (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.5,
+          "max": 9.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "antimicrobial_resistance_susceptibleresistant",
+      "description": "Antimicrobial resistance classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-3.5 + 0.15*antibiotic_exposure_days + 0.8*resistance_gene_count + 0.25*plasmid_copy_number + 0.06*mutation_burden_score + 0.02*bacterial_virulence_factor + 0.3*biofilm_formation_index)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Susceptible",
+        "Susceptible",
+        "Susceptible",
+        "Susceptible",
+        "Intermediate",
+        "Intermediate",
+        "Resistant",
+        "Resistant",
+        "Resistant",
+        "Multidrug Resistant"
+      ]
+    }
+  }
+}

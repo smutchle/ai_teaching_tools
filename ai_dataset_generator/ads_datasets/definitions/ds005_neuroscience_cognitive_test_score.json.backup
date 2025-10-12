@@ -1,0 +1,149 @@
+{
+  "dataset_config": {
+    "name": "ds005_neuroscience_cognitive_test_score",
+    "description": "Predict performance on standardized cognitive assessments based on demographic and lifestyle factors",
+    "random_seed": 5,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "age",
+          "education_years"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "sleep_hours",
+          "stress_level"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "exercise_frequency",
+          "stress_level"
+        ],
+        "correlation": -0.4,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "education_years",
+          "cognitive_test_score"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Age of participant in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 15,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "education_years",
+        "description": "Years of formal education completed",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 14,
+          "std": 3,
+          "min_clip": 8,
+          "max_clip": 22
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "sleep_hours",
+        "description": "Average hours of sleep per night",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.2,
+          "std": 1.1,
+          "min_clip": 4.0,
+          "max_clip": 11.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "exercise_frequency",
+        "description": "Exercise sessions per week",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 3.5,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "stress_level",
+        "description": "Self-reported stress level (1-10 scale)",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 2.0,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "caffeine_intake",
+        "description": "Daily caffeine intake in mg",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 150,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "social_interaction_hours",
+        "description": "Hours of social interaction per day",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 4.5,
+          "std": 2.0,
+          "min_clip": 0.5,
+          "max_clip": 12.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "cognitive_test_score",
+      "description": "Standardized cognitive assessment score (0-100)",
+      "data_type": "float",
+      "expression": "65 + 1.2*education_years - 0.15*age + 2.5*sleep_hours + 0.8*exercise_frequency - 1.8*stress_level + 0.02*caffeine_intake + 0.6*social_interaction_hours",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

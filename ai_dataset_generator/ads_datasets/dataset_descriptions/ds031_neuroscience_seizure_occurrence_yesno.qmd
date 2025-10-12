@@ -1,0 +1,98 @@
+---
+title: "Dataset 31: Epileptic Seizure Prediction from Neurological and Behavioral Indicators"
+format: html
+---
+
+# Overview
+
+This dataset contains neurological and behavioral data collected from epilepsy patients to predict the likelihood of seizure occurrence. It combines EEG brain activity patterns with patient lifestyle factors, making it an excellent resource for learning multimodal classification in healthcare applications. The dataset simulates real-world challenges in medical data science, where biological signals must be integrated with patient-reported behavioral measures.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds031_neuroscience_seizure_occurrence_yesno.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds031_neuroscience_seizure_occurrence_yesno_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+**Clinical Seizure Monitoring Program**
+
+The Regional Epilepsy Center at Metropolitan Medical Hospital has implemented a comprehensive patient monitoring program to improve seizure prediction and prevention. Patients wear continuous EEG monitoring devices while maintaining detailed logs of their medication adherence, sleep patterns, and stress levels through a mobile health application.
+
+Dr. Sarah Chen, the lead neurologist, noticed that traditional seizure prediction models focusing solely on EEG data were missing important behavioral patterns. Many patients reported that poor sleep, medication lapses, or high-stress periods often preceded their seizures. The medical team decided to develop a holistic prediction model that combines neurological measurements with patient lifestyle factors.
+
+The goal is to create an early warning system that can alert both patients and healthcare providers when seizure risk is elevated. Such a system would enable proactive interventions like medication adjustments, stress reduction techniques, or lifestyle modifications, potentially preventing seizures before they occur and significantly improving patients' quality of life.
+
+# Problem Statement
+
+Develop a binary classification model to predict whether a patient will experience a seizure (Yes/No) within the next 24-hour period based on current EEG patterns and recent behavioral factors. This prediction enables timely medical interventions and helps patients make informed decisions about their daily activities.
+
+# Target Variable
+
+**Seizure Occurrence (Yes/No)**: A binary indicator of whether an epileptic seizure occurred within 24 hours of the recorded measurements. This target variable is crucial for clinical decision-making as it provides actionable timeframe for intervention. Accurate prediction allows healthcare providers to:
+- Adjust medication dosages proactively
+- Recommend activity restrictions during high-risk periods  
+- Implement preventive care protocols
+- Reduce emergency department visits and hospitalizations
+
+Early seizure prediction is particularly valuable because many seizures can be prevented or their severity reduced through timely medical intervention.
+
+# Predictor Variables
+
+**EEG Patterns**: Continuous electroencephalogram measurements capturing brain electrical activity. Features include wave frequency distributions (alpha, beta, theta, delta), amplitude variations, and spike-wave patterns. EEG abnormalities often precede clinical seizures by several hours, making this the primary neurological predictor.
+
+**Medication Adherence**: Percentage of prescribed antiepileptic drugs (AEDs) taken correctly over the past 7 days, tracked through smart pill dispensers and patient self-reports. Poor medication compliance is one of the strongest predictors of breakthrough seizures, with adherence rates below 80% significantly increasing seizure risk.
+
+**Sleep Quality**: Composite score (0-100) measuring sleep duration, sleep efficiency, and sleep architecture from wearable devices and sleep diaries. Sleep deprivation is a well-established seizure trigger, with both insufficient sleep duration and poor sleep quality lowering the seizure threshold in epileptic patients.
+
+**Stress Triggers**: Quantified stress levels (0-10 scale) based on physiological markers (heart rate variability, cortisol levels) and validated psychological stress questionnaires. Acute and chronic stress can precipitate seizures through neurochemical pathways affecting brain excitability and neurotransmitter balance.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds031_neuroscience_seizure_occurrence_yesno.csv`): Ideal for initial model development and learning fundamental classification techniques. Contains complete data with no missing values or measurement errors.
+- **Dirty Version** (`ds031_neuroscience_seizure_occurrence_yesno_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues common in clinical settings where patients may miss recordings or sensors malfunction.
+
+# Suggested Approaches
+
+**Logistic Regression**: Start with this interpretable baseline model to understand the linear relationships between predictors and seizure risk. Coefficients provide clinical insights into risk factors.
+
+**Random Forest**: Excellent for capturing non-linear interactions between EEG patterns and behavioral factors. The feature importance rankings can guide clinical decision-making and identify the most critical monitoring parameters.
+
+**Gradient Boosting (XGBoost/LightGBM)**: Often achieves superior performance on medical prediction tasks by learning complex patterns in sequential data. Particularly effective for integrating time-series EEG data with static behavioral measures.
+
+**Support Vector Machine**: With RBF kernels, SVMs can capture complex decision boundaries between seizure and non-seizure states, especially useful when EEG patterns show non-linear relationships.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 31 |
+| Domain | Neuroscience |
+| Problem Type | Binary Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Clean Version | `csv/ds031_neuroscience_seizure_occurrence_yesno.csv` |
+| Dirty Version | `csv/ds031_neuroscience_seizure_occurrence_yesno_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Class Balance | ~70% No Seizure, ~30% Seizure |
+| Data Collection Period | 6 months |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. While the data is artificially created, the relationships between variables have been carefully designed to reflect real-world patterns observed in epilepsy research. The feature interactions and class distributions are based on published clinical studies, making this dataset pedagogically valuable for understanding healthcare prediction challenges while maintaining patient privacy and data accessibility for educational use.
+
+Students working with this dataset will gain experience in medical data preprocessing, handling imbalanced classes, feature engineering for physiological signals, and model interpretation in clinical contexts.

@@ -1,0 +1,179 @@
+{
+  "dataset_config": {
+    "name": "ds032_neuroscience_brain_tumor_type_4_classes",
+    "description": "Classify malignancy and tumor subtype using MRI features, age, symptoms, genetic markers, and tumor location",
+    "random_seed": 32,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "tumor_size_mm",
+          "symptom_severity_score"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age_years",
+          "genetic_risk_score"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "mri_contrast_intensity",
+          "tumor_size_mm"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "vascular_density",
+          "mri_contrast_intensity"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "symptom_severity_score",
+          "frontal_lobe_involvement"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age_years",
+        "description": "Patient age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 52,
+          "std": 16,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "tumor_size_mm",
+        "description": "Tumor diameter in millimeters from MRI",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "mri_contrast_intensity",
+        "description": "MRI contrast enhancement intensity score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.65,
+          "std": 0.2,
+          "min_clip": 0.0,
+          "max_clip": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "symptom_severity_score",
+        "description": "Neurological symptom severity score (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 4.2,
+          "std": 2.1,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "genetic_risk_score",
+        "description": "Genetic predisposition score based on markers",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.1,
+          "max": 0.9
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "vascular_density",
+        "description": "Tumor vascularization density from imaging",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 0.4,
+          "location": 0.1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "frontal_lobe_involvement",
+        "description": "Degree of frontal lobe involvement (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "cerebrospinal_pressure",
+        "description": "Cerebrospinal fluid pressure measurement (mmHg)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.5,
+          "std": 4.2,
+          "min_clip": 8.0,
+          "max_clip": 30.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "brain_tumor_type_4_classes",
+      "description": "Brain tumor classification: malignancy and subtype",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-3.5 + 0.08*tumor_size_mm + 2.1*mri_contrast_intensity + 0.35*symptom_severity_score + 1.8*genetic_risk_score + 1.5*vascular_density + 0.7*frontal_lobe_involvement + 0.12*cerebrospinal_pressure - 0.02*age_years)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "Benign Meningioma",
+        "Benign Meningioma",
+        "Benign Acoustic Neuroma",
+        "Benign Acoustic Neuroma",
+        "Low-Grade Glioma",
+        "Low-Grade Glioma",
+        "High-Grade Glioblastoma",
+        "High-Grade Glioblastoma",
+        "High-Grade Glioblastoma",
+        "High-Grade Glioblastoma"
+      ]
+    }
+  }
+}

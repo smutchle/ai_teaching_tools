@@ -1,0 +1,196 @@
+{
+  "dataset_config": {
+    "name": "ds082_neuroscience_handedness_leftrightambidextrous_dirty",
+    "description": "Neuroscience dataset for determining motor dominance preference based on genetic markers, family history, early training, and task performance patterns",
+    "random_seed": 82,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "genetic_marker_rs12345",
+          "family_history_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "early_training_intensity",
+          "fine_motor_performance"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "laterality_index",
+          "gross_motor_asymmetry"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "genetic_marker_rs12345",
+          "laterality_index"
+        ],
+        "correlation": 0.31,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "family_history_score",
+          "early_training_intensity"
+        ],
+        "correlation": 0.28,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "genetic_marker_rs12345",
+        "description": "Genetic marker score associated with handedness (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 18.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "family_history_score",
+        "description": "Weighted family handedness history score (-10 to 10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 4.2,
+          "min_clip": -10.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "early_training_intensity",
+        "description": "Intensity of early motor training (0-20 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "fine_motor_performance",
+        "description": "Fine motor task performance score (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 75.0,
+          "std": 12.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "laterality_index",
+        "description": "Laterality preference index (-100 to 100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.0,
+          "std": 35.0,
+          "min_clip": -100.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "gross_motor_asymmetry",
+        "description": "Gross motor asymmetry score (-50 to 50 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.0,
+          "std": 15.0,
+          "min_clip": -50.0,
+          "max_clip": 50.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "cognitive_task_bias",
+        "description": "Cognitive task performance bias score (-30 to 30 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": -30.0,
+          "max": 30.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "neural_activation_ratio",
+        "description": "Left/right hemisphere activation ratio (0.2 to 5.0 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 1.8,
+          "location": 0.3
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "handedness_leftrightambidextrous",
+      "description": "Motor dominance preference classification",
+      "data_type": "categorical",
+      "expression": "0.3*genetic_marker_rs12345 + 2.5*family_history_score + 0.8*early_training_intensity + 0.4*laterality_index + 0.6*gross_motor_asymmetry + 0.5*cognitive_task_bias + 8.0*neural_activation_ratio",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Left-Handed",
+        "Left-Handed",
+        "Left-Handed",
+        "Ambidextrous",
+        "Ambidextrous",
+        "Right-Handed",
+        "Right-Handed",
+        "Right-Handed",
+        "Right-Handed",
+        "Right-Handed"
+      ]
+    }
+  }
+}

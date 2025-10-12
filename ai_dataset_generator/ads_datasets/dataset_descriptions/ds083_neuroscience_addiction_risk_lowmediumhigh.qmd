@@ -1,0 +1,106 @@
+---
+title: "Dataset 83: Neurobiological Addiction Risk Assessment - Predicting Substance Dependency Vulnerability"
+format: html
+---
+
+# Overview
+
+This dataset contains comprehensive neurobiological and psychosocial profiles of individuals assessed for addiction vulnerability. It combines genetic markers, psychological history, environmental factors, personality assessments, and substance exposure patterns to predict an individual's risk level for developing substance dependencies. This multi-dimensional approach reflects the current understanding that addiction risk emerges from complex interactions between biological predisposition, psychological factors, and environmental influences.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds083_neuroscience_addiction_risk_lowmediumhigh.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds083_neuroscience_addiction_risk_lowmediumhigh_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The National Institute of Mental Health has launched a large-scale initiative to develop predictive models for addiction vulnerability as part of their precision medicine approach to mental health. Research teams across the country are collecting comprehensive data on individuals entering substance abuse treatment programs, as well as control groups from the general population.
+
+Dr. Sarah Chen, a computational neuroscientist at a major research hospital, is leading a project to develop an early warning system that could identify individuals at high risk for addiction before they develop severe dependencies. Her team has collected data from 500,000 participants, including genetic testing results, detailed psychological assessments, environmental questionnaires, personality inventories, and documented substance exposure histories.
+
+The goal is to create a classification model that can stratify individuals into risk categories, enabling healthcare providers to implement targeted prevention strategies. High-risk individuals could receive enhanced monitoring and early intervention programs, while medium-risk individuals might benefit from educational programs and periodic check-ins. This personalized approach could significantly improve prevention outcomes and reduce the societal burden of addiction.
+
+# Problem Statement
+
+Develop a machine learning model to classify individuals into addiction risk categories (Low, Medium, High) based on their genetic profile, trauma history, social environment, personality traits, and substance exposure patterns. The model should help clinicians and researchers identify individuals who would benefit from targeted prevention interventions.
+
+# Target Variable
+
+**Addiction Risk (Low/Medium/High)**: This three-level categorical variable represents the assessed likelihood that an individual will develop a substance use disorder within the next 5 years. The classification is based on validated clinical assessment tools and longitudinal follow-up data:
+
+- **Low Risk**: Individuals with minimal risk factors and strong protective factors (protective family history, stable social support, low impulsivity scores)
+- **Medium Risk**: Individuals with moderate risk factors that may predispose them to addiction under certain circumstances (some genetic markers, moderate stress exposure, mixed environmental factors)
+- **High Risk**: Individuals with multiple significant risk factors suggesting elevated vulnerability (strong genetic predisposition, history of trauma, high-risk social environment, impulsive personality traits)
+
+This stratification is crucial for resource allocation and intervention planning, as different risk levels require different prevention and monitoring strategies.
+
+# Predictor Variables
+
+- **Genetics**: Composite genetic risk score based on known addiction-related polymorphisms, including variants in dopamine receptor genes (DRD2, DRD4), serotonin transporter genes (5-HTTLPR), and metabolic enzymes (ALDH2, CYP2A6). Higher scores indicate greater genetic predisposition to addiction.
+
+- **Trauma History**: Quantified measure of adverse childhood experiences (ACEs) and adult trauma exposure, including physical/emotional abuse, neglect, household dysfunction, and major life stressors. Trauma history is strongly associated with increased addiction risk through neurobiological and psychological pathways.
+
+- **Social Environment**: Assessment of environmental risk and protective factors, including family substance use history, peer influences, neighborhood characteristics, socioeconomic status, and access to substances. Social environment significantly shapes addiction risk through availability, normalization, and stress exposure.
+
+- **Personality Traits**: Standardized assessment of addiction-relevant personality dimensions, particularly impulsivity, sensation-seeking, neuroticism, and behavioral inhibition. These traits influence decision-making processes and vulnerability to substance use disorders.
+
+- **Substance Exposure**: Detailed history of exposure to various substances, including age of first use, frequency of use, types of substances, and patterns of consumption. Early and extensive exposure increases neurobiological vulnerability, especially during critical developmental periods.
+
+# Dataset Versions
+
+This dataset is provided in two versions to support different learning objectives:
+
+- **Clean Version** (`ds083_neuroscience_addiction_risk_lowmediumhigh.csv`): Ideal for initial model development and learning core classification techniques. Contains complete data with no missing values or outliers, allowing students to focus on algorithm implementation and evaluation.
+
+- **Dirty Version** (`ds083_neuroscience_addiction_risk_lowmediumhigh_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in clinical research. Perfect for learning data preprocessing, imputation techniques, and robust modeling approaches.
+
+# Suggested Approaches
+
+- **Random Forest Classification**: Excellent for handling mixed data types and providing feature importance rankings. The ensemble approach works well with the complex, non-linear relationships expected in addiction risk assessment.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful for capturing complex interactions between genetic, psychological, and environmental factors. Particularly effective for this type of multi-dimensional risk prediction problem.
+
+- **Logistic Regression with Regularization**: Provides interpretable results crucial for clinical applications, allowing researchers to understand which factors most strongly influence risk classification. Ridge or Lasso regularization can help with feature selection.
+
+- **Support Vector Machines**: Effective for handling high-dimensional data with complex decision boundaries, particularly useful given the diverse nature of the predictor variables.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 83 |
+| Domain | Neuroscience |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 3 (Low, Medium, High) |
+| Clean Version | `csv/ds083_neuroscience_addiction_risk_lowmediumhigh.csv` |
+| Dirty Version | `csv/ds083_neuroscience_addiction_risk_lowmediumhigh_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+This dataset is particularly valuable for:
+- Understanding multi-class classification problems
+- Learning to work with mixed data types (continuous, ordinal, categorical)
+- Practicing feature importance analysis and interpretation
+- Handling missing data and outliers in clinical datasets
+- Exploring ethical considerations in predictive healthcare modeling
+- Understanding the complexity of addiction as a biopsychosocial phenomenon
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. While the relationships between variables have been designed to reflect current scientific understanding of addiction risk factors, this data should not be used for actual clinical decision-making. The dataset provides a realistic learning environment for students to explore classification techniques while engaging with an important public health challenge. All participant data is simulated and no real patient information is included.

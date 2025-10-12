@@ -1,0 +1,164 @@
+{
+  "dataset_config": {
+    "name": "ds075_business_customer_satisfaction_score_dirty",
+    "description": "Predict CSAT rating on continuous scale",
+    "random_seed": 75,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "wait_time_minutes",
+          "resolution_rate"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "agent_empathy_score",
+          "resolution_rate"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "product_quality_rating",
+          "price_fairness_score"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "service_complexity_level",
+          "wait_time_minutes"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "wait_time_minutes",
+        "description": "Customer wait time in minutes",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "resolution_rate",
+        "description": "Issue resolution success rate",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.78,
+          "std": 0.15,
+          "min_clip": 0.0,
+          "max_clip": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "agent_empathy_score",
+        "description": "Agent empathy rating from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.2,
+          "std": 1.8,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "product_quality_rating",
+        "description": "Product quality rating from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.8,
+          "std": 2.1,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "price_fairness_score",
+        "description": "Price fairness perception score 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 2.0,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "service_complexity_level",
+        "description": "Complexity of service request from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.0,
+          "max": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "communication_clarity",
+        "description": "Clarity of agent communication 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.5,
+          "std": 1.6,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "customer_satisfaction_score",
+      "description": "Customer satisfaction score on continuous scale",
+      "data_type": "float",
+      "expression": "2.5 + 0.85*product_quality_rating + 0.75*agent_empathy_score + 0.65*price_fairness_score + 0.55*communication_clarity + 0.45*resolution_rate - 0.08*wait_time_minutes - 0.12*service_complexity_level",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

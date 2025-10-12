@@ -1,0 +1,181 @@
+{
+  "dataset_config": {
+    "name": "ds052_business_supply_chain_lead_time_dirty",
+    "description": "Estimate days from order to delivery based on supplier distance, order complexity, customs requirements, and shipping method",
+    "random_seed": 52,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "supplier_distance_km",
+          "shipping_cost_usd"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "order_complexity_score",
+          "processing_time_hours"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "customs_documents_count",
+          "customs_processing_days"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "shipping_cost_usd",
+          "priority_level"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "supplier_distance_km",
+        "description": "Distance from supplier to destination in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 2500,
+          "location": 50
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "order_complexity_score",
+        "description": "Complexity score based on number of items, customization, and special requirements (1-100)",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 20,
+          "min_clip": 1,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "customs_documents_count",
+        "description": "Number of customs documents required",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 8,
+          "std": 4,
+          "min_clip": 0,
+          "max_clip": 25
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "shipping_cost_usd",
+        "description": "Shipping cost in US dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 450,
+          "std": 180,
+          "min_clip": 25,
+          "max_clip": 2000
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "priority_level",
+        "description": "Shipping priority level (1=standard, 5=express)",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 1.2,
+          "min_clip": 1,
+          "max_clip": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "processing_time_hours",
+        "description": "Order processing time at warehouse in hours",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18,
+          "std": 8,
+          "min_clip": 2,
+          "max_clip": 72
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "customs_processing_days",
+        "description": "Days required for customs clearance",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 3.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "supplier_reliability_score",
+        "description": "Supplier reliability rating (60-100)",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 82,
+          "std": 12,
+          "min_clip": 60,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "supply_chain_lead_time",
+      "description": "Total days from order placement to delivery",
+      "data_type": "float",
+      "expression": "5 + 0.003*supplier_distance_km + 0.12*order_complexity_score + 1.8*customs_documents_count + 0.008*shipping_cost_usd - 2.5*priority_level + 0.15*processing_time_hours + 2.2*customs_processing_days - 0.08*supplier_reliability_score",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

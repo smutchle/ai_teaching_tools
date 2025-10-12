@@ -1,0 +1,86 @@
+---
+title: "Dataset 68: Soil pH Level Prediction in Agricultural and Environmental Management"
+format: html
+---
+
+# Overview
+
+This comprehensive geoscience dataset focuses on predicting soil pH levels across diverse agricultural and natural landscapes. Soil pH is a critical indicator of soil health that directly impacts crop productivity, nutrient availability, and ecosystem sustainability. The dataset combines geological, climatic, biological, and anthropogenic factors to create a realistic modeling challenge for understanding soil chemistry dynamics.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds068_geoscience_soil_ph_level.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds068_geoscience_soil_ph_level_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Regional Agricultural Extension Service of the Pacific Northwest has been tasked with developing a predictive model to help farmers and land managers assess soil pH levels across their territories without expensive laboratory testing. With over 50,000 acres of diverse agricultural land spanning multiple counties, the service needs to provide rapid soil pH assessments to support critical decisions about crop selection, fertilizer application, and land management practices.
+
+Traditional soil testing requires collecting physical samples and laboratory analysis, which can take weeks and costs $25-50 per sample. By developing a predictive model based on readily available environmental and land use data, the service can provide immediate pH estimates to farmers, enabling them to make timely decisions about soil amendments, crop rotation, and sustainable farming practices. This is particularly crucial during planting season when quick decisions about lime application or crop selection can significantly impact yield outcomes.
+
+The model will be integrated into a mobile application that allows farmers to input basic information about their land and receive instant soil pH predictions, along with recommendations for soil management strategies. This democratizes access to soil health information and supports more sustainable agricultural practices across the region.
+
+# Problem Statement
+
+Develop a regression model to predict soil pH levels (continuous scale from 3.5 to 8.5) based on environmental and land management factors. The model should achieve sufficient accuracy to guide agricultural decision-making while being interpretable enough to help farmers understand the key factors influencing their soil chemistry.
+
+# Target Variable
+
+**Soil pH Level**: A continuous measure ranging from 3.5 (highly acidic) to 8.5 (highly alkaline), with 7.0 representing neutral soil. Soil pH is fundamental to agriculture and ecosystem health because it controls nutrient availability, microbial activity, and plant growth. Most crops thrive in slightly acidic to neutral soils (pH 6.0-7.0), while extreme pH levels can lock up essential nutrients like phosphorus and iron, making them unavailable to plants. Accurate pH prediction enables proactive soil management, preventing crop failures and optimizing fertilizer efficiency, ultimately supporting both economic viability and environmental sustainability.
+
+# Predictor Variables
+
+- **Parent Material**: The underlying geological material from which soil develops (e.g., limestone, granite, sandstone, volcanic ash). This is the primary determinant of soil chemistry, as different rock types weather to produce soils with characteristic pH ranges. Limestone-derived soils tend to be alkaline, while granite-based soils are typically acidic.
+
+- **Rainfall**: Annual precipitation in millimeters. Higher rainfall generally leads to more acidic soils through leaching of basic cations (calcium, magnesium) and accumulation of organic acids. This creates a strong regional pattern in soil pH that correlates with climate zones.
+
+- **Vegetation Type**: Dominant plant community (e.g., coniferous forest, grassland, deciduous forest, shrubland). Different vegetation types contribute varying amounts and types of organic matter, with coniferous forests typically producing more acidic conditions due to needle litter composition.
+
+- **Land Use**: Current management practice (e.g., cropland, pasture, forest, urban). Agricultural practices like fertilizer application, liming, and crop rotation significantly modify natural soil pH, while different land uses create distinct soil chemistry patterns.
+
+- **Time**: Years since last major soil disturbance or management intervention. Soil pH changes gradually over time due to weathering, organic matter decomposition, and management effects, making temporal factors important for accurate prediction.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds068_geoscience_soil_ph_level.csv`): Ideal for initial model development and learning core regression concepts. Contains complete data with realistic but clear relationships between predictors and soil pH.
+- **Dirty Version** (`ds068_geoscience_soil_ph_level_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete field measurements, equipment malfunctions, and data entry errors commonly encountered in environmental monitoring.
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships between geological and environmental factors, while providing feature importance rankings to understand which variables most strongly influence soil pH in different contexts.
+
+- **Multiple Linear Regression**: Provides highly interpretable results that can be easily communicated to farmers and land managers, with clear coefficients showing how each factor contributes to pH predictions.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful ensemble method that can model complex interactions between climate, geology, and land management factors, potentially achieving the highest predictive accuracy for operational deployment.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 68 |
+| Domain | Geoscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Target Range | 3.5 - 8.5 pH units |
+| Clean Version | `csv/ds068_geoscience_soil_ph_level.csv` |
+| Dirty Version | `csv/ds068_geoscience_soil_ph_level_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic soil science principles and field conditions while maintaining interpretability for learning. The data incorporates established pedological relationships, such as the influence of parent material on base saturation and the effects of precipitation on soil leaching processes, making it an excellent resource for understanding both machine learning techniques and applied geoscience concepts.

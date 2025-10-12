@@ -1,0 +1,151 @@
+{
+  "dataset_config": {
+    "name": "ds022_biology_protein_expression_level",
+    "description": "Quantify protein abundance in cells based on gene promoter strength, cell type, stressors, and time since induction",
+    "random_seed": 22,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "promoter_strength",
+          "basal_transcription_rate"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "heat_stress_intensity",
+          "oxidative_stress_level"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "cell_density",
+          "nutrient_availability"
+        ],
+        "correlation": -0.55,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "promoter_strength",
+        "description": "Relative strength of gene promoter (fold change)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.5,
+          "scale": 3.2,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "basal_transcription_rate",
+        "description": "Baseline transcription rate (transcripts per minute)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.0,
+          "std": 4.5,
+          "min_clip": 2.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "cell_density",
+        "description": "Cell density in culture (cells per mL, thousands)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 500.0,
+          "std": 150.0,
+          "min_clip": 100.0,
+          "max_clip": 1200.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "heat_stress_intensity",
+        "description": "Heat stress level (degrees above optimal temperature)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 15.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "oxidative_stress_level",
+        "description": "Oxidative stress marker concentration (\u03bcM H2O2 equivalent)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "nutrient_availability",
+        "description": "Nutrient availability score (glucose equivalent, mM)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.0,
+          "std": 3.5,
+          "min_clip": 2.0,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "time_since_induction",
+        "description": "Time since gene induction (hours)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.5,
+          "max": 48.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "temperature_celsius",
+        "description": "Incubation temperature (degrees Celsius)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 37.0,
+          "std": 2.5,
+          "min_clip": 30.0,
+          "max_clip": 45.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "protein_expression_level",
+      "description": "Protein abundance measured in arbitrary fluorescence units",
+      "data_type": "float",
+      "expression": "1000 + 450*promoter_strength + 85*basal_transcription_rate + 0.3*cell_density + 25*nutrient_availability + np.log(time_since_induction + 1)*180 - 35*heat_stress_intensity - 12*oxidative_stress_level + 15*temperature_celsius",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

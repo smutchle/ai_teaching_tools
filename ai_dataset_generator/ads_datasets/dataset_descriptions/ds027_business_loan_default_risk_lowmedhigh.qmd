@@ -1,0 +1,115 @@
+---
+title: "Dataset 27: Credit Risk Assessment for Small Business Loans"
+format: html
+---
+
+# Overview
+
+This dataset contains loan application data for small businesses seeking credit from a regional bank. The goal is to predict loan default risk categories (Low, Medium, High) based on key financial indicators. This three-class classification problem is ideal for learning multi-class prediction techniques and understanding risk assessment in financial services.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds027_business_loan_default_risk_lowmedhigh.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds027_business_loan_default_risk_lowmedhigh_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Regional Community Bank serves small and medium-sized businesses across the Midwest, processing approximately 2,000 loan applications annually. With increasing competition from fintech lenders and pressure to maintain healthy profit margins, the bank needs to optimize its loan approval process while minimizing default rates. Currently, loan officers manually review applications using traditional underwriting guidelines, leading to inconsistent decisions and lengthy processing times.
+
+The bank's risk management team has identified an opportunity to implement a data-driven approach to loan risk assessment. By developing a predictive model that can automatically categorize applications into risk tiers, they can streamline the approval process, ensure consistent decision-making, and allocate human resources more effectively to high-risk applications requiring additional scrutiny.
+
+This dataset represents six months of historical loan applications with known outcomes, providing the foundation for building and validating a risk classification system that could transform the bank's lending operations.
+
+# Problem Statement
+
+Develop a classification model to predict loan default risk categories for small business loan applications. The model should accurately distinguish between Low, Medium, and High risk borrowers to support automated decision-making and risk-based pricing strategies.
+
+# Target Variable
+
+**Loan Default Risk (Low/Med/High)**: A three-level categorical variable representing the predicted likelihood of loan default within a 24-month period. 
+
+- **Low Risk**: Borrowers with strong financial profiles and minimal default probability (< 5%)
+- **Medium Risk**: Borrowers with moderate risk factors requiring standard monitoring (5-15% default probability)  
+- **High Risk**: Borrowers with elevated risk profiles requiring enhanced due diligence or risk-adjusted pricing (> 15% default probability)
+
+This classification enables the bank to implement differentiated lending strategies, from automated approval for low-risk applications to enhanced review processes and risk-based pricing for higher-risk segments.
+
+# Predictor Variables
+
+- **Credit Score**: FICO credit score ranging from 300-850, representing the business owner's personal creditworthiness. Higher scores indicate better credit management and lower default risk.
+
+- **Income**: Annual gross income of the business in thousands of dollars. This reflects the business's ability to generate revenue and service debt obligations.
+
+- **Debt-to-Income Ratio**: The percentage of gross income allocated to existing debt payments. Lower ratios indicate better financial flexibility and capacity to take on additional debt.
+
+- **Employment History**: Years of experience in the current business or industry, serving as a proxy for business stability and management expertise. Longer tenure typically correlates with lower risk.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds027_business_loan_default_risk_lowmedhigh.csv`): Ideal for initial model development and learning fundamental classification techniques without data quality complications
+- **Dirty Version** (`ds027_business_loan_default_risk_lowmedhigh_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues and providing practice with data preprocessing techniques
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling mixed data types and providing feature importance insights for risk factor analysis
+- **Gradient Boosting (XGBoost/LightGBM)**: High-performance approach suitable for imbalanced classes common in risk modeling
+- **Logistic Regression (Multinomial)**: Interpretable baseline model that provides probability estimates and clear coefficient interpretation for regulatory compliance
+
+```python
+# Example approach using scikit-learn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import classification_report
+
+# Load and split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, stratify=y)
+
+# Train model
+rf_model = RandomForestClassifier(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Evaluate
+predictions = rf_model.predict(X_test)
+print(classification_report(y_test, predictions))
+```
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 27 |
+| Domain | Business |
+| Problem Type | Classification (Multi-class) |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Target Classes | Low (40%), Medium (35%), High (25%) |
+| Clean Version | `csv/ds027_business_loan_default_risk_lowmedhigh.csv` |
+| Dirty Version | `csv/ds027_business_loan_default_risk_lowmedhigh_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Educational Learning Objectives
+
+- Practice multi-class classification techniques
+- Understand business risk assessment methodologies  
+- Learn to handle class imbalance in risk modeling
+- Develop skills in feature importance interpretation
+- Experience real-world data quality challenges with the dirty version
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic patterns observed in small business lending while maintaining interpretability for learning objectives. All data points and relationships are artificial and should not be used for actual lending decisions.

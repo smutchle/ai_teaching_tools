@@ -1,0 +1,92 @@
+---
+title: "Dataset 65: Predicting Income Inequality Through Socioeconomic Factors"
+format: html
+---
+
+# Overview
+
+This dataset explores the complex relationship between various socioeconomic factors and income inequality within different regions or countries. Using the Gini coefficient as a measure of wealth disparity, this regression problem challenges students to understand how education systems, government policies, labor organization, and economic structure collectively influence societal inequality patterns.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds065_sociology_income_inequality_index.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds065_sociology_income_inequality_index_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Global Institute for Social Policy Research has been commissioned by the United Nations to develop a predictive model for income inequality across different regions. Policy makers need to understand which factors most strongly influence wealth distribution to design effective interventions that promote economic equity.
+
+Historically, measuring and predicting income inequality has been crucial for governments and international organizations when allocating resources, designing tax policies, and implementing social programs. The ability to forecast how changes in education policy, tax structure, union legislation, or economic development might affect income distribution could save billions in misdirected funding and help millions escape poverty.
+
+This dataset represents a cross-sectional analysis of 500,000 different administrative regions, each with varying socioeconomic characteristics. Researchers can use this data to build models that predict income inequality levels, identify the most influential factors, and simulate the potential impact of policy changes before implementation.
+
+# Problem Statement
+
+Given information about a region's education distribution, tax policy characteristics, union strength, and industry composition, can we accurately predict the level of income inequality as measured by the Gini coefficient? This regression problem requires understanding complex socioeconomic relationships and their quantitative impact on wealth distribution patterns.
+
+# Target Variable
+
+**Income Inequality Index**: This variable represents the Gini coefficient scaled to a 0-100 index, where 0 indicates perfect equality (everyone has identical income) and 100 represents maximum inequality (one person has all the income). Values typically range from 25-65 in real-world scenarios, with higher values indicating greater income disparity. Predicting this index is valuable because it allows policymakers to:
+
+- Anticipate the social consequences of economic policies
+- Identify regions at risk of extreme inequality
+- Measure the effectiveness of redistributive programs
+- Compare inequality levels across different administrative areas
+- Plan targeted interventions to promote economic equity
+
+# Predictor Variables
+
+- **Education Distribution**: Measures the spread of educational attainment across the population, including factors like literacy rates, higher education access, and educational quality indicators. Regions with more equitable education access typically show lower income inequality.
+
+- **Tax Policy**: A composite score reflecting the progressivity of the tax system, including income tax brackets, capital gains taxes, and wealth redistribution mechanisms. More progressive tax policies generally correlate with reduced inequality.
+
+- **Union Strength**: Quantifies the influence of labor unions through membership rates, collective bargaining coverage, and legal protections for workers. Stronger union presence often leads to more compressed wage distributions.
+
+- **Industry Composition**: Describes the economic structure through the mix of high-skill vs. low-skill industries, manufacturing vs. service sectors, and the presence of high-paying knowledge economy jobs. Diverse, skill-intensive economies tend to have different inequality patterns than resource-extraction or low-skill service economies.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds065_sociology_income_inequality_index.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds065_sociology_income_inequality_index_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data collection challenges such as incomplete government records, measurement errors, or extreme cases that require careful handling
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with interpretable linear models to understand the direct relationships between socioeconomic factors and inequality, allowing for clear policy insights.
+
+- **Random Forest Regression**: Capture non-linear interactions between variables (e.g., how tax policy effectiveness might depend on education levels) while maintaining reasonable interpretability through feature importance scores.
+
+- **Gradient Boosting Models**: Handle complex, non-linear relationships that might exist between policy variables, such as threshold effects where small policy changes have disproportionate impacts on inequality.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 65 |
+| Domain | Sociology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Clean Version | `csv/ds065_sociology_income_inequality_index.csv` |
+| Dirty Version | `csv/ds065_sociology_income_inequality_index_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Range | 25-65 (Gini coefficient scaled) |
+| Difficulty Level | Intermediate |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect real-world socioeconomic patterns while maintaining clear learning objectives. The synthetic nature allows for controlled experimentation with different modeling approaches without the ethical concerns of using actual sensitive socioeconomic data. Students should focus on understanding the social science context while developing their technical regression skills.

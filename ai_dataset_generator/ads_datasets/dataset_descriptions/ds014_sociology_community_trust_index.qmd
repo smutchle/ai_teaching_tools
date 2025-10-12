@@ -1,0 +1,85 @@
+---
+title: "Dataset 14: Community Trust Index - Predicting Social Cohesion in Urban Neighborhoods"
+format: html
+---
+
+# Overview
+
+This dataset explores the complex dynamics of community trust in urban neighborhoods, providing a comprehensive view of how various socioeconomic and demographic factors influence interpersonal trust levels. The Community Trust Index serves as a quantitative measure of social cohesion, making this dataset ideal for understanding the sociological foundations of healthy communities and practicing regression modeling techniques.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds014_sociology_community_trust_index.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds014_sociology_community_trust_index_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Urban planners and social policy researchers at the Metropolitan Social Research Institute are working with city governments to identify neighborhoods at risk of social fragmentation. Following several high-profile incidents of community unrest in major cities, there's growing recognition that traditional crime statistics and economic indicators alone don't capture the full picture of neighborhood health and stability.
+
+The research team has developed a comprehensive Community Trust Index based on extensive survey data, neighborhood observations, and social network analysis. This index captures residents' willingness to cooperate with neighbors, trust in local institutions, and overall sense of community belonging. By understanding which factors most strongly predict community trust levels, policymakers can design targeted interventions to strengthen social cohesion before problems escalate.
+
+The ultimate goal is to create an early warning system that helps city planners allocate resources more effectively, whether through community center programs, neighborhood watch initiatives, or economic development projects. This proactive approach to community health represents a shift from reactive policing to preventive social policy.
+
+# Problem Statement
+
+Predict the Community Trust Index for urban neighborhoods based on key socioeconomic and demographic characteristics. This regression problem helps identify which factors most strongly influence social cohesion, enabling evidence-based community development strategies.
+
+# Target Variable
+
+**Community Trust Index**: A continuous scale from 0-100 measuring interpersonal trust and social cohesion within a community. This composite metric incorporates survey responses about neighbors' trustworthiness, willingness to help during emergencies, confidence in local institutions, and participation in community decision-making. Higher values indicate stronger social bonds and greater collective efficacy. The index is particularly valuable because it captures the "social capital" that often determines a community's resilience during crises and its capacity for self-organization and improvement.
+
+# Predictor Variables
+
+- **Crime Rate**: Annual reported crimes per 500,000 residents, including both violent and property crimes. Higher crime rates typically erode trust by creating fear and reducing face-to-face interactions in public spaces.
+
+- **Diversity**: A diversity index (0-1) measuring ethnic, racial, and cultural heterogeneity in the neighborhood. While diversity can enrich communities, research suggests it may initially reduce social trust until bridging social capital develops.
+
+- **Median Income**: Median household income in thousands of dollars. Economic security often correlates with higher trust levels, as financial stress can reduce community engagement and increase competition for resources.
+
+- **Civic Participation**: Percentage of residents who participate in local organizations, attend community meetings, or volunteer. Active civic engagement typically both reflects and reinforces community trust.
+
+- **Tenure**: Average length of residence in years. Longer-term residents often have stronger local networks and greater investment in community outcomes, contributing to higher trust levels.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds014_sociology_community_trust_index.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds014_sociology_community_trust_index_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world challenges like incomplete survey responses and data collection errors
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand the linear relationships between predictors and trust levels, providing interpretable coefficients for policy recommendations
+
+- **Random Forest Regression**: Capture non-linear relationships and interactions between variables (e.g., how income and diversity might interact to influence trust differently across contexts)
+
+- **Ridge/Lasso Regression**: Handle potential multicollinearity between socioeconomic variables while performing feature selection to identify the most important predictors of community trust
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 14 |
+| Domain | Sociology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds014_sociology_community_trust_index.csv` |
+| Dirty Version | `csv/ds014_sociology_community_trust_index_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect established sociological research on community trust and social capital, while maintaining interpretability for learning regression modeling techniques. The dataset structure mirrors real community-level data that urban planners and social researchers work with in practice.

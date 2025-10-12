@@ -1,0 +1,101 @@
+---
+title: "Dataset 80: Sleep Stage Classification from Polysomnography Data"
+format: html
+---
+
+# Overview
+
+This dataset contains polysomnography recordings designed for automated sleep stage classification, a fundamental challenge in sleep medicine and neuroscience research. The dataset includes physiological measurements collected during overnight sleep studies, with the goal of accurately identifying four distinct sleep stages: Wake, REM (Rapid Eye Movement), Light Sleep, and Deep Sleep. This multi-class classification problem is essential for understanding sleep architecture and diagnosing sleep disorders.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds080_neuroscience_sleep_stage_wakeremlightdeep.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds080_neuroscience_sleep_stage_wakeremlightdeep_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Sleep disorders affect millions of people worldwide, with conditions like sleep apnea, insomnia, and narcolepsy significantly impacting quality of life and overall health. Traditional sleep stage scoring requires trained sleep technologists to manually analyze hours of polysomnographic data, a time-intensive process that can take 2-4 hours per patient study. This manual scoring is also subject to inter-rater variability, with agreement rates between scorers ranging from 70-85% depending on the sleep stage.
+
+The Regional Sleep Medicine Center at Metropolitan General Hospital processes over 2,000 sleep studies annually. Dr. Sarah Chen, the center's director, recognized that automated sleep stage classification could dramatically improve efficiency while maintaining diagnostic accuracy. By developing machine learning models that can reliably classify sleep stages from physiological signals, the center aims to reduce scoring time, standardize interpretations, and allow sleep technologists to focus on more complex diagnostic tasks.
+
+This dataset represents a typical night's worth of polysomnographic recordings, with each row corresponding to a 30-second epoch (the standard time window used in sleep medicine). The challenge is to build a robust classifier that can distinguish between the four primary sleep stages based on multiple physiological indicators, ultimately supporting faster and more consistent sleep disorder diagnosis.
+
+# Problem Statement
+
+Given physiological measurements recorded during overnight polysomnography, predict the sleep stage classification for each 30-second epoch. The model should accurately distinguish between Wake, REM sleep, Light sleep (stages N1 and N2), and Deep sleep (stage N3) to support automated sleep study analysis and clinical decision-making.
+
+# Target Variable
+
+**Sleep Stage (Wake/REM/Light/Deep)**: This categorical variable represents the four primary sleep stages identified in clinical sleep medicine:
+
+- **Wake**: Periods of consciousness during the sleep study, characterized by high-frequency EEG activity and voluntary muscle movement
+- **REM**: Rapid Eye Movement sleep, associated with vivid dreaming, muscle atonia, and unique EEG patterns resembling wakefulness
+- **Light**: Non-REM stages N1 and N2, representing the transition from wake to deeper sleep with characteristic sleep spindles and K-complexes
+- **Deep**: Non-REM stage N3 (slow-wave sleep), featuring high-amplitude, low-frequency delta waves and the most restorative sleep phase
+
+Accurate sleep stage classification is crucial for assessing sleep quality, diagnosing sleep disorders, and monitoring treatment effectiveness. The distribution and timing of these stages throughout the night provide insights into sleep architecture and can reveal pathological patterns indicative of various sleep disorders.
+
+# Predictor Variables
+
+The dataset includes five key physiological measurements commonly used in polysomnography:
+
+- **EEG Frequency Bands**: Electroencephalography power spectral density across different frequency ranges (delta, theta, alpha, beta, gamma). These brain wave patterns are the primary indicators of sleep stages, with delta waves predominating in deep sleep and higher frequencies associated with wake and REM states.
+
+- **Eye Movement**: Electrooculography (EOG) measurements capturing the intensity and frequency of eye movements. Rapid eye movements are the hallmark of REM sleep, while minimal eye movement activity characterizes deep sleep stages.
+
+- **Muscle Tone**: Electromyography (EMG) readings from chin muscles indicating muscle tension levels. Muscle atonia (complete relaxation) during REM sleep contrasts sharply with maintained muscle tone during wake periods.
+
+- **Heart Rate**: Cardiac rhythm measurements showing autonomic nervous system activity. Heart rate variability patterns differ significantly across sleep stages, with REM sleep often showing increased variability similar to wake states.
+
+- **Time of Night**: Temporal information indicating when during the sleep period each epoch occurred. Sleep architecture follows predictable patterns throughout the night, with deep sleep predominating early and REM sleep increasing toward morning.
+
+# Dataset Versions
+
+This dataset is provided in two versions to support different learning objectives:
+
+- **Clean Version** (`ds080_neuroscience_sleep_stage_wakeremlightdeep.csv`): Contains complete data with no missing values or outliers. Ideal for initial model development, algorithm comparison, and learning fundamental classification techniques without data preprocessing complications.
+
+- **Dirty Version** (`ds080_neuroscience_sleep_stage_wakeremlightdeep_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in clinical polysomnography. Missing values may result from sensor disconnections or movement artifacts, while outliers could represent measurement errors or unusual physiological responses.
+
+# Suggested Approaches
+
+Several machine learning approaches are well-suited for this sleep stage classification problem:
+
+- **Random Forest Classifier**: Excellent for handling the mixed nature of physiological data and providing feature importance rankings. The ensemble approach is robust to outliers and can capture complex interactions between EEG patterns, muscle tone, and temporal factors.
+
+- **Support Vector Machine (SVM)**: Particularly effective for multi-class problems with clear decision boundaries. SVM with RBF kernels can model the non-linear relationships between physiological signals and sleep stages while maintaining good generalization performance.
+
+- **Gradient Boosting Methods (XGBoost/LightGBM)**: Outstanding performance on tabular data with the ability to handle missing values naturally. These methods excel at capturing subtle patterns in time-series physiological data and have shown excellent results in biomedical classification tasks.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 80 |
+| Domain | Neuroscience |
+| Problem Type | Multi-class Classification |
+| Number of Classes | 4 (Wake/REM/Light/Deep) |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds080_neuroscience_sleep_stage_wakeremlightdeep.csv` |
+| Dirty Version | `csv/ds080_neuroscience_sleep_stage_wakeremlightdeep_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Epoch Duration | 30 seconds |
+| Clinical Relevance | High - Direct application in sleep medicine |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes in data science and biomedical engineering courses. While the data is artificially created, the relationships between variables, class distributions, and physiological patterns have been designed to reflect realistic polysomnographic recordings based on established sleep medicine literature. The dataset provides an excellent opportunity to practice multi-class classification, handle missing data, detect outliers, and understand the challenges of working with biomedical time-series data in a clinically relevant context.

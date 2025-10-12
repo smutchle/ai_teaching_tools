@@ -1,0 +1,171 @@
+{
+  "dataset_config": {
+    "name": "ds021_biology_plant_growth_rate_dirty",
+    "description": "Predict biomass increase per day in grams based on environmental factors",
+    "random_seed": 21,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "light_intensity",
+          "temperature"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "nutrient_concentration",
+          "water_availability"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature",
+          "co2_concentration"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "light_intensity",
+          "co2_concentration"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "soil_ph",
+          "nutrient_concentration"
+        ],
+        "correlation": 0.51,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "light_intensity",
+        "description": "Light intensity in micromoles per square meter per second",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 400,
+          "std": 120,
+          "min_clip": 50,
+          "max_clip": 800
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nutrient_concentration",
+        "description": "Nutrient concentration in solution (ppm)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 150,
+          "std": 40,
+          "min_clip": 20,
+          "max_clip": 300
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "temperature",
+        "description": "Temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 24,
+          "std": 6,
+          "min_clip": 10,
+          "max_clip": 40
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "water_availability",
+        "description": "Water availability as percentage of field capacity",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 30,
+          "max": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "co2_concentration",
+        "description": "CO2 concentration in parts per million",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 450,
+          "std": 80,
+          "min_clip": 300,
+          "max_clip": 800
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_ph",
+        "description": "Soil pH level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 0.8,
+          "min_clip": 4.0,
+          "max_clip": 9.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "humidity",
+        "description": "Relative humidity percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 40,
+          "max": 90
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "plant_growth_rate",
+      "description": "Biomass increase per day in grams",
+      "data_type": "float",
+      "expression": "0.5 + 0.008*light_intensity + 0.012*nutrient_concentration + 0.15*temperature + 0.02*water_availability + 0.003*co2_concentration + 0.8*soil_ph + 0.01*humidity",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

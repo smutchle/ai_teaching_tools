@@ -1,0 +1,83 @@
+---
+title: "Dataset 11: Aquatic Ecosystem Health Assessment - Water Quality Index Prediction"
+format: html
+---
+
+# Overview
+
+This dataset contains comprehensive water quality measurements from various freshwater bodies, designed to predict the overall Water Quality Index (WQI) - a standardized metric used by environmental agencies to communicate water body health to the public. The dataset captures the complex relationships between key physicochemical parameters and overall aquatic ecosystem health, making it ideal for regression modeling and environmental data analysis education.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds011_ecology_water_quality_index.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds011_ecology_water_quality_index_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Regional Environmental Protection Agency has been monitoring water quality across 50 different freshwater bodies including lakes, rivers, and reservoirs over the past two years. With increasing concerns about agricultural runoff, urban pollution, and climate change impacts on aquatic ecosystems, there's a critical need to develop predictive models that can estimate water quality indices from readily measurable parameters.
+
+Currently, calculating the official Water Quality Index requires expensive laboratory analysis and takes 3-5 days to process samples. However, field researchers can quickly measure basic parameters like pH, dissolved oxygen, temperature, turbidity, and nutrient levels using portable equipment. By developing a reliable predictive model, environmental scientists could provide near real-time water quality assessments to local communities, recreational users, and policy makers.
+
+This capability would be particularly valuable during emergency situations (such as chemical spills or algal blooms), for routine monitoring of drinking water sources, and for assessing the effectiveness of conservation interventions. The model could also help prioritize which water bodies need immediate attention when resources are limited.
+
+# Problem Statement
+
+Given measurable water quality parameters, predict the comprehensive Water Quality Index score that would typically require extensive laboratory analysis. This regression problem aims to create a rapid assessment tool for environmental monitoring and public health protection.
+
+# Target Variable
+
+**Water Quality Index (WQI)**: A composite score ranging from 0-100 that quantifies overall water body health, where higher values indicate better water quality. The WQI integrates multiple water quality parameters into a single interpretable number that correlates with ecosystem health, biodiversity potential, and suitability for human use. Values above 80 typically indicate excellent water quality suitable for all uses, 60-80 represents good quality with minor limitations, 40-60 suggests moderate quality requiring treatment for sensitive uses, and below 40 indicates poor quality requiring significant intervention. Predicting WQI is crucial for rapid environmental assessment, public health monitoring, and resource management decisions.
+
+# Predictor Variables
+
+- **pH**: Measures water acidity/alkalinity on a scale of 0-14. Most aquatic life thrives in pH ranges of 6.5-8.5. Extreme pH values can indicate pollution, acid rain effects, or biological imbalances that stress aquatic ecosystems.
+
+- **Dissolved Oxygen (mg/L)**: Critical for aquatic life survival, typically ranging from 0-20 mg/L. Higher levels support diverse fish populations and healthy ecosystems, while low oxygen can indicate organic pollution, eutrophication, or temperature stress.
+
+- **Turbidity (NTU)**: Measures water clarity by quantifying suspended particles. High turbidity can indicate erosion, algal blooms, or pollution, while also affecting light penetration needed for aquatic plant photosynthesis.
+
+- **Nutrient Levels (mg/L)**: Primarily nitrogen and phosphorus compounds that, while essential for aquatic life, can cause eutrophication and harmful algal blooms when excessive. Often elevated due to agricultural runoff or sewage discharge.
+
+- **Temperature (°C)**: Affects dissolved oxygen capacity, metabolic rates of aquatic organisms, and chemical reaction rates. Temperature changes can indicate thermal pollution or climate impacts on water bodies.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds011_ecology_water_quality_index.csv`): Ideal for initial model development and learning core regression techniques without data preprocessing complications
+- **Dirty Version** (`ds011_ecology_water_quality_index_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as sensor malfunctions, measurement errors, and extreme environmental conditions
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with this interpretable baseline to understand linear relationships between water quality parameters and the overall index
+- **Random Forest Regression**: Excellent for capturing non-linear interactions between variables (e.g., pH and temperature effects on dissolved oxygen) while providing feature importance insights
+- **Gradient Boosting (XGBoost/LightGBM)**: Often achieves high predictive accuracy for environmental datasets and handles complex parameter interactions effectively
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 11 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds011_ecology_water_quality_index.csv` |
+| Dirty Version | `csv/ds011_ecology_water_quality_index_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The parameter ranges and interactions reflect real-world water quality dynamics, making this dataset valuable for learning both regression modeling techniques and environmental data analysis principles.

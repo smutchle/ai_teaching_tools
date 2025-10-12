@@ -1,0 +1,171 @@
+{
+  "dataset_config": {
+    "name": "ds035_ecology_invasive_species_presence_yesno",
+    "description": "Detect non-native species establishment based on native diversity, disturbance, propagule pressure, and climate match",
+    "random_seed": 35,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "native_species_diversity",
+          "habitat_disturbance_index"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "propagule_pressure_score",
+          "transport_pathway_density"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "climate_match_index",
+          "temperature_similarity"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "habitat_disturbance_index",
+          "human_activity_level"
+        ],
+        "correlation": 0.51,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "native_species_diversity",
+        "description": "Shannon diversity index of native species",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 0.6,
+          "min_clip": 0.5,
+          "max_clip": 4.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "habitat_disturbance_index",
+        "description": "Composite index of habitat disturbance (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 35,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "propagule_pressure_score",
+        "description": "Measure of introduction effort and frequency",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 18,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "climate_match_index",
+        "description": "Similarity between origin and destination climate (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.1,
+          "max": 0.95
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "transport_pathway_density",
+        "description": "Density of transport pathways (roads, ports, etc.)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 25,
+          "location": 2
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "temperature_similarity",
+        "description": "Temperature regime similarity score (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.65,
+          "std": 0.2,
+          "min_clip": 0.0,
+          "max_clip": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "human_activity_level",
+        "description": "Level of human activity in the area (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 22,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "precipitation_match",
+        "description": "Precipitation pattern similarity (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.2,
+          "max": 0.9
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "invasive_species_presence_yesno",
+      "description": "Presence of invasive species establishment",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-3.2 - 0.8*native_species_diversity + 0.04*habitat_disturbance_index + 0.06*propagule_pressure_score + 2.8*climate_match_index + 0.02*transport_pathway_density + 1.5*temperature_similarity + 0.01*human_activity_level + 1.2*precipitation_match)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "Yes",
+        "Yes",
+        "Yes"
+      ]
+    }
+  }
+}

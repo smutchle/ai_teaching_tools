@@ -1,0 +1,136 @@
+{
+  "dataset_config": {
+    "name": "ds073_biology_antibody_titer",
+    "description": "Quantify immune response concentration in serum based on vaccination parameters and patient characteristics",
+    "random_seed": 73,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "age",
+          "baseline_immunity"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "booster_doses",
+          "antibody_titer"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "days_post_vaccination",
+          "antibody_decay_rate"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "days_post_vaccination",
+        "description": "Number of days since last vaccination",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 1,
+          "max": 365
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "age",
+        "description": "Patient age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 18,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "baseline_immunity",
+        "description": "Pre-vaccination immune status score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 15,
+          "min_clip": 20,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "booster_doses",
+        "description": "Number of booster doses received",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 4
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "adjuvant_strength",
+        "description": "Adjuvant potency factor (0.5-2.0)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.2,
+          "std": 0.3,
+          "min_clip": 0.5,
+          "max_clip": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "antibody_decay_rate",
+        "description": "Individual antibody decay coefficient",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 0.015,
+          "location": 0.005
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "vaccine_dose_mg",
+        "description": "Vaccine dose administered in milligrams",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.25,
+          "max": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "antibody_titer",
+      "description": "Antibody concentration in serum (IU/mL)",
+      "data_type": "float",
+      "expression": "500 + 150*baseline_immunity + 200*booster_doses + 300*adjuvant_strength + 400*vaccine_dose_mg - 0.8*days_post_vaccination - 2000*antibody_decay_rate - 1.5*age",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

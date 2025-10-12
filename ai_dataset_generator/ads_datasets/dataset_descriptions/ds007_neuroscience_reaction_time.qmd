@@ -1,0 +1,97 @@
+---
+title: "Dataset 7: Cognitive Response Time Prediction in Neuroscience Research"
+format: html
+---
+
+# Overview
+
+This dataset contains measurements from a controlled neuroscience experiment examining factors that influence human reaction times to visual stimuli. The data captures the complex interplay between demographic, physiological, and environmental factors that affect cognitive processing speed, making it an excellent resource for learning regression techniques in a neuroscience context.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds007_neuroscience_reaction_time.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds007_neuroscience_reaction_time_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Dr. Sarah Chen, a cognitive neuroscientist at the University Research Institute, is investigating how various factors influence reaction times in healthy adults. Her research team has been collecting data from participants who complete a standardized visual stimulus response task in their laboratory. Participants are presented with simple geometric shapes on a computer screen and must press a button as quickly as possible when they detect a specific target shape.
+
+This research has important applications in understanding cognitive aging, optimizing human-computer interfaces, and developing assessment tools for neurological conditions. The laboratory has collected comprehensive data on participant characteristics and experimental conditions to build predictive models that could help identify individuals at risk for cognitive decline or optimize task designs for different populations.
+
+The research team wants to develop a machine learning model that can predict reaction times based on easily measurable participant characteristics and experimental conditions. Such a model would be valuable for clinical screening, ergonomic design, and understanding the fundamental mechanisms of human information processing.
+
+# Problem Statement
+
+Given information about a participant's demographic characteristics, current state, and experimental conditions, can we accurately predict their reaction time to visual stimuli? This regression problem is crucial for advancing our understanding of cognitive processing and has practical applications in clinical assessment and interface design.
+
+# Target Variable
+
+**Reaction Time**: Measured in milliseconds, this represents the time elapsed between stimulus presentation and the participant's button press response. Reaction time is a fundamental measure in cognitive neuroscience that reflects the efficiency of information processing, from sensory detection through motor response execution. Predicting reaction times is valuable for identifying cognitive impairments, optimizing task difficulty, assessing the effects of interventions, and understanding individual differences in processing speed. Typical reaction times for simple visual tasks range from 200-600 milliseconds in healthy adults.
+
+# Predictor Variables
+
+- **Age**: Participant age in years (18-75). Age is one of the strongest predictors of reaction time, with processing speed typically declining after age 30 due to changes in neural efficiency and white matter integrity.
+
+- **Fatigue Level**: Self-reported fatigue on a scale of 1-10, where 1 represents "completely alert" and 10 represents "extremely tired". Mental fatigue significantly impairs attention and processing speed.
+
+- **Task Complexity**: Experimental manipulation ranging from 1 (simple detection) to 5 (complex discrimination). Higher complexity requires more cognitive processing, leading to slower responses.
+
+- **Caffeine Intake**: Amount of caffeine consumed in the 4 hours prior to testing (in milligrams). Caffeine is a psychoactive stimulant that can improve alertness and reduce reaction times, particularly in fatigued individuals.
+
+- **Prior Training**: Number of previous sessions the participant has completed (0-20). Practice effects can lead to faster and more consistent performance through procedural learning and reduced task-related anxiety.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds007_neuroscience_reaction_time.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds007_neuroscience_reaction_time_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as equipment malfunctions, participant non-compliance, or data entry errors
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand the linear relationships between predictors and reaction time, providing interpretable coefficients for each factor.
+
+- **Random Forest**: Use ensemble methods to capture non-linear relationships and interactions between variables (e.g., age-fatigue interactions, caffeine effects varying by training level).
+
+- **Gradient Boosting**: Apply XGBoost or similar algorithms to achieve high predictive accuracy while handling the complex, potentially non-monotonic relationships between cognitive factors and performance.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 7 |
+| Domain | Neuroscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds007_neuroscience_reaction_time.csv` |
+| Dirty Version | `csv/ds007_neuroscience_reaction_time_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Range | 180-650 milliseconds |
+| Use Case | Cognitive assessment, interface design, aging research |
+
+# Learning Objectives
+
+This dataset is particularly well-suited for:
+- Understanding regression in a scientific context
+- Exploring age-related cognitive changes through data
+- Learning to handle realistic data quality issues
+- Practicing feature engineering with interaction effects
+- Interpreting model results in terms of biological mechanisms
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. While the data is artificial, the relationships between variables have been carefully designed to reflect established findings in cognitive neuroscience literature, ensuring that students learn realistic patterns while developing their data science skills. The dataset provides an excellent introduction to regression analysis in the context of human performance research.

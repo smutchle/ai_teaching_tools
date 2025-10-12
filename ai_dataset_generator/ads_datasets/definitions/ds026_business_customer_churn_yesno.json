@@ -1,0 +1,158 @@
+{
+  "dataset_config": {
+    "name": "ds026_business_customer_churn_yesno",
+    "description": "Predict whether customer will cancel service based on contract length, support tickets, usage frequency, and payment delays",
+    "random_seed": 26,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "contract_length_months",
+          "customer_satisfaction_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "support_tickets_count",
+          "payment_delays_count"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "usage_frequency_weekly",
+          "customer_satisfaction_score"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "monthly_bill_amount",
+          "contract_length_months"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "contract_length_months",
+        "description": "Length of customer contract in months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 18,
+          "location": 1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "support_tickets_count",
+        "description": "Number of support tickets submitted in last 6 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 3.5,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "usage_frequency_weekly",
+        "description": "Average weekly usage frequency (sessions per week)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 4.2,
+          "std": 2.1,
+          "min_clip": 0.1,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "payment_delays_count",
+        "description": "Number of payment delays in last 12 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 0.9,
+          "scale": 1.8,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "monthly_bill_amount",
+        "description": "Monthly bill amount in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 75.0,
+          "std": 25.0,
+          "min_clip": 15.0,
+          "max_clip": 200.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "customer_satisfaction_score",
+        "description": "Customer satisfaction score from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.8,
+          "std": 1.8,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "account_age_months",
+        "description": "Age of customer account in months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 24,
+          "location": 1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "customer_churn_yesno",
+      "description": "Whether customer will cancel service (Yes/No)",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(3.2 - 0.08*contract_length_months + 0.45*support_tickets_count - 0.35*usage_frequency_weekly + 0.55*payment_delays_count + 0.012*monthly_bill_amount - 0.42*customer_satisfaction_score - 0.025*account_age_months)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "categories": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "Yes",
+        "Yes",
+        "Yes"
+      ]
+    }
+  }
+}

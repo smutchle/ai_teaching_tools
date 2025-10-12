@@ -1,0 +1,91 @@
+---
+title: "Dataset 20: Mineral Concentration Prediction in Geological Exploration"
+format: html
+---
+
+# Overview
+
+This dataset contains geological measurements from mineral exploration sites, designed to predict ore grade and mineral concentration percentages. The data captures key geological factors that influence mineral deposits, making it an excellent resource for learning regression techniques in the context of natural resource exploration and geological data analysis.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds020_geoscience_mineral_concentration.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds020_geoscience_mineral_concentration_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Imagine you're working as a data scientist for Northern Geological Services, a consulting company that specializes in mineral exploration for mining companies. Your client, Aurora Mining Corporation, has been conducting exploratory drilling across a promising mineral belt in northern Canada. They've collected extensive geological data from 500,000 drill core samples across multiple sites, but laboratory analysis for precise mineral concentration is expensive and time-consuming, costing approximately $200 per sample and taking 2-3 weeks for results.
+
+Aurora Mining needs to make rapid decisions about which areas warrant further investment and detailed analysis. They've commissioned your team to develop a predictive model that can estimate mineral concentration based on readily available geological measurements. This model would allow them to prioritize high-potential areas for expensive laboratory analysis, potentially saving hundreds of thousands of dollars in exploration costs while accelerating their discovery timeline.
+
+The economic implications are significant: accurate predictions could help identify ore bodies with concentrations above the economic threshold (typically 2-3% for this type of deposit), while avoiding costly development of sub-economic deposits. In the competitive mining industry, the ability to rapidly assess mineral potential can mean the difference between securing a profitable mining lease and losing out to competitors.
+
+# Problem Statement
+
+Given geological and environmental measurements from drill core samples, predict the mineral concentration percentage to guide exploration decisions and optimize resource allocation in mineral exploration programs.
+
+# Target Variable
+
+**Mineral Concentration**: The percentage of valuable minerals present in rock samples, measured as a continuous variable ranging from 0% to approximately 15%. This represents the ore grade, which directly determines the economic viability of extraction. Concentrations above 2-3% are typically considered economically viable for mining operations, while concentrations below 1% are generally sub-economic. Accurate prediction of this variable enables mining companies to:
+
+- Prioritize areas for detailed geological surveys
+- Estimate potential revenue from mineral deposits
+- Make informed decisions about land acquisition and drilling programs
+- Optimize resource allocation in exploration budgets
+- Assess project feasibility before major capital investments
+
+# Predictor Variables
+
+- **Rock Type**: Categorical variable indicating the geological formation (e.g., granite, schist, quartzite, volcanic). Different rock types have varying potential for hosting mineral deposits based on their formation processes and chemical composition.
+
+- **Depth**: Measurement in meters below surface, ranging from shallow surface samples to deep drill cores. Depth affects mineral concentration due to geological processes like hydrothermal alteration and weathering effects.
+
+- **Temperature**: Subsurface temperature in degrees Celsius, influenced by geothermal gradient and depth. Temperature affects mineral formation processes and can indicate proximity to mineralizing systems.
+
+- **Pressure**: Geological pressure in kilopascals, related to depth and local geological conditions. Pressure influences mineral crystallization and can indicate structural controls on mineralization.
+
+- **Weathering Index**: A composite score (0-100) measuring the degree of rock alteration due to chemical and physical weathering processes. Weathering can both concentrate and deplete minerals depending on their chemical stability.
+
+# Dataset Versions
+
+This dataset is provided in two versions to support different learning objectives:
+
+- **Clean Version** (`ds020_geoscience_mineral_concentration.csv`): Perfect for initial model development and learning core regression techniques without data quality complications
+- **Dirty Version** (`ds020_geoscience_mineral_concentration_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world geological data where equipment malfunctions, measurement errors, and extreme geological conditions create data quality challenges
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand baseline relationships between geological variables and mineral concentration, providing interpretable coefficients for geological insights.
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships and interactions between geological variables, while providing feature importance rankings to identify key geological controls.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Advanced ensemble methods that can model complex geological relationships and often achieve high accuracy in mineral prediction tasks, particularly useful for optimizing economic thresholds.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 20 |
+| Domain | Geoscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds020_geoscience_mineral_concentration.csv` |
+| Dirty Version | `csv/ds020_geoscience_mineral_concentration_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic geological processes and industry practices while maintaining interpretability. The data structure mirrors actual mineral exploration datasets, making it valuable for learning both technical skills and domain knowledge in geoscience applications.

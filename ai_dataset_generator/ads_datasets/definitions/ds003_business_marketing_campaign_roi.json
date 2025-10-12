@@ -1,131 +1,145 @@
 {
   "dataset_config": {
     "name": "ds003_business_marketing_campaign_roi",
-    "description": "Estimate return on investment for marketing initiatives based on budget allocation, channel mix, audience size, seasonality, and creative quality",
+    "description": "Estimate return on investment for marketing initiatives",
     "random_seed": 3,
-    "n_rows": 1000,
+    "n_rows": 500000,
     "correlations": [
       {
         "variables": [
-          "budget_thousands",
-          "audience_size_millions"
+          "campaign_budget",
+          "audience_size"
         ],
-        "correlation": 0.65,
+        "correlation": 0.55,
         "method": "cholesky"
       },
       {
         "variables": [
           "creative_score",
-          "digital_channel_pct"
+          "brand_awareness_lift"
         ],
-        "correlation": 0.45,
+        "correlation": 0.42,
         "method": "cholesky"
       },
       {
         "variables": [
-          "budget_thousands",
-          "creative_score"
+          "digital_channel_mix",
+          "audience_size"
         ],
-        "correlation": 0.35,
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "campaign_budget",
+          "brand_awareness_lift"
+        ],
+        "correlation": 0.48,
         "method": "cholesky"
       }
     ],
     "features": [
       {
-        "name": "budget_thousands",
-        "description": "Marketing campaign budget in thousands of dollars",
+        "name": "campaign_budget",
+        "description": "Total marketing campaign budget in thousands",
         "data_type": "float",
         "distribution": {
-          "type": "normal",
-          "mean": 150,
-          "std": 50,
-          "min_clip": 20,
-          "max_clip": 500
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 150,
+          "location": 10
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
-        "name": "digital_channel_pct",
+        "name": "digital_channel_mix",
         "description": "Percentage of budget allocated to digital channels",
         "data_type": "float",
         "distribution": {
           "type": "normal",
           "mean": 65,
-          "std": 20,
-          "min_clip": 0,
-          "max_clip": 100
+          "std": 15,
+          "min_clip": 10,
+          "max_clip": 95
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
-        "name": "traditional_channel_pct",
-        "description": "Percentage of budget allocated to traditional channels",
+        "name": "audience_size",
+        "description": "Target audience size in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 500,
+          "location": 50
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "seasonality_factor",
+        "description": "Seasonal demand multiplier based on timing",
         "data_type": "float",
         "distribution": {
           "type": "normal",
-          "mean": 35,
-          "std": 20,
-          "min_clip": 0,
-          "max_clip": 100
+          "mean": 1.0,
+          "std": 0.25,
+          "min_clip": 0.5,
+          "max_clip": 1.8
         },
-        "missing_rate": 0.0
-      },
-      {
-        "name": "audience_size_millions",
-        "description": "Target audience size in millions of people",
-        "data_type": "float",
-        "distribution": {
-          "type": "normal",
-          "mean": 2.5,
-          "std": 1.2,
-          "min_clip": 0.1,
-          "max_clip": 10.0
-        },
-        "missing_rate": 0.0
-      },
-      {
-        "name": "seasonality_index",
-        "description": "Seasonal demand index (1.0 = average, >1.0 = high season)",
-        "data_type": "float",
-        "distribution": {
-          "type": "uniform",
-          "min": 0.6,
-          "max": 1.4
-        },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
         "name": "creative_score",
-        "description": "Creative quality score from 1-10 based on professional evaluation",
+        "description": "Creative quality score from 1-10",
         "data_type": "float",
         "distribution": {
           "type": "normal",
           "mean": 6.5,
           "std": 1.5,
-          "min_clip": 1,
-          "max_clip": 10
+          "min_clip": 1.0,
+          "max_clip": 10.0
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
-        "name": "competitor_activity",
-        "description": "Competitor advertising activity level (1-5 scale)",
+        "name": "brand_awareness_lift",
+        "description": "Brand awareness lift percentage from campaign",
         "data_type": "float",
         "distribution": {
           "type": "uniform",
-          "min": 1,
-          "max": 5
+          "min": 2.0,
+          "max": 25.0
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "competitor_activity",
+        "description": "Competitor marketing activity index",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.0,
+          "std": 2.0,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       }
     ],
     "target": {
       "name": "marketing_campaign_roi",
-      "description": "Estimate return on investment for marketing initiatives",
+      "description": "Return on investment as percentage",
       "data_type": "float",
-      "expression": "1.5 + 0.008*budget_thousands + 0.02*digital_channel_pct + 0.3*audience_size_millions + 0.8*seasonality_index + 0.15*creative_score - 0.1*competitor_activity",
-      "noise_percent": 2.5,
-      "missing_rate": 0.0
+      "expression": "50 + 0.8*campaign_budget + 0.15*digital_channel_mix + 0.02*audience_size + 35*seasonality_factor + 12*creative_score + 1.5*brand_awareness_lift - 8*competitor_activity",
+      "noise_percent": 2.5
     }
   }
 }

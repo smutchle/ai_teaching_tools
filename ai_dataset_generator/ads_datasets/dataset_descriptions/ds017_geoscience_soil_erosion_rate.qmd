@@ -1,0 +1,85 @@
+---
+title: "Dataset 17: Predicting Soil Erosion Rates for Environmental Management"
+format: html
+---
+
+# Overview
+
+This dataset enables prediction of soil erosion rates measured in tons per hectare per year using key environmental and land management factors. Designed for regression analysis in geoscience applications, it provides a realistic foundation for understanding how natural and human factors contribute to soil loss—a critical environmental challenge affecting agricultural productivity, water quality, and ecosystem stability worldwide.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds017_geoscience_soil_erosion_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds017_geoscience_soil_erosion_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Regional Environmental Protection Agency has launched an ambitious soil conservation initiative across a diverse watershed spanning 50,000 hectares. This area encompasses agricultural lands, forests, urban developments, and natural grasslands, each experiencing different rates of soil erosion due to varying topography, climate conditions, and human activities. The agency needs to prioritize conservation efforts and allocate limited resources effectively to areas at highest risk of soil loss.
+
+Traditional soil erosion monitoring requires expensive field measurements and laboratory analysis that can take months to complete. However, the agency has access to readily available geospatial data including digital elevation models, satellite-derived vegetation indices, weather station records, soil surveys, and land use classifications. By developing a predictive model using these accessible variables, environmental scientists can rapidly assess erosion risk across the entire watershed and identify priority areas for intervention.
+
+The model will support critical decisions such as where to implement terracing, establish buffer strips, modify grazing practices, or restrict development. Additionally, it will enable scenario planning to evaluate how proposed land use changes might affect regional soil loss rates, supporting evidence-based environmental policy and sustainable land management practices.
+
+# Problem Statement
+
+Given environmental and land management characteristics of a location, predict the annual soil erosion rate in tons per hectare per year. This regression problem requires understanding the complex interactions between topographic, climatic, biological, and anthropogenic factors that drive soil loss processes.
+
+# Target Variable
+
+**Soil Erosion Rate**: Measured in tons per hectare per year, this variable quantifies the mass of soil lost from the surface layer due to water and wind erosion processes. Values typically range from less than 1 ton/ha/year in well-protected areas with dense vegetation cover to over 50 tons/ha/year in severely degraded locations with steep slopes and poor land management. This metric is crucial for environmental management because soil formation occurs at rates of only 0.1-1 ton/ha/year, meaning erosion rates above this threshold represent irreversible soil loss that threatens long-term land productivity and ecosystem health.
+
+# Predictor Variables
+
+- **Slope**: The steepness of terrain measured in degrees (0-45°). Steeper slopes increase water runoff velocity and gravitational forces, dramatically accelerating erosion processes. This is often the most influential factor in erosion prediction models.
+
+- **Vegetation Cover**: Percentage of ground surface covered by living vegetation (0-100%). Plant roots bind soil particles, canopy intercepts rainfall energy, and surface vegetation slows runoff. Higher vegetation cover provides exponentially better erosion protection.
+
+- **Rainfall Intensity**: Average intensity of precipitation events measured in mm/hour. High-intensity rainfall generates greater kinetic energy for detaching soil particles and creates more aggressive surface runoff, even when total annual precipitation is moderate.
+
+- **Soil Type**: Categorical variable representing major soil classifications (Clay, Sandy, Loamy, Rocky). Different soil types have varying susceptibility to erosion based on particle size, organic content, and structural stability. Sandy soils are typically most erosion-prone, while clay soils are more resistant.
+
+- **Land Use**: Categorical variable describing primary land use (Agricultural, Forest, Urban, Grassland). Each land use type involves different management practices, vegetation characteristics, and soil disturbance patterns that significantly influence erosion rates.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds017_geoscience_soil_erosion_rate.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds017_geoscience_soil_erosion_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as sensor malfunctions, measurement errors, and extreme weather events
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships and interactions between environmental variables while providing feature importance rankings to understand which factors most strongly influence erosion rates.
+
+- **Multiple Linear Regression**: Provides interpretable coefficients and statistical significance testing, making it valuable for understanding the magnitude and direction of each variable's effect on soil erosion.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Can capture complex patterns and interactions in the data while handling mixed data types effectively, often achieving high predictive accuracy for environmental modeling applications.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 17 |
+| Domain | Geoscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds017_geoscience_soil_erosion_rate.csv` |
+| Dirty Version | `csv/ds017_geoscience_soil_erosion_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The erosion rates and variable interactions are based on established principles from soil science and hydrology research, making this dataset suitable for learning both machine learning techniques and domain-specific insights about environmental processes.

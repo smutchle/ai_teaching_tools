@@ -1,0 +1,186 @@
+{
+  "dataset_config": {
+    "name": "ds054_business_sales_commission_amount_dirty",
+    "description": "Calculate compensation for sales personnel based on deal characteristics and performance metrics",
+    "random_seed": 54,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "deal_size_k",
+          "negotiation_duration_days"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "deal_size_k",
+          "product_complexity_score"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "client_company_size",
+          "deal_size_k"
+        ],
+        "correlation": 0.61,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "negotiation_duration_days",
+          "product_complexity_score"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "deal_size_k",
+        "description": "Deal size in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 150,
+          "location": 25
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "product_complexity_score",
+        "description": "Product mix complexity score from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 2.1,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "negotiation_duration_days",
+        "description": "Number of days from initial contact to deal close",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 45,
+          "location": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "client_industry_tier",
+        "description": "Client industry profitability tier (1=highest, 5=lowest)",
+        "data_type": "categorical",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 1.2
+        },
+        "categories": [
+          "Tier 1",
+          "Tier 1",
+          "Tier 2",
+          "Tier 2",
+          "Tier 3",
+          "Tier 3",
+          "Tier 4",
+          "Tier 4",
+          "Tier 5",
+          "Tier 5"
+        ],
+        "missing_rate": 0.02
+      },
+      {
+        "name": "region_multiplier",
+        "description": "Regional cost of living and market adjustment factor",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.0,
+          "std": 0.15,
+          "min_clip": 0.7,
+          "max_clip": 1.4
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "client_company_size",
+        "description": "Client company employee count in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 8.5,
+          "location": 0.1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "sales_rep_experience_years",
+        "description": "Sales representative years of experience",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 6.8,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "quarterly_quota_achievement",
+        "description": "Percentage of quarterly sales quota achieved",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 95.0,
+          "std": 25.0,
+          "min_clip": 30.0,
+          "max_clip": 180.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "sales_commission_amount",
+      "description": "Sales commission amount in dollars",
+      "data_type": "float",
+      "expression": "1500 + 0.08*deal_size_k*1000 + 200*product_complexity_score + 15*negotiation_duration_days + 800*region_multiplier + 120*sales_rep_experience_years + 8*quarterly_quota_achievement",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

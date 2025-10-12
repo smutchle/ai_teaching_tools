@@ -1,0 +1,100 @@
+---
+title: "Dataset 55: Dopamine Receptor Density Prediction in Neural Tissue"
+format: html
+---
+
+# Overview
+
+This dataset contains measurements of dopamine receptor density across different brain regions, along with key demographic, genetic, and clinical factors that influence dopaminergic neurotransmission. The dataset is designed to help students explore regression modeling techniques while learning about an important biomarker in neuroscience research.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds055_neuroscience_dopamine_receptor_density.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds055_neuroscience_dopamine_receptor_density_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Dr. Sarah Chen, a computational neuroscientist at a major research university, is investigating the factors that influence dopamine receptor availability in the human brain. Her research team uses positron emission tomography (PET) imaging with radioligands to measure dopamine receptor density across different brain regions in healthy volunteers and patients with neurological conditions.
+
+Understanding dopamine receptor density is crucial for multiple reasons: it helps explain individual differences in motivation, reward processing, and motor control; it serves as a biomarker for neurodegenerative diseases like Parkinson's disease; and it can predict treatment response to dopaminergic medications. Dr. Chen's lab has collected data from 500,000 participants over several years, measuring receptor density alongside genetic profiles, lifestyle factors, and medication histories.
+
+The research team wants to develop predictive models that can estimate dopamine receptor density based on easily obtainable clinical and demographic information. This would be invaluable for clinical settings where expensive PET imaging might not be readily available, and could help personalize treatment approaches for patients with dopamine-related disorders.
+
+# Problem Statement
+
+Given demographic, genetic, and clinical information about an individual, predict their dopamine receptor density in neural tissue. This regression problem aims to identify the key factors that influence dopaminergic neurotransmission and develop models that could assist in clinical decision-making and research participant screening.
+
+# Target Variable
+
+**Dopamine Receptor Density**: Measured in binding potential (BP) units, this represents the availability of dopamine receptors in neural tissue as quantified through PET imaging. Values typically range from 0.5 to 4.0 BP units, with higher values indicating greater receptor availability. This measure is critical because:
+
+- It reflects the brain's capacity for dopaminergic signaling
+- Reduced density is associated with aging, addiction, and neurodegenerative diseases
+- It can predict treatment response to dopamine-modulating medications
+- It serves as a biomarker for monitoring disease progression
+
+# Predictor Variables
+
+- **Age**: Participant age in years. Dopamine receptor density typically declines with aging at a rate of approximately 6-10% per decade, making age a crucial predictor.
+
+- **Genetic Variants**: Composite score (0-10) representing the presence of genetic polymorphisms known to affect dopamine metabolism and receptor expression, including variants in DRD2, COMT, and DAT1 genes.
+
+- **Substance Use History**: Categorical variable indicating history of substance use that affects dopamine systems (None, Alcohol, Tobacco, Stimulants, Multiple). Chronic substance use can lead to receptor downregulation.
+
+- **Medication**: Current medication status affecting dopamine systems (None, Antipsychotics, Antidepressants, Parkinson's_Meds, Other). Various medications can influence receptor availability through different mechanisms.
+
+- **Brain Region**: The specific brain region where receptor density was measured (Striatum, Prefrontal_Cortex, Midbrain, Temporal_Cortex). Different regions show varying baseline receptor densities and age-related changes.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds055_neuroscience_dopamine_receptor_density.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds055_neuroscience_dopamine_receptor_density_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete genetic testing, missing clinical history, or measurement artifacts
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with linear models to understand the relationship between predictors and receptor density, particularly useful for interpreting the effect of age and genetic factors.
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships and interactions between variables, especially important given the complex interplay between genetics, medication, and brain region effects.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful ensemble methods that can model complex patterns while providing feature importance rankings to identify the most influential factors affecting receptor density.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 55 |
+| Domain | Neuroscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds055_neuroscience_dopamine_receptor_density.csv` |
+| Dirty Version | `csv/ds055_neuroscience_dopamine_receptor_density_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+Working with this dataset will help students:
+
+- Practice regression modeling with mixed data types (continuous, categorical, ordinal)
+- Understand the importance of domain knowledge in feature interpretation
+- Learn to handle missing data and outliers in realistic scenarios
+- Explore the relationship between biological aging and neural function
+- Develop models with direct clinical and research applications
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. While the data is artificial, the relationships between variables have been carefully designed based on established neuroscience literature to be realistic and pedagogically useful. The dataset maintains the complexity and interpretability challenges found in real neuroscience research while providing a controlled learning environment for students.

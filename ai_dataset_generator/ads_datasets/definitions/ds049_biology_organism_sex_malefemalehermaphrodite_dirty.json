@@ -1,0 +1,196 @@
+{
+  "dataset_config": {
+    "name": "ds049_biology_organism_sex_malefemalehermaphrodite_dirty",
+    "description": "Biological sex classification based on morphological traits, genetic markers, hormone levels, and behavioral characteristics",
+    "random_seed": 49,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "testosterone_level",
+          "estrogen_level"
+        ],
+        "correlation": -0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "body_mass_index",
+          "skeletal_robusticity"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "testosterone_level",
+          "aggressive_behavior_score"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "estrogen_level",
+          "reproductive_organ_development"
+        ],
+        "correlation": 0.47,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "genetic_marker_xy",
+          "testosterone_level"
+        ],
+        "correlation": 0.43,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "body_mass_index",
+        "description": "Body mass index calculated from height and weight measurements",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 24.5,
+          "std": 4.2,
+          "min_clip": 15.0,
+          "max_clip": 40.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "skeletal_robusticity",
+        "description": "Measure of bone density and skeletal frame robustness",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 8.5,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "testosterone_level",
+        "description": "Circulating testosterone concentration in ng/mL",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 4.8,
+          "std": 3.2,
+          "min_clip": 0.1,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "estrogen_level",
+        "description": "Circulating estrogen concentration in pg/mL",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 85.0,
+          "std": 45.0,
+          "min_clip": 10.0,
+          "max_clip": 300.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "genetic_marker_xy",
+        "description": "Genetic marker score indicating XY chromosome presence",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "reproductive_organ_development",
+        "description": "Developmental score of primary reproductive organs",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.5,
+          "std": 2.1,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "aggressive_behavior_score",
+        "description": "Quantified aggressive behavior patterns during observation",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 6.2,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "pheromone_production_rate",
+        "description": "Rate of sex-specific pheromone production in arbitrary units",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.8,
+          "std": 5.4,
+          "min_clip": 0.5,
+          "max_clip": 30.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "organism_sex_malefemalehermaphrodite",
+      "description": "Biological sex classification of the organism",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(2.1*testosterone_level - 1.8*estrogen_level/50 + 3.2*genetic_marker_xy + 0.8*skeletal_robusticity - 0.6*reproductive_organ_development + 0.4*aggressive_behavior_score - 0.3*pheromone_production_rate/10 + 0.2*body_mass_index - 5.5)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Female",
+        "Female",
+        "Female",
+        "Hermaphrodite",
+        "Hermaphrodite",
+        "Hermaphrodite",
+        "Male",
+        "Male",
+        "Male",
+        "Male"
+      ]
+    }
+  }
+}

@@ -1,0 +1,94 @@
+---
+title: "Dataset 81: Neural Pain Perception Classification - Predicting Subjective Pain Intensity"
+format: html
+---
+
+# Overview
+
+This dataset focuses on the complex challenge of predicting subjective pain perception levels based on neurological and psychological factors. The dataset contains measurements from a simulated clinical study examining how various biological and psychological variables influence an individual's perception of pain intensity, categorized into four distinct levels: None, Mild, Moderate, and Severe.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds081_neuroscience_pain_perception_level_nonemildmoderatesevere.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds081_neuroscience_pain_perception_level_nonemildmoderatesevere_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Pain management represents one of the most challenging areas in modern healthcare, with subjective pain perception varying dramatically between individuals even when exposed to identical stimuli. A major neurological research institute is developing a personalized pain assessment system to improve treatment protocols and reduce the reliance on purely subjective patient self-reporting.
+
+The research team has collected data from controlled laboratory experiments where participants were exposed to standardized pain stimuli while various neurological and psychological factors were measured. The goal is to develop a predictive model that can objectively categorize pain perception levels, which could revolutionize pain management in clinical settings, emergency medicine, and chronic pain treatment.
+
+This predictive capability would be particularly valuable in situations where patients cannot effectively communicate their pain levels (such as with young children, elderly patients with cognitive impairment, or patients under sedation), and could help healthcare providers make more informed decisions about pain medication dosing and treatment approaches.
+
+# Problem Statement
+
+Develop a classification model that can accurately predict an individual's subjective pain perception level (None, Mild, Moderate, or Severe) based on measurable neurological and psychological factors. This multi-class classification problem aims to bridge the gap between objective measurements and subjective pain experiences.
+
+# Target Variable
+
+**Pain Perception Level (None/Mild/Moderate/Severe)**: This ordinal categorical variable represents the subjective intensity of pain as reported by study participants on a standardized pain scale. The four levels correspond to:
+
+- **None**: No perceived pain (0 on typical 0-10 pain scales)
+- **Mild**: Minimal pain that doesn't interfere with daily activities (1-3 on pain scales)
+- **Moderate**: Noticeable pain that may limit some activities (4-6 on pain scales)  
+- **Severe**: Intense pain that significantly impacts function and quality of life (7-10 on pain scales)
+
+Accurately predicting this variable is crucial for developing objective pain assessment tools that could improve treatment consistency, reduce medication errors, and enhance patient outcomes across diverse clinical settings.
+
+# Predictor Variables
+
+- **Stimulus Intensity**: The measured physical intensity of the applied pain stimulus (in standardized units). This represents the objective "input" that triggers the pain response and serves as a baseline reference point.
+
+- **Genetics**: A composite genetic risk score based on known pain-related genetic variants, including polymorphisms in pain receptor genes, neurotransmitter pathways, and inflammatory response genes. Higher scores indicate genetic predisposition to heightened pain sensitivity.
+
+- **Prior Experience**: A quantified measure of the participant's previous exposure to similar painful stimuli, including medical procedures, injuries, and chronic pain conditions. This captures the role of pain memory and sensitization in current pain perception.
+
+- **Attention**: An attention focus score measuring how much cognitive attention the participant directs toward the painful stimulus versus distraction techniques. Higher scores indicate greater attention to pain, which typically amplifies perceived intensity.
+
+- **Mood**: A standardized mood assessment score capturing the participant's emotional state during testing, with particular emphasis on anxiety and depression levels. Negative mood states are known to increase pain perception through neurological pain-mood interaction pathways.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds081_neuroscience_pain_perception_level_nonemildmoderatesevere.csv`): Ideal for initial model development and learning, containing complete data with no missing values or measurement errors.
+- **Dirty Version** (`ds081_neuroscience_pain_perception_level_nonemildmoderatesevere_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as equipment malfunctions, participant non-response, and measurement artifacts commonly encountered in neurological research.
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling the mix of continuous and categorical predictors while providing feature importance rankings to identify which factors most strongly influence pain perception.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Well-suited for this ordinal classification problem, capable of capturing complex non-linear relationships between neurological and psychological factors.
+
+- **Ordinal Logistic Regression**: Specifically designed for ordered categorical outcomes like pain levels, this approach respects the natural ordering of pain intensity categories and provides interpretable coefficients for each predictor.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 81 |
+| Domain | Neuroscience |
+| Problem Type | Multi-class Classification (Ordinal) |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 4 (None, Mild, Moderate, Severe) |
+| Clean Version | `csv/ds081_neuroscience_pain_perception_level_nonemildmoderatesevere.csv` |
+| Dirty Version | `csv/ds081_neuroscience_pain_perception_level_nonemildmoderatesevere_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes in data science and neurological research methods. The relationships between variables have been designed to reflect current understanding of pain perception mechanisms while maintaining interpretability for learning objectives. The dataset incorporates realistic correlations between genetic predisposition, psychological factors, and subjective pain experiences as documented in peer-reviewed neuroscience literature.

@@ -1,0 +1,176 @@
+{
+  "dataset_config": {
+    "name": "ds018_geoscience_groundwater_depth_dirty",
+    "description": "Estimate depth to water table in meters based on geological and hydrological factors",
+    "random_seed": 18,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "elevation",
+          "groundwater_depth"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_precipitation",
+          "soil_porosity"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "extraction_rate",
+          "groundwater_depth"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "soil_porosity",
+          "hydraulic_conductivity"
+        ],
+        "correlation": 0.68,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "elevation",
+        "description": "Ground surface elevation in meters above sea level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 450,
+          "std": 200,
+          "min_clip": 0,
+          "max_clip": 2000
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "annual_precipitation",
+        "description": "Average annual precipitation in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 800,
+          "location": 200
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "aquifer_permeability",
+        "description": "Aquifer permeability index (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 5,
+          "max": 95
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "extraction_rate",
+        "description": "Groundwater extraction rate in cubic meters per day",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 150,
+          "location": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_porosity",
+        "description": "Soil porosity as percentage (0-100%)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35,
+          "std": 12,
+          "min_clip": 5,
+          "max_clip": 70
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "hydraulic_conductivity",
+        "description": "Hydraulic conductivity in meters per day",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 8,
+          "location": 0.1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "distance_to_river",
+        "description": "Distance to nearest river or major water body in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.5,
+          "max": 25
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "bedrock_depth",
+        "description": "Depth to bedrock in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 20,
+          "min_clip": 5,
+          "max_clip": 150
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "groundwater_depth",
+      "description": "Depth to water table in meters below ground surface",
+      "data_type": "float",
+      "expression": "5 + 0.015*elevation - 0.008*annual_precipitation + 0.12*extraction_rate - 0.08*aquifer_permeability - 0.05*soil_porosity - 2.5*hydraulic_conductivity + 0.3*distance_to_river + 0.15*bedrock_depth",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

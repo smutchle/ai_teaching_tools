@@ -1,0 +1,146 @@
+{
+  "dataset_config": {
+    "name": "ds038_sociology_voting_behavior_5_party_choices",
+    "description": "Predict electoral preferences based on demographic and social factors",
+    "random_seed": 38,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "income",
+          "education_years"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age",
+          "social_conservatism"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "education_years",
+          "urban_density"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "income",
+          "urban_density"
+        ],
+        "correlation": 0.31,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 16,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "income",
+        "description": "Annual household income in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 55,
+          "location": 25
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "education_years",
+        "description": "Years of formal education completed",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 13.5,
+          "std": 3.2,
+          "min_clip": 8,
+          "max_clip": 22
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "urban_density",
+        "description": "Urban density score (0-100, higher = more urban)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "social_conservatism",
+        "description": "Social conservatism index (0-100, higher = more conservative)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "economic_satisfaction",
+        "description": "Personal economic satisfaction score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 55,
+          "std": 18,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "voting_behavior_5_party_choices",
+      "description": "Electoral preference among five major political parties",
+      "data_type": "categorical",
+      "expression": "-2.5 + 0.02*age + 0.015*income - 0.08*education_years + 0.01*urban_density + 0.025*social_conservatism + 0.012*economic_satisfaction",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "Progressive Party",
+        "Progressive Party",
+        "Liberal Party",
+        "Liberal Party",
+        "Center Party",
+        "Center Party",
+        "Conservative Party",
+        "Conservative Party",
+        "Nationalist Party",
+        "Nationalist Party"
+      ]
+    }
+  }
+}

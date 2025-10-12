@@ -1,0 +1,169 @@
+{
+  "dataset_config": {
+    "name": "ds015_sociology_education_attainment_years",
+    "description": "Predict total years of formal education completed based on parental education, household income, school quality, and peer influence",
+    "random_seed": 15,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "parental_education_years",
+          "household_income"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "household_income",
+          "school_quality_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "parental_education_years",
+          "peer_education_aspiration"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "school_quality_score",
+          "peer_education_aspiration"
+        ],
+        "correlation": 0.4,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "family_support_score",
+          "household_income"
+        ],
+        "correlation": 0.3,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "parental_education_years",
+        "description": "Average years of education completed by parents",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 13.5,
+          "std": 3.2,
+          "min_clip": 8.0,
+          "max_clip": 22.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "household_income",
+        "description": "Annual household income in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 65.0,
+          "location": 25.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "school_quality_score",
+        "description": "School quality index score (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72.0,
+          "std": 15.0,
+          "min_clip": 30.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "peer_education_aspiration",
+        "description": "Average educational aspirations of peer group (years)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 14.8,
+          "std": 2.5,
+          "min_clip": 10.0,
+          "max_clip": 20.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "family_support_score",
+        "description": "Level of family educational support (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.8,
+          "std": 1.8,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "academic_motivation",
+        "description": "Student's intrinsic academic motivation score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 68.0,
+          "std": 18.0,
+          "min_clip": 20.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "socioeconomic_barriers",
+        "description": "Socioeconomic barriers to education score (0-50, higher = more barriers)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 15.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "geographic_opportunity",
+        "description": "Educational opportunity index for geographic region (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 35.0,
+          "max": 95.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "education_attainment_years",
+      "description": "Total years of formal education completed",
+      "data_type": "float",
+      "expression": "8.5 + 0.65*parental_education_years + 0.025*household_income + 0.08*school_quality_score + 0.45*peer_education_aspiration + 0.35*family_support_score + 0.02*academic_motivation - 0.15*socioeconomic_barriers + 0.025*geographic_opportunity",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

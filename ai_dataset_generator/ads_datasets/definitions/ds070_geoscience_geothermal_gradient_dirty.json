@@ -1,0 +1,178 @@
+{
+  "dataset_config": {
+    "name": "ds070_geoscience_geothermal_gradient_dirty",
+    "description": "Predict geothermal gradient (temperature increase per kilometer depth) based on geological features",
+    "random_seed": 70,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "depth_km",
+          "crustal_thickness_km"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "heat_flow_density",
+          "volcanic_proximity_km"
+        ],
+        "correlation": -0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "rock_thermal_conductivity",
+          "crustal_thickness_km"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "surface_elevation_m",
+          "crustal_thickness_km"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "depth_km",
+        "description": "Measurement depth in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 3.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "crustal_thickness_km",
+        "description": "Thickness of crustal layer in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35.0,
+          "std": 8.5,
+          "min_clip": 15.0,
+          "max_clip": 65.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "volcanic_proximity_km",
+        "description": "Distance to nearest volcanic activity in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.3,
+          "scale": 45.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "rock_thermal_conductivity",
+        "description": "Thermal conductivity of rock in W/m\u00b7K",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 0.9,
+          "min_clip": 0.5,
+          "max_clip": 6.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "heat_flow_density",
+        "description": "Surface heat flow density in mW/m\u00b2",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 25.0,
+          "min_clip": 20.0,
+          "max_clip": 150.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "surface_elevation_m",
+        "description": "Surface elevation above sea level in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 850.0,
+          "std": 650.0,
+          "min_clip": 0.0,
+          "max_clip": 4000.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "sediment_thickness_m",
+        "description": "Thickness of sedimentary layer in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 1200.0,
+          "location": 50.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "tectonic_activity_index",
+        "description": "Regional tectonic activity index (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.5,
+          "max": 8.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "geothermal_gradient",
+      "description": "Geothermal gradient in degrees Celsius per kilometer depth",
+      "data_type": "float",
+      "expression": "18.5 + 1.2*heat_flow_density/rock_thermal_conductivity - 0.15*volcanic_proximity_km + 0.8*tectonic_activity_index + 0.05*crustal_thickness_km - 0.002*surface_elevation_m + 0.001*sediment_thickness_m",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

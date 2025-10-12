@@ -1,0 +1,85 @@
+---
+title: "Dataset 19: Earthquake Magnitude Prediction from Seismic Parameters"
+format: html
+---
+
+# Overview
+
+This dataset contains seismic measurements and geological parameters for predicting earthquake magnitude on the Richter scale. It represents a critical application in geoscience where understanding the relationship between fault characteristics and earthquake intensity can help improve seismic hazard assessment and early warning systems.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds019_geoscience_earthquake_magnitude.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds019_geoscience_earthquake_magnitude_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Pacific Seismic Research Institute has been monitoring earthquake activity along the San Andreas Fault system for decades. With increasing urbanization in earthquake-prone regions, there's an urgent need to develop predictive models that can estimate earthquake magnitude based on measurable geological parameters. This capability would enhance earthquake preparedness, inform building codes, and guide emergency response planning.
+
+Seismologists have identified key physical parameters that influence earthquake strength: the amount of displacement along fault lines, the depth at which ruptures occur, the total length of fault segments, and the accumulated stress in rock formations. By analyzing historical earthquake data alongside these measurable parameters, researchers aim to build predictive models that can estimate potential earthquake magnitudes before they occur.
+
+This dataset simulates real-world seismic monitoring data, providing students with an opportunity to work on a high-stakes prediction problem where model accuracy could have significant implications for public safety and disaster preparedness.
+
+# Problem Statement
+
+Given geological and seismic parameters measured at fault locations, predict the magnitude of earthquakes on the Richter scale. This is a regression problem where accurate predictions can inform risk assessment models and contribute to more effective earthquake monitoring systems.
+
+# Target Variable
+
+**Earthquake Magnitude**: Measured on the Richter scale (typically ranging from 1.0 to 9.0), this logarithmic scale quantifies the energy released by an earthquake. Each whole number increase represents a tenfold increase in measured amplitude and approximately 31.6 times more energy release. Predicting earthquake magnitude is crucial for:
+- Assessing potential damage and casualties
+- Triggering appropriate emergency response protocols  
+- Informing building design standards and zoning regulations
+- Calibrating tsunami warning systems for coastal areas
+
+# Predictor Variables
+
+- **Fault Displacement (meters)**: The amount of movement along a fault plane during seismic activity. Larger displacements typically correlate with higher magnitude earthquakes as they indicate greater energy release.
+
+- **Focal Depth (kilometers)**: The depth below Earth's surface where an earthquake rupture begins. Shallow earthquakes often cause more surface damage, while depth affects how seismic waves propagate and the resulting magnitude measurements.
+
+- **Fault Length (kilometers)**: The total length of the fault segment that ruptures during an earthquake. Longer fault ruptures generally produce higher magnitude earthquakes due to the larger area of energy release.
+
+- **Stress Accumulation (MPa)**: The amount of tectonic stress that has built up in rock formations before release. Higher stress accumulation typically leads to more powerful earthquakes when the rock finally fails.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds019_geoscience_earthquake_magnitude.csv`): Ideal for initial model development and learning core regression techniques without data quality complications
+- **Dirty Version** (`ds019_geoscience_earthquake_magnitude_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world challenges such as sensor malfunctions, measurement errors, and extreme geological conditions
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand basic relationships between geological parameters and earthquake magnitude
+- **Random Forest**: Capture non-linear relationships and interactions between fault characteristics that may not be apparent in linear models
+- **Support Vector Regression**: Handle potential non-linear patterns while maintaining robustness to outliers, particularly important given the physical constraints of seismic systems
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 19 |
+| Domain | Geoscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds019_geoscience_earthquake_magnitude.csv` |
+| Dirty Version | `csv/ds019_geoscience_earthquake_magnitude_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The physical relationships between fault parameters and earthquake magnitude are based on established seismological principles, making this an excellent dataset for learning both machine learning techniques and domain knowledge in geoscience applications.

@@ -1,0 +1,173 @@
+{
+  "dataset_config": {
+    "name": "ds029_business_employee_attrition_stayleave_dirty",
+    "description": "Forecast employee retention or departure",
+    "random_seed": 29,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "salary",
+          "years_at_company"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "job_satisfaction",
+          "promotions_received"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "salary",
+          "job_satisfaction"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "commute_time_minutes",
+          "job_satisfaction"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "salary",
+        "description": "Annual salary in thousands USD",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 75,
+          "std": 25,
+          "min_clip": 35,
+          "max_clip": 200
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "commute_time_minutes",
+        "description": "Daily commute time in minutes",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 35,
+          "location": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "job_satisfaction",
+        "description": "Job satisfaction score 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 2.0,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "years_at_company",
+        "description": "Years of tenure at current company",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 5.0,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "promotions_received",
+        "description": "Number of promotions received",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 2.0,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "work_life_balance",
+        "description": "Work-life balance rating 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.0,
+          "std": 1.8,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "training_hours_annual",
+        "description": "Annual training hours received",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 40,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 120
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "employee_attrition_stayleave",
+      "description": "Employee retention or departure decision",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-3.5 + 0.02*salary + 1.2*job_satisfaction + 0.15*years_at_company + 0.8*promotions_received + 0.9*work_life_balance + 0.02*training_hours_annual - 0.03*commute_time_minutes)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Leave",
+        "Leave",
+        "Leave",
+        "Leave",
+        "Stay",
+        "Stay",
+        "Stay",
+        "Stay",
+        "Stay",
+        "Stay"
+      ]
+    }
+  }
+}

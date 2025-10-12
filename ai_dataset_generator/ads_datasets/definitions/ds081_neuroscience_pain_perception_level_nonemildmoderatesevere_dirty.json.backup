@@ -1,0 +1,188 @@
+{
+  "dataset_config": {
+    "name": "ds081_neuroscience_pain_perception_level_nonemildmoderatesevere_dirty",
+    "description": "Neuroscience dataset for categorizing subjective pain intensity levels based on stimulus intensity, genetics, prior experience, attention, and mood factors",
+    "random_seed": 81,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "stimulus_intensity",
+          "nociceptor_sensitivity"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "attention_focus",
+          "mood_score"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "prior_pain_episodes",
+          "pain_threshold"
+        ],
+        "correlation": -0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "genetic_pain_sensitivity",
+          "nociceptor_sensitivity"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "stimulus_intensity",
+        "description": "Physical stimulus intensity in arbitrary units",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "genetic_pain_sensitivity",
+        "description": "Genetic predisposition to pain sensitivity score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50.0,
+          "std": 15.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "prior_pain_episodes",
+        "description": "Number of previous significant pain episodes",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 8.0,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "attention_focus",
+        "description": "Attention focus level during stimulus presentation",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 20.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "mood_score",
+        "description": "Current mood state score (higher = more positive)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 55.0,
+          "std": 18.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nociceptor_sensitivity",
+        "description": "Individual nociceptor sensitivity measurement",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45.0,
+          "std": 12.0,
+          "min_clip": 10.0,
+          "max_clip": 90.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "pain_threshold",
+        "description": "Individual pain threshold level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 40.0,
+          "std": 10.0,
+          "min_clip": 15.0,
+          "max_clip": 85.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "central_sensitization",
+        "description": "Central nervous system sensitization index",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 25.0,
+          "location": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "pain_perception_level_nonemildmoderatesevere",
+      "description": "Subjective pain perception level categorized into four intensity levels",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(\u221215 + 0.25*stimulus_intensity + 0.15*genetic_pain_sensitivity + 0.3*prior_pain_episodes + 0.12*attention_focus - 0.18*mood_score + 0.22*nociceptor_sensitivity - 0.28*pain_threshold + 0.16*central_sensitization)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "None",
+        "None",
+        "Mild",
+        "Mild",
+        "Mild",
+        "Moderate",
+        "Moderate",
+        "Moderate",
+        "Severe",
+        "Severe"
+      ]
+    }
+  }
+}

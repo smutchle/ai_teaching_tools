@@ -1,0 +1,94 @@
+---
+title: "Dataset 85: Coral Reef Health Assessment - Multi-Class Ecosystem Classification"
+format: html
+---
+
+# Overview
+
+This dataset contains comprehensive environmental measurements from coral reef monitoring stations across tropical marine ecosystems. With coral reefs facing unprecedented threats from climate change and human activities, this dataset provides an opportunity to develop predictive models that can assess reef health status based on key environmental indicators. The multi-class classification problem involves predicting reef condition across four critical health stages, making it ideal for exploring advanced classification techniques and understanding complex ecological relationships.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds085_ecology_coral_reef_health_healthystressedbleacheddead.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds085_ecology_coral_reef_health_healthystressedbleacheddead_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Marine biologists and conservation organizations worldwide are racing against time to monitor and protect coral reef ecosystems, which support approximately 25% of all marine species despite covering less than 1% of the ocean floor. The Great Barrier Reef Marine Park Authority, along with similar organizations globally, conducts regular reef health assessments to guide conservation efforts and policy decisions.
+
+In this scenario, a marine research institute has deployed underwater monitoring stations across multiple reef sites in the Indo-Pacific region. These stations continuously collect water quality measurements and environmental data, while periodic dive surveys assess the actual health status of coral colonies. The challenge is to develop an automated early warning system that can predict reef health deterioration before visual signs become apparent to human observers.
+
+Traditional reef health assessments require expensive dive surveys and expert marine biologists, limiting the frequency and scale of monitoring efforts. By developing accurate predictive models based on readily measurable environmental parameters, researchers can implement real-time monitoring systems that trigger conservation interventions when reef stress is detected, potentially preventing irreversible damage like mass bleaching events.
+
+# Problem Statement
+
+Develop a multi-class classification model to predict coral reef health status based on environmental monitoring data. The model should accurately distinguish between healthy reefs and various stages of degradation, enabling proactive conservation management and early intervention strategies.
+
+# Target Variable
+
+**Coral Reef Health (Healthy/Stressed/Bleached/Dead)**: This categorical variable represents the overall condition of coral reef ecosystems based on standardized assessment protocols:
+
+- **Healthy**: Vibrant coral colonies with diverse species, minimal disease, and active fish communities
+- **Stressed**: Early signs of environmental pressure including reduced growth rates, increased susceptibility to disease, and minor color changes
+- **Bleached**: Coral colonies have expelled their symbiotic algae due to environmental stress, appearing white or pale but potentially recoverable
+- **Dead**: Coral skeletons with no living tissue, often covered by algae or sediment, representing ecosystem collapse
+
+This classification is crucial for conservation prioritization, as different health stages require different intervention strategies and have varying recovery potential.
+
+# Predictor Variables
+
+- **Temperature (°C)**: Sea surface temperature is the primary driver of coral bleaching events. Temperatures exceeding long-term averages by 1-2°C for extended periods trigger stress responses and symbiotic algae expulsion.
+
+- **pH**: Ocean acidification, measured through pH levels, affects coral calcification rates and skeletal development. Lower pH values indicate more acidic conditions that impair coral growth and resilience.
+
+- **Nutrient Pollution (mg/L)**: Elevated nitrogen and phosphorus levels from agricultural runoff and sewage promote algae growth that competes with corals for space and light, leading to reef degradation.
+
+- **Sedimentation (mg/L)**: Suspended sediments from coastal development and erosion reduce water clarity, limiting photosynthesis by symbiotic algae and physically smothering coral polyps.
+
+- **Fishing Pressure (0-10 scale)**: Intensity of fishing activities affects reef ecosystem balance by removing key species that control algae growth and maintain coral health through complex ecological relationships.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds085_ecology_coral_reef_health_healthystressedbleacheddead.csv`): Ideal for initial model development and learning fundamental classification techniques without data quality complications
+- **Dirty Version** (`ds085_ecology_coral_reef_health_healthystressedbleacheddead_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world challenges such as sensor malfunctions, extreme weather events, and data transmission errors
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling the non-linear relationships between environmental variables and reef health, while providing feature importance rankings to identify key stress factors
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Well-suited for the multi-class nature of the problem and capable of capturing complex interactions between temperature, pH, and pollution variables
+
+- **Support Vector Machine with RBF kernel**: Effective for creating decision boundaries between the four health categories, particularly useful when class distributions are imbalanced
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 85 |
+| Domain | Ecology |
+| Problem Type | Multi-class Classification |
+| Number of Classes | 4 (Healthy, Stressed, Bleached, Dead) |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds085_ecology_coral_reef_health_healthystressedbleacheddead.csv` |
+| Dirty Version | `csv/ds085_ecology_coral_reef_health_healthystressedbleacheddead_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between environmental variables and coral health outcomes have been designed to reflect real-world ecological patterns documented in marine biology literature. The dataset is particularly valuable for learning about multi-class classification, feature importance analysis, and the challenges of environmental monitoring data in conservation science.

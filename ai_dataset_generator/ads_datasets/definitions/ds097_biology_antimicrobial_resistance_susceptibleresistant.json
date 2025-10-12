@@ -1,0 +1,145 @@
+{
+  "dataset_config": {
+    "name": "ds097_biology_antimicrobial_resistance_susceptibleresistant",
+    "description": "Predict antimicrobial resistance in bacterial pathogens based on antibiotic exposure, genetic mutations, plasmids, and bacterial species characteristics",
+    "random_seed": 97,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "antibiotic_exposure_days",
+          "resistance_gene_count"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "plasmid_copy_number",
+          "resistance_gene_count"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "mutation_frequency",
+          "resistance_gene_count"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "bacterial_virulence_score",
+          "antibiotic_exposure_days"
+        ],
+        "correlation": 0.33,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "antibiotic_exposure_days",
+        "description": "Number of days of antibiotic exposure in past 6 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 15,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "resistance_gene_count",
+        "description": "Number of antibiotic resistance genes present",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.2,
+          "std": 1.8,
+          "min_clip": 0,
+          "max_clip": 12
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "plasmid_copy_number",
+        "description": "Average plasmid copy number per bacterial cell",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 3.2,
+          "min_clip": 1.0,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "mutation_frequency",
+        "description": "Spontaneous mutation frequency per generation (x10^-8)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 4.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "bacterial_virulence_score",
+        "description": "Composite virulence score based on pathogenicity factors",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.8,
+          "std": 2.1,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "biofilm_formation_capacity",
+        "description": "Biofilm formation capacity index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 15.0,
+          "max": 95.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "antimicrobial_resistance_susceptibleresistant",
+      "description": "Antimicrobial resistance classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-4.2 + 0.15*antibiotic_exposure_days + 0.8*resistance_gene_count + 0.12*plasmid_copy_number + 0.25*mutation_frequency + 0.18*bacterial_virulence_score + 0.02*biofilm_formation_capacity)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "Susceptible",
+        "Susceptible",
+        "Susceptible",
+        "Susceptible",
+        "Intermediate",
+        "Intermediate",
+        "Resistant",
+        "Resistant",
+        "Resistant",
+        "Resistant"
+      ]
+    }
+  }
+}

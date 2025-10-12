@@ -1,0 +1,147 @@
+{
+  "dataset_config": {
+    "name": "ds019_geoscience_earthquake_magnitude_dirty",
+    "description": "Predict seismic event strength on Richter scale",
+    "random_seed": 19,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "fault_displacement_m",
+          "fault_length_km"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "fault_length_km",
+          "seismic_energy_release"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "stress_accumulation_mpa",
+          "focal_depth_km"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "seismic_energy_release",
+          "fault_displacement_m"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "fault_displacement_m",
+        "description": "Fault displacement in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 2.5,
+          "location": 0.1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "focal_depth_km",
+        "description": "Earthquake focal depth in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.0,
+          "std": 8.5,
+          "min_clip": 0.5,
+          "max_clip": 700.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "fault_length_km",
+        "description": "Length of fault rupture in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 25.0,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "stress_accumulation_mpa",
+        "description": "Tectonic stress accumulation in megapascals",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50.0,
+          "std": 20.0,
+          "min_clip": 5.0,
+          "max_clip": 200.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "seismic_energy_release",
+        "description": "Logarithmic seismic energy release",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.5,
+          "std": 2.8,
+          "min_clip": 8.0,
+          "max_clip": 18.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "rock_rigidity_gpa",
+        "description": "Rock rigidity modulus in gigapascals",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 15.0,
+          "max": 85.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "earthquake_magnitude",
+      "description": "Earthquake magnitude on Richter scale",
+      "data_type": "float",
+      "expression": "2.5 + 0.8*np.log(fault_displacement_m + 1) + 0.3*np.log(fault_length_km + 1) - 0.05*focal_depth_km + 0.02*stress_accumulation_mpa + 0.15*seismic_energy_release - 0.01*rock_rigidity_gpa",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

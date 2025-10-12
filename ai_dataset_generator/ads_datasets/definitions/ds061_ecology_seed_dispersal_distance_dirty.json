@@ -1,0 +1,186 @@
+{
+  "dataset_config": {
+    "name": "ds061_ecology_seed_dispersal_distance_dirty",
+    "description": "Predict seed dispersal distance based on seed morphology, environmental conditions, and plant characteristics",
+    "random_seed": 61,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "seed_mass",
+          "seed_wing_area"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "plant_height",
+          "habitat_openness"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "wind_speed",
+          "habitat_openness"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "animal_vector_density",
+          "habitat_openness"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "seed_wing_area",
+          "seed_aerodynamic_ratio"
+        ],
+        "correlation": 0.67,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "seed_mass",
+        "description": "Seed mass in milligrams",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "seed_wing_area",
+        "description": "Seed wing area in square millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45.0,
+          "std": 18.0,
+          "min_clip": 2.0,
+          "max_clip": 120.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "seed_aerodynamic_ratio",
+        "description": "Seed aerodynamic efficiency ratio (wing area to mass)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 1.2,
+          "min_clip": 0.1,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "wind_speed",
+        "description": "Average wind speed at release height in m/s",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 4.5,
+          "location": 0.2
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "plant_height",
+        "description": "Plant height at seed release in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 4.2,
+          "min_clip": 0.3,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "habitat_openness",
+        "description": "Habitat openness index (0-100, higher = more open)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 5.0,
+          "max": 95.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "animal_vector_density",
+        "description": "Density of seed-dispersing animals per hectare",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 18.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "canopy_turbulence",
+        "description": "Canopy-induced turbulence factor (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.5,
+          "std": 1.8,
+          "min_clip": 0.1,
+          "max_clip": 9.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "seed_dispersal_distance",
+      "description": "Mean seed dispersal distance in meters",
+      "data_type": "float",
+      "expression": "15 + 2.5*plant_height + 8.5*wind_speed + 3.2*seed_aerodynamic_ratio + 0.12*habitat_openness + 0.8*animal_vector_density + 1.8*canopy_turbulence - 0.3*seed_mass",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

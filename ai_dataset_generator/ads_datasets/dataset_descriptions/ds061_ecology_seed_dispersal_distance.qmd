@@ -1,0 +1,93 @@
+---
+title: "Dataset 61: Predicting Seed Dispersal Distance in Forest Ecosystems"
+format: html
+---
+
+# Overview
+
+This dataset contains measurements from a comprehensive field study examining seed dispersal patterns across diverse forest ecosystems. The goal is to predict the mean dispersal distance of seeds based on plant characteristics, environmental conditions, and dispersal mechanisms. This regression problem offers students an excellent opportunity to explore ecological relationships while applying machine learning techniques to conservation biology challenges.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds061_ecology_seed_dispersal_distance.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds061_ecology_seed_dispersal_distance_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Forest restoration projects and conservation efforts increasingly rely on understanding seed dispersal patterns to predict natural regeneration success and design effective reforestation strategies. The Temperate Forest Research Institute has been conducting a multi-year study across 15 different forest sites, ranging from dense old-growth forests to recently disturbed clearings, to understand how various factors influence how far seeds travel from their parent plants.
+
+This research is particularly crucial in the context of climate change and habitat fragmentation. As forests become increasingly fragmented by human development, understanding seed dispersal distances helps ecologists predict whether plant populations can naturally colonize new suitable habitats or reconnect isolated populations. Forest managers use these predictions to determine optimal spacing for restoration plantings and identify critical wildlife corridors that facilitate seed dispersal.
+
+The dataset represents measurements from 500,000 individual plant observations across multiple species, including both wind-dispersed and animal-dispersed seeds. Each observation includes detailed morphological measurements, environmental conditions during peak dispersal season, and tracking data showing actual dispersal distances achieved by seeds from each parent plant.
+
+# Problem Statement
+
+Given information about seed characteristics, plant morphology, environmental conditions, and dispersal vectors, predict the mean dispersal distance (in meters) that seeds from a given plant will achieve. This prediction capability would enable forest managers to:
+
+- Assess natural regeneration potential in fragmented landscapes
+- Design optimal spacing for restoration plantings
+- Identify plant species most likely to colonize restoration sites naturally
+- Prioritize conservation of animal dispersal agents
+
+# Target Variable
+
+**Seed Dispersal Distance**: The mean distance (in meters) that seeds travel from the parent plant before establishing. This variable was measured by tracking marked seeds using GPS technology and field surveys over a two-year period. Values typically range from 2 meters (for large, gravity-dispersed seeds in dense forest) to over 500 meters (for small, wind-dispersed seeds in open habitats with strong prevailing winds). Understanding dispersal distance is critical for predicting gene flow between plant populations, colonization of new habitats, and long-term population viability under changing environmental conditions.
+
+# Predictor Variables
+
+- **Seed Morphology**: A composite index (0-100) measuring seed characteristics that affect dispersal, including seed mass, presence of wings or plumes, surface texture, and attachment structures. Higher values indicate morphological features that enhance long-distance dispersal.
+
+- **Wind Speed**: Average wind speed (m/s) during the peak dispersal season, measured at 2-meter height in the immediate vicinity of the parent plant. This variable is particularly important for wind-dispersed species but also affects the movement patterns of flying animal dispersers.
+
+- **Animal Vectors**: A categorical-numerical index representing the abundance and diversity of seed-dispersing animals in the area. Scale ranges from 1 (no animal dispersers observed) to 10 (high diversity of birds, mammals, and other dispersing fauna regularly observed).
+
+- **Plant Height**: Height of the parent plant (in meters) at the time of seed release. Taller plants can launch seeds from greater heights, potentially achieving longer dispersal distances through both gravitational and wind-assisted mechanisms.
+
+- **Habitat Openness**: Percentage of open canopy within a 50-meter radius of the parent plant (0-100%). More open habitats typically allow for greater wind dispersal but may have fewer animal dispersers. This variable captures the structural complexity of the surrounding vegetation.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds061_ecology_seed_dispersal_distance.csv`): Ideal for initial model development and learning, with complete data for all variables and no measurement errors or extreme outliers.
+
+- **Dirty Version** (`ds061_ecology_seed_dispersal_distance_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as equipment failures, weather-related measurement interruptions, and occasional data recording errors typical in field ecological research.
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships between environmental variables and handling interactions between dispersal mechanisms (e.g., wind speed effects varying by seed morphology).
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Particularly effective for this type of ecological data where relationships may be complex and threshold-dependent (e.g., minimum wind speeds needed for effective dispersal).
+
+- **Multiple Linear Regression with Polynomial Features**: Useful for understanding the relative importance of different factors and creating interpretable models for ecological applications, especially when combined with feature engineering to capture known ecological relationships.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 61 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds061_ecology_seed_dispersal_distance.csv` |
+| Dirty Version | `csv/ds061_ecology_seed_dispersal_distance_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Range | 2-500+ meters |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic ecological patterns based on seed dispersal literature, including known relationships such as the positive correlation between plant height and dispersal distance, and the interaction effects between seed morphology and wind conditions. While synthetic, the data structure and variable relationships provide authentic practice with the types of challenges encountered in ecological modeling and conservation biology applications.

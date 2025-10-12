@@ -1,0 +1,91 @@
+---
+title: "Dataset 75: Customer Satisfaction Score Prediction in Service Operations"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting customer satisfaction scores for a mid-sized telecommunications service provider. The dataset captures key operational metrics and service quality factors that directly impact customer experience, making it an excellent case study for understanding how business operations translate into customer outcomes.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds075_business_customer_satisfaction_score.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds075_business_customer_satisfaction_score_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+TeleConnect Solutions, a regional telecommunications provider, has been experiencing fluctuating customer satisfaction ratings over the past year. With increasing competition in the telecom market and rising customer acquisition costs, the company's leadership recognizes that retaining existing customers through improved satisfaction is crucial for sustainable growth.
+
+The customer service department handles approximately 500,000 support interactions monthly, ranging from technical troubleshooting to billing inquiries. Each interaction is tracked across multiple dimensions including operational efficiency metrics (wait times, resolution rates) and qualitative assessments (agent empathy, perceived product quality, price fairness). The company conducts post-interaction surveys to capture customer satisfaction scores on a continuous scale.
+
+The business intelligence team wants to develop a predictive model that can forecast customer satisfaction scores based on these operational and service quality metrics. This would enable proactive identification of potentially dissatisfied customers, real-time service quality monitoring, and data-driven optimization of service delivery processes.
+
+# Problem Statement
+
+Develop a regression model to predict customer satisfaction scores based on service delivery metrics and customer perception factors. The model should help identify which factors most strongly influence customer satisfaction and enable the company to proactively address service quality issues before they impact customer retention.
+
+# Target Variable
+
+**Customer Satisfaction Score**: A continuous numerical rating (typically ranging from 1-10) representing overall customer satisfaction with their service interaction. This score is collected through post-interaction surveys and represents the customer's holistic assessment of their experience. Predicting this score is valuable because:
+
+- It enables proactive customer retention efforts by identifying at-risk customers
+- It provides real-time feedback on service quality without waiting for survey responses
+- It helps optimize resource allocation across different service improvement initiatives
+- It supports performance management and training needs identification for customer service agents
+
+# Predictor Variables
+
+- **Wait Time**: The duration (in minutes) customers spend waiting before connecting with a service agent. Longer wait times typically correlate with decreased satisfaction and represent operational efficiency.
+
+- **Resolution Rate**: The percentage of customer issues successfully resolved during the initial contact, avoiding the need for follow-up interactions. Higher first-call resolution rates generally indicate better service quality and customer experience.
+
+- **Agent Empathy**: A qualitative score (1-5 scale) measuring the perceived empathy and interpersonal skills demonstrated by the customer service agent during the interaction. This captures the human element of service delivery.
+
+- **Product Quality**: Customer's perception of the underlying product or service quality (1-5 scale) that prompted their support interaction. This reflects the fundamental value proposition beyond just service delivery.
+
+- **Price Fairness**: Customer's perception of value for money and pricing fairness (1-5 scale) relative to the service received and market alternatives. This captures the economic satisfaction component.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds075_business_customer_satisfaction_score.csv`): Contains complete data with no missing values or outliers. Ideal for initial model development, learning fundamental regression techniques, and establishing baseline performance metrics.
+
+- **Dirty Version** (`ds075_business_customer_satisfaction_score_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality challenges such as incomplete survey responses, data entry errors, and extreme cases. Perfect for practicing data cleaning, outlier detection, and robust modeling techniques.
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand baseline relationships and variable importance. This approach provides excellent interpretability for business stakeholders.
+
+- **Random Forest Regression**: Implement ensemble methods to capture non-linear relationships and interactions between service quality factors. Particularly useful for identifying complex patterns in customer satisfaction drivers.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Apply advanced boosting techniques for potentially higher predictive accuracy, especially valuable when working with the dirty dataset version containing outliers and missing values.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 75 |
+| Domain | Business |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds075_business_customer_satisfaction_score.csv` |
+| Dirty Version | `csv/ds075_business_customer_satisfaction_score_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The dataset reflects common patterns found in customer service analytics, including the typical correlations between operational metrics and satisfaction outcomes. Students can use this dataset to practice both technical modeling skills and business interpretation of results in a customer experience context.

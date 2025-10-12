@@ -1,0 +1,97 @@
+---
+title: "Dataset 84: Wetland Ecosystem Classification - Predicting Wetland Types from Environmental Characteristics"
+format: html
+---
+
+# Overview
+
+This dataset contains environmental measurements from 500,000 wetland sites across North America, designed to classify wetlands into four major ecosystem types: Marsh, Swamp, Bog, and Fen. Each wetland site has been characterized using comprehensive environmental variables including hydrological patterns, vegetation composition, soil chemistry, climate conditions, and topographical features. This classification problem is fundamental to wetland conservation, restoration planning, and ecological monitoring efforts.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds084_ecology_wetland_type_marshswampbogfen.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds084_ecology_wetland_type_marshswampbogfen_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The North American Wetland Conservation Initiative has been conducting a comprehensive survey of wetland ecosystems to support restoration and conservation efforts across the continent. Field ecologists have collected detailed environmental data from wetland sites, but the manual classification of wetland types by expert botanists and ecologists is time-consuming and expensive, often taking weeks per site.
+
+With increasing pressure to assess wetland health due to climate change and urban development, conservation organizations need rapid, accurate methods to classify wetland types. A predictive model could enable preliminary wetland classification using readily available environmental measurements, allowing field teams to prioritize sites for detailed expert assessment and optimize resource allocation for conservation efforts.
+
+This dataset represents a critical step toward automated wetland assessment, potentially saving thousands of hours of expert field time while maintaining classification accuracy. The model could be deployed by environmental consulting firms, government agencies, and conservation organizations to support wetland management decisions, restoration project planning, and environmental impact assessments.
+
+# Problem Statement
+
+Given environmental characteristics of a wetland site, predict which of the four major wetland ecosystem types (Marsh, Swamp, Bog, or Fen) the site represents. This is a multi-class classification problem where accurate prediction enables rapid wetland assessment and supports conservation decision-making.
+
+# Target Variable
+
+**Wetland Type (Marsh/Swamp/Bog/Fen)**: This categorical variable represents the primary wetland ecosystem classification based on the North American Wetland Classification System. Each type has distinct ecological characteristics:
+
+- **Marsh**: Wetlands dominated by herbaceous vegetation, typically with seasonal or permanent shallow water
+- **Swamp**: Wetlands dominated by woody vegetation (trees or shrubs) with standing or slow-moving water
+- **Bog**: Acidic wetlands that receive water primarily from precipitation, typically nutrient-poor with sphagnum moss
+- **Fen**: Wetlands fed by groundwater, generally less acidic than bogs and more nutrient-rich
+
+Accurate wetland type classification is crucial for conservation planning, as each type supports different species communities, provides distinct ecosystem services, and requires specific management approaches. Misclassification can lead to inappropriate restoration techniques, ineffective conservation strategies, and potential ecosystem damage.
+
+# Predictor Variables
+
+The environmental characteristics include five key categories of measurements:
+
+- **Hydrology**: Water depth patterns, flow rates, seasonal water level variation, and hydroperiod duration. These variables are critical as water regime fundamentally determines wetland type and ecosystem function.
+
+- **Vegetation**: Plant community composition, dominant species coverage, vegetation structure (herbaceous vs. woody), and biodiversity indices. Vegetation is often the most visible indicator of wetland type and reflects underlying environmental conditions.
+
+- **Soil Chemistry**: pH levels, nutrient concentrations (nitrogen, phosphorus), organic matter content, and soil conductivity. Soil chemistry directly influences plant communities and distinguishes between wetland types, particularly bogs (acidic) versus fens (neutral to alkaline).
+
+- **Climate**: Temperature ranges, precipitation patterns, humidity levels, and growing season length. Climate variables affect water balance, plant growth, and seasonal ecosystem dynamics.
+
+- **Topography**: Elevation, slope, aspect, and landscape position relative to watersheds. Topographical features influence water flow patterns, drainage, and connectivity to groundwater sources.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds084_ecology_wetland_type_marshswampbogfen.csv`): Ideal for initial model development and learning, with complete data for all variables and no measurement errors
+- **Dirty Version** (`ds084_ecology_wetland_type_marshswampbogfen_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as equipment failures, measurement errors, and incomplete field surveys
+
+# Suggested Approaches
+
+Given the multi-class nature and mixed variable types, several machine learning approaches are well-suited for this problem:
+
+- **Random Forest**: Excellent for handling mixed data types and providing feature importance rankings to understand which environmental variables are most predictive of wetland type
+- **Gradient Boosting (XGBoost/LightGBM)**: Strong performance on tabular data with robust handling of outliers and missing values, particularly useful for the dirty dataset version
+- **Support Vector Machine with RBF kernel**: Effective for multi-class classification problems where class boundaries may be complex and non-linear
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 84 |
+| Domain | Ecology |
+| Problem Type | Multi-class Classification |
+| Number of Classes | 4 (Marsh, Swamp, Bog, Fen) |
+| Number of Rows | 500,000 |
+| Number of Features | 25 |
+| Clean Version | `csv/ds084_ecology_wetland_type_marshswampbogfen.csv` |
+| Dirty Version | `csv/ds084_ecology_wetland_type_marshswampbogfen_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Class Distribution | Approximately balanced across all four wetland types |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes in data science and ecological modeling courses. While the data is artificial, the relationships between environmental variables and wetland types have been designed to reflect real ecological principles and field research findings. The dataset provides an excellent opportunity to practice multi-class classification, feature engineering, and handling data quality issues commonly encountered in environmental monitoring datasets.

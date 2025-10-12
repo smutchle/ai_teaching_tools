@@ -1,0 +1,98 @@
+---
+title: "Dataset 21: Plant Growth Rate Prediction - Optimizing Agricultural Conditions"
+format: html
+---
+
+# Overview
+
+This dataset contains experimental data measuring plant biomass growth rates under various environmental conditions. It provides an excellent opportunity to explore regression modeling in agricultural biology, where understanding the complex relationships between environmental factors and plant growth is crucial for optimizing crop yields and developing sustainable farming practices.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds021_biology_plant_growth_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds021_biology_plant_growth_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+A team of agricultural researchers at the International Crop Research Institute is investigating how different environmental factors influence plant growth rates to develop evidence-based recommendations for greenhouse management and precision agriculture. With global food security becoming increasingly important due to climate change and population growth, understanding the optimal conditions for plant growth has never been more critical.
+
+The research team has been conducting controlled experiments in climate chambers, systematically varying environmental conditions including light intensity, nutrient concentrations, temperature, water availability, and atmospheric CO2 levels. Each experimental unit represents a controlled growing environment where young plants are monitored over a standardized period, with their daily biomass increase carefully measured.
+
+This data will be used to develop predictive models that can help farmers and greenhouse operators optimize growing conditions, reduce resource waste, and maximize crop productivity. The insights gained could also inform climate-controlled agriculture systems and vertical farming operations where precise environmental control is both possible and economically justified.
+
+# Problem Statement
+
+The goal is to predict the daily plant growth rate (measured as biomass increase in grams per day) based on five key environmental variables. This regression problem aims to quantify how changes in growing conditions affect plant productivity, enabling data-driven optimization of agricultural systems.
+
+# Target Variable
+
+**Plant Growth Rate**: Measured as the daily increase in plant biomass (grams per day), this variable represents the rate at which plants accumulate dry matter under specific environmental conditions. This metric is crucial because it directly correlates with crop yield and productivity. A higher growth rate indicates more efficient conversion of environmental resources into plant tissue, which translates to better harvests and more sustainable resource utilization. Understanding and predicting growth rates allows agricultural practitioners to identify optimal growing conditions and make informed decisions about resource allocation.
+
+# Predictor Variables
+
+- **Light Intensity**: Measured in micromoles of photons per square meter per second (μmol/m²/s). Light is the primary energy source for photosynthesis, and intensity directly affects the rate of carbon fixation and overall plant metabolism.
+
+- **Nutrient Levels**: Quantified as parts per million (ppm) of essential nutrients in the growing medium. This represents the availability of key minerals like nitrogen, phosphorus, and potassium that are fundamental building blocks for plant growth and development.
+
+- **Temperature**: Recorded in degrees Celsius (°C). Temperature affects enzymatic activity, metabolic rates, and cellular processes. Each plant species has an optimal temperature range for maximum growth efficiency.
+
+- **Water Availability**: Measured as soil moisture percentage or water potential. Water is essential for photosynthesis, nutrient transport, and maintaining cellular structure. Both water stress and oversaturation can significantly impact growth rates.
+
+- **CO2 Concentration**: Atmospheric carbon dioxide levels measured in parts per million (ppm). CO2 is the primary carbon source for photosynthesis, and elevated levels can enhance growth rates in many plant species, though this effect may plateau at higher concentrations.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds021_biology_plant_growth_rate.csv`): Contains complete data with no missing values or outliers, ideal for initial model development and learning fundamental regression concepts
+- **Dirty Version** (`ds021_biology_plant_growth_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as sensor malfunctions, measurement errors, or experimental complications
+
+The dirty version provides valuable experience in data preprocessing, outlier detection, and missing value imputation techniques commonly encountered in biological research.
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to establish baseline performance and understand linear relationships between environmental factors and growth rates
+- **Random Forest**: Implement ensemble methods to capture non-linear relationships and interactions between environmental variables, while providing feature importance rankings
+- **Gradient Boosting**: Use XGBoost or similar algorithms to model complex interactions and achieve high predictive accuracy, particularly useful for optimizing growing conditions
+
+Advanced students might also explore polynomial features to capture optimal ranges for each environmental factor, or neural networks to model complex multi-way interactions between variables.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 21 |
+| Domain | Biology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds021_biology_plant_growth_rate.csv` |
+| Dirty Version | `csv/ds021_biology_plant_growth_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Variable | Plant Growth Rate (grams/day) |
+
+# Learning Objectives
+
+This dataset is particularly well-suited for:
+- Understanding regression modeling in biological contexts
+- Exploring the relationship between environmental factors and biological responses
+- Practicing data cleaning and preprocessing techniques
+- Developing feature engineering skills for environmental data
+- Learning to interpret model results in terms of biological significance
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. While the data is artificial, the relationships between variables have been carefully designed to reflect realistic biological processes and environmental responses observed in plant growth studies. The dataset maintains scientific plausibility while providing clear learning opportunities for data science students interested in agricultural and biological applications.

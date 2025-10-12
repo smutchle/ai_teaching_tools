@@ -1,0 +1,99 @@
+---
+title: "Dataset 95: Mineral Deposit Classification for Economic Geology Assessment"
+format: html
+---
+
+# Overview
+
+This comprehensive geoscience dataset enables the classification of mineral deposits into five distinct ore classes based on geological characteristics. Designed for educational purposes in data science and economic geology, this dataset simulates the complex decision-making process that exploration geologists face when evaluating potential mining sites and determining the economic viability of mineral deposits.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds095_geoscience_mineral_deposit_type_5_ore_classes.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds095_geoscience_mineral_deposit_type_5_ore_classes_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Imagine you're working as a data scientist for a multinational mining corporation tasked with optimizing their exploration strategy across diverse geological terrains. The company has accumulated decades of geological survey data from prospecting sites worldwide, including detailed information about rock types, structural features, geochemical signatures, and tectonic environments. However, manually classifying each potential site's mineral deposit type requires expert geologists and extensive field work, making the process both time-consuming and expensive.
+
+Your mission is to develop a machine learning model that can automatically classify mineral deposits into economically relevant categories based on readily observable geological features. This automated classification system would enable the company to rapidly screen thousands of potential sites, prioritize high-value targets for detailed exploration, and make informed investment decisions about where to allocate their exploration budget.
+
+The implications extend beyond individual companies—accurate mineral deposit classification supports national resource assessments, environmental impact planning, and sustainable mining practices. By understanding deposit types early in the exploration process, mining operations can be designed more efficiently and with greater environmental consideration.
+
+# Problem Statement
+
+Given geological characteristics of a prospective site, predict the type of mineral deposit present from five distinct ore classes. This multi-class classification problem requires understanding complex relationships between geological features and mineralization processes, making it an excellent case study for applying machine learning to earth sciences.
+
+# Target Variable
+
+**Mineral Deposit Type (5 ore classes)**: This categorical variable represents the economic classification of mineral deposits based on their formation processes, metal content, and mining characteristics. The five classes typically include:
+
+1. **Porphyry deposits** - Large, low-grade copper-molybdenum deposits associated with intrusive igneous rocks
+2. **Epithermal deposits** - Precious metal deposits formed by hot springs and volcanic activity
+3. **Volcanogenic massive sulfide (VMS)** - Base metal deposits formed on ancient sea floors
+4. **Sediment-hosted deposits** - Lead-zinc deposits in sedimentary rocks
+5. **Orogenic gold deposits** - Gold deposits formed during mountain-building processes
+
+Accurate prediction of deposit type is crucial because each class has distinct exploration strategies, mining methods, processing requirements, and economic potential. This classification directly impacts investment decisions, environmental assessments, and resource estimation approaches.
+
+# Predictor Variables
+
+The dataset includes five key geological predictor variables that experienced geologists use to classify mineral deposits:
+
+- **Host Rock**: The primary rock type containing the mineralization, ranging from igneous to sedimentary to metamorphic varieties. Different deposit types show strong preferences for specific host rock environments.
+
+- **Alteration**: The chemical and mineralogical changes in rocks surrounding ore deposits, including processes like silicification, sericitization, and chloritization. Alteration patterns are diagnostic fingerprints of different mineralization processes.
+
+- **Structure**: Geological structures such as faults, fractures, and fold systems that control ore fluid flow and deposition. Structural geology provides crucial insights into deposit formation and geometry.
+
+- **Geochemistry**: Chemical signatures including trace element concentrations, isotopic ratios, and elemental associations that reflect the source and evolution of ore-forming fluids.
+
+- **Tectonic Setting**: The broader geological environment during ore formation, such as volcanic arcs, extensional basins, or collision zones. Tectonic context strongly influences the types of deposits that can form.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds095_geoscience_mineral_deposit_type_5_ore_classes.csv`): Ideal for initial model development and learning core classification techniques without data quality complications
+- **Dirty Version** (`ds095_geoscience_mineral_deposit_type_5_ore_classes_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues common in geological datasets due to measurement limitations, weathering effects, and sampling challenges
+
+# Suggested Approaches
+
+Several machine learning approaches are well-suited for this geological classification problem:
+
+- **Random Forest Classifier**: Excellent for handling the mixed categorical and numerical geological features while providing interpretable feature importance rankings that align with geological intuition
+
+- **Gradient Boosting Methods (XGBoost, LightGBM)**: Powerful ensemble methods that can capture complex interactions between geological variables, particularly useful for modeling the non-linear relationships inherent in geological processes
+
+- **Support Vector Machine with RBF kernel**: Effective for the multi-class problem with potentially complex decision boundaries, especially when geological classes may not be linearly separable in feature space
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 95 |
+| Domain | Geoscience |
+| Problem Type | Classification (Multi-class) |
+| Number of Classes | 5 |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds095_geoscience_mineral_deposit_type_5_ore_classes.csv` |
+| Dirty Version | `csv/ds095_geoscience_mineral_deposit_type_5_ore_classes_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes in data science and economic geology. The relationships between geological variables and mineral deposit types have been designed to reflect realistic geological principles while maintaining interpretability for learning objectives. The dataset provides an excellent introduction to applying machine learning techniques to earth science problems, where domain expertise and statistical modeling intersect to solve practical industry challenges.

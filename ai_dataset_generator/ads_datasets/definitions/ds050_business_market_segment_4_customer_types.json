@@ -1,0 +1,172 @@
+{
+  "dataset_config": {
+    "name": "ds050_business_market_segment_4_customer_types",
+    "description": "Group customers by shared characteristics including purchase patterns, demographics, psychographics, and channel preference",
+    "random_seed": 50,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "annual_income",
+          "purchase_frequency"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age",
+          "digital_engagement"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "brand_loyalty_score",
+          "purchase_frequency"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_income",
+          "average_order_value"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "annual_income",
+        "description": "Customer annual income in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.5,
+          "scale": 65,
+          "location": 25
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "age",
+        "description": "Customer age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 15,
+          "min_clip": 18,
+          "max_clip": 80
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "purchase_frequency",
+        "description": "Number of purchases per year",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12,
+          "location": 1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "average_order_value",
+        "description": "Average order value in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 85,
+          "std": 35,
+          "min_clip": 15,
+          "max_clip": 300
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "digital_engagement",
+        "description": "Digital channel engagement score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "brand_loyalty_score",
+        "description": "Brand loyalty score (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 2.1,
+          "min_clip": 0,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "social_influence_score",
+        "description": "Social media influence and sharing behavior score",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 4.5,
+          "location": 1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "price_sensitivity",
+        "description": "Price sensitivity index (0-10, higher = more sensitive)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 1.8,
+          "min_clip": 0,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "market_segment_4_customer_types",
+      "description": "Customer market segment classification",
+      "data_type": "categorical",
+      "expression": "0.15*annual_income + 0.8*purchase_frequency + 0.05*average_order_value + 0.12*digital_engagement + 1.2*brand_loyalty_score + 0.3*social_influence_score - 0.6*price_sensitivity - 0.1*age",
+      "noise_percent": 2.5,
+      "categories": [
+        "Price-Conscious Traditionalist",
+        "Price-Conscious Traditionalist",
+        "Casual Shopper",
+        "Casual Shopper",
+        "Casual Shopper",
+        "Digital Native",
+        "Digital Native",
+        "Premium Loyalist",
+        "Premium Loyalist",
+        "Premium Loyalist"
+      ],
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

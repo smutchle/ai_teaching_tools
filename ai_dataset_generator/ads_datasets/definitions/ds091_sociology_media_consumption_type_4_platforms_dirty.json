@@ -1,0 +1,198 @@
+{
+  "dataset_config": {
+    "name": "ds091_sociology_media_consumption_type_4_platforms_dirty",
+    "description": "Predict primary information source based on demographics and preferences",
+    "random_seed": 91,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "age",
+          "traditional_media_preference"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "education_years",
+          "income_thousands"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "tech_adoption_score",
+          "social_media_engagement"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "income_thousands",
+          "tech_adoption_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age",
+          "tech_adoption_score"
+        ],
+        "correlation": -0.52,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Age of respondent in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 16,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "education_years",
+        "description": "Years of formal education completed",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 14,
+          "std": 3,
+          "min_clip": 8,
+          "max_clip": 22
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "income_thousands",
+        "description": "Annual household income in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.5,
+          "scale": 55,
+          "location": 20
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "tech_adoption_score",
+        "description": "Technology adoption and usage score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "social_media_engagement",
+        "description": "Hours per week spent on social media platforms",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12,
+          "location": 2
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "traditional_media_preference",
+        "description": "Preference score for traditional media (TV, radio, newspapers) 0-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 2.5,
+          "min_clip": 0,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "news_consumption_hours",
+        "description": "Hours per week consuming news content",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 4.2,
+          "min_clip": 0,
+          "max_clip": 30
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "mobile_usage_score",
+        "description": "Mobile device usage intensity score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72,
+          "std": 18,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "media_consumption_type_4_platforms",
+      "description": "Primary information source platform preference",
+      "data_type": "categorical",
+      "expression": "2.5 + 0.08*age + 0.15*education_years - 0.02*income_thousands + 0.05*tech_adoption_score + 0.12*social_media_engagement - 0.45*traditional_media_preference + 0.08*news_consumption_hours + 0.03*mobile_usage_score",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Traditional TV",
+        "Traditional TV",
+        "Print Media",
+        "Print Media",
+        "Online News",
+        "Online News",
+        "Social Media",
+        "Social Media",
+        "Social Media",
+        "Streaming Platforms"
+      ]
+    }
+  }
+}

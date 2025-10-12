@@ -1,0 +1,165 @@
+{
+  "dataset_config": {
+    "name": "ds039_sociology_social_class_workingmiddleupper_dirty",
+    "description": "Categorize socioeconomic stratification into Working/Middle/Upper classes",
+    "random_seed": 39,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "education_years",
+          "income_thousands"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "income_thousands",
+          "wealth_index"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "education_years",
+          "cultural_capital_score"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "occupation_prestige",
+          "income_thousands"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "wealth_index",
+          "cultural_capital_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "education_years",
+        "description": "Years of formal education completed",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 13.5,
+          "std": 3.2,
+          "min_clip": 6,
+          "max_clip": 22
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "income_thousands",
+        "description": "Annual household income in thousands USD",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 55,
+          "location": 15
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "wealth_index",
+        "description": "Composite wealth index including assets and property",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 75,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "occupation_prestige",
+        "description": "Occupational prestige score (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 18,
+          "min_clip": 10,
+          "max_clip": 95
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "cultural_capital_score",
+        "description": "Cultural capital index based on arts, literature, and social activities",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "social_network_size",
+        "description": "Number of professional and social connections",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 25,
+          "location": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "social_class_workingmiddleupper",
+      "description": "Social class classification: Working, Middle, or Upper class",
+      "data_type": "categorical",
+      "expression": "0.25*education_years + 0.015*income_thousands + 0.008*wealth_index + 0.12*occupation_prestige + 0.08*cultural_capital_score + 0.05*social_network_size",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Working Class",
+        "Working Class",
+        "Working Class",
+        "Lower Middle Class",
+        "Middle Class",
+        "Middle Class",
+        "Upper Middle Class",
+        "Upper Middle Class",
+        "Upper Class",
+        "Upper Class"
+      ]
+    }
+  }
+}

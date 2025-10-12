@@ -1,0 +1,83 @@
+---
+title: "Dataset 73: Predicting Antibody Titer Levels Following COVID-19 Vaccination"
+format: html
+---
+
+# Overview
+
+This dataset captures immune response data from a longitudinal study tracking antibody titer levels in individuals following COVID-19 vaccination. The data includes measurements of antibody concentration in serum samples along with key demographic and vaccination-related variables, making it ideal for exploring regression modeling in the context of immunological research and public health.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds073_biology_antibody_titer.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds073_biology_antibody_titer_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+During the COVID-19 pandemic, understanding vaccine efficacy and immune response became critical for public health decision-making. Health authorities needed to determine optimal vaccination schedules, identify populations requiring booster doses, and evaluate the effectiveness of different vaccine formulations. This dataset simulates data that might be collected by a national health institute conducting a comprehensive study on vaccine-induced immunity.
+
+Imagine you're working as a data scientist for the Centers for Disease Control and Prevention (CDC), tasked with developing predictive models to help healthcare providers determine when patients might need booster vaccinations. By analyzing factors such as time since vaccination, patient demographics, and vaccine characteristics, you can build models that predict antibody levels and inform personalized vaccination strategies.
+
+The ability to predict antibody titer levels has immediate practical applications: hospitals can prioritize high-risk patients with predicted low antibody levels for booster shots, public health officials can adjust vaccination campaigns based on population-level immunity predictions, and researchers can optimize vaccine formulations by understanding which factors most strongly influence immune response.
+
+# Problem Statement
+
+The goal is to predict **Antibody Titer** levels (measured in IU/mL) based on vaccination and patient characteristics. This regression problem is essential for understanding immune response patterns and making data-driven decisions about vaccination strategies, particularly in identifying individuals who may have suboptimal immune responses and require additional interventions.
+
+# Target Variable
+
+**Antibody Titer**: This measures the concentration of specific antibodies in blood serum, expressed in International Units per milliliter (IU/mL). Antibody titer is a quantitative measure of immune response strength - higher values indicate stronger immunity against the target pathogen. In clinical practice, titer levels above certain thresholds are considered protective, while lower levels may indicate waning immunity or the need for booster vaccination. Predicting titer levels allows healthcare providers to proactively manage patient immunity and optimize vaccination timing.
+
+# Predictor Variables
+
+- **Days post-vaccination**: The number of days elapsed since the most recent vaccination dose. This captures the temporal decay of antibody levels, as immune response typically peaks within weeks of vaccination and gradually declines over time.
+
+- **Age**: Patient age in years. Age is a critical factor in immune response, with older adults often showing diminished antibody production and faster waning of immunity compared to younger individuals.
+
+- **Immune status**: Categorical variable indicating the patient's baseline immune system condition (Normal, Compromised, Enhanced). Immunocompromised patients (due to medications, chronic conditions, or treatments) typically show reduced vaccine responses.
+
+- **Booster doses**: The total number of booster vaccinations received beyond the initial vaccination series. Additional doses generally correlate with higher and more sustained antibody levels.
+
+- **Adjuvant type**: The type of immune-enhancing adjuvant used in the vaccine formulation (Alum, MF59, AS03, None). Different adjuvants can significantly impact the magnitude and duration of immune response.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds073_biology_antibody_titer.csv`): Ideal for initial model development and learning, containing complete data with no missing values or outliers
+- **Dirty Version** (`ds073_biology_antibody_titer_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as missed laboratory measurements, data entry errors, or extreme biological responses
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with interpretable linear models to understand the relationship between each predictor and antibody levels, particularly useful for clinical interpretation
+- **Random Forest Regression**: Capture non-linear relationships and interactions between variables (e.g., age-dependent effects of time post-vaccination) while providing feature importance rankings
+- **Gradient Boosting (XGBoost/LightGBM)**: Achieve high predictive accuracy for clinical decision support systems, with built-in handling of missing values in the dirty dataset version
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 73 |
+| Domain | Biology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds073_biology_antibody_titer.csv` |
+| Dirty Version | `csv/ds073_biology_antibody_titer_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects actual patterns observed in immunological studies, including the temporal decay of antibody levels, age-related immune response differences, and the impact of various vaccine formulations on immune outcomes.

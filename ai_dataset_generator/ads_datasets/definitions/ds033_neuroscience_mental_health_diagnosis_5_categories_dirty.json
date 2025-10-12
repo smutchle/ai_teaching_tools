@@ -1,0 +1,180 @@
+{
+  "dataset_config": {
+    "name": "ds033_neuroscience_mental_health_diagnosis_5_categories_dirty",
+    "description": "Categorize psychiatric conditions based on symptom checklist, sleep patterns, social function, and trauma history",
+    "random_seed": 33,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "depression_symptoms",
+          "anxiety_symptoms"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "sleep_disturbance",
+          "anxiety_symptoms"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "social_functioning_impairment",
+          "depression_symptoms"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "trauma_severity_score",
+          "ptsd_symptoms"
+        ],
+        "correlation": 0.71,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "cognitive_symptoms",
+          "depression_symptoms"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "depression_symptoms",
+        "description": "Depression symptom severity score (0-27 PHQ-9 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 8.5,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "anxiety_symptoms",
+        "description": "Anxiety symptom severity score (0-21 GAD-7 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.6,
+          "scale": 6.8,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "sleep_disturbance",
+        "description": "Sleep quality and disturbance score (0-28 PSQI scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 9.2,
+          "std": 4.8,
+          "min_clip": 0,
+          "max_clip": 28
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "social_functioning_impairment",
+        "description": "Social functioning impairment score (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35.4,
+          "std": 22.1,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "trauma_severity_score",
+        "description": "Trauma exposure and severity score (0-136 PCL-5 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 25.8,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "ptsd_symptoms",
+        "description": "PTSD symptom cluster severity (0-80 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.9,
+          "scale": 18.3,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "cognitive_symptoms",
+        "description": "Cognitive impairment and concentration issues (0-60 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.7,
+          "std": 12.4,
+          "min_clip": 0,
+          "max_clip": 60
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "mental_health_diagnosis_5_categories",
+      "description": "Mental health diagnosis categorization",
+      "data_type": "categorical",
+      "expression": "-2.1 + 0.15*depression_symptoms + 0.18*anxiety_symptoms + 0.08*sleep_disturbance + 0.06*social_functioning_impairment + 0.12*trauma_severity_score + 0.14*ptsd_symptoms + 0.09*cognitive_symptoms",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "No Diagnosis",
+        "No Diagnosis",
+        "Adjustment Disorder",
+        "Anxiety Disorder",
+        "Anxiety Disorder",
+        "Major Depression",
+        "Major Depression",
+        "PTSD",
+        "Bipolar Disorder",
+        "Severe Mental Illness"
+      ]
+    }
+  }
+}

@@ -1,0 +1,86 @@
+---
+title: "Dataset 62: Predicting Algae Bloom Intensity in Freshwater Ecosystems"
+format: html
+---
+
+# Overview
+
+This dataset contains measurements from 50 freshwater monitoring stations across the Great Lakes region, collected to predict algae bloom intensity based on environmental factors. The data represents a critical ecological monitoring challenge where understanding the drivers of harmful algal blooms can help protect water quality, aquatic ecosystems, and public health.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds062_ecology_algae_bloom_intensity.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds062_ecology_algae_bloom_intensity_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Environmental Protection Agency's Great Lakes Monitoring Initiative has been tracking water quality indicators across multiple freshwater bodies since 2018. Harmful algal blooms (HABs) have become an increasingly serious environmental concern, with major blooms in Lake Erie costing millions of dollars in economic damage and threatening drinking water supplies for millions of residents.
+
+Water quality managers need to predict when and where algae blooms will occur to implement preventive measures such as nutrient reduction programs, water treatment adjustments, and public health advisories. Currently, many monitoring programs are reactive rather than predictive, leading to delayed responses and greater environmental and economic impacts.
+
+This dataset was compiled from automated sensor networks, laboratory analyses, and satellite imagery to create a comprehensive picture of the environmental conditions that drive algae bloom formation. The goal is to develop predictive models that can forecast bloom intensity 2-4 weeks in advance, giving water managers sufficient time to implement mitigation strategies.
+
+# Problem Statement
+
+Develop a regression model to predict algae bloom intensity (measured as chlorophyll-a concentration) based on key environmental variables. Accurate predictions will enable proactive water management decisions and help prevent the severe ecological and economic consequences of major algal bloom events.
+
+# Target Variable
+
+**Algae Bloom Intensity**: Measured as chlorophyll-a concentration in micrograms per liter (μg/L), this variable quantifies the density of algae in the water column. Chlorophyll-a is the primary photosynthetic pigment in algae and serves as a reliable proxy for algal biomass. Values typically range from 2-150 μg/L, with concentrations above 30 μg/L indicating potentially harmful bloom conditions. This metric is crucial because it directly correlates with water quality degradation, oxygen depletion, and the production of harmful toxins that can affect both aquatic life and human health.
+
+# Predictor Variables
+
+- **Nutrient Loading** (mg/L total phosphorus): The concentration of bioavailable phosphorus in the water, primarily from agricultural runoff and urban wastewater. Phosphorus is typically the limiting nutrient in freshwater systems, making it the primary driver of algal growth.
+
+- **Water Temperature** (°C): Surface water temperature affects algal metabolism, growth rates, and species composition. Warmer temperatures generally accelerate algal reproduction and can favor harmful species over beneficial ones.
+
+- **Light Availability** (% photosynthetically active radiation): The percentage of surface light that penetrates to the algal community, influenced by water clarity, depth, and weather conditions. Light is essential for photosynthesis and directly affects algal productivity.
+
+- **Flow Rate** (m³/s): Water movement and circulation patterns that affect nutrient distribution, water residence time, and physical disruption of algal communities. Lower flow rates typically favor bloom formation by allowing algae to accumulate.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds062_ecology_algae_bloom_intensity.csv`): Ideal for initial model development and learning fundamental regression techniques. Contains complete observations with no missing values or extreme outliers.
+- **Dirty Version** (`ds062_ecology_algae_bloom_intensity_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as sensor malfunctions, extreme weather events, and measurement errors common in environmental monitoring.
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with this interpretable approach to understand the linear relationships between environmental factors and bloom intensity. Particularly useful for identifying the relative importance of different predictors.
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships and interactions between variables (e.g., temperature-nutrient synergies). Provides feature importance rankings and handles missing values naturally.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Often provides the highest predictive accuracy for environmental datasets with complex interactions. Useful for operational forecasting systems where prediction accuracy is paramount.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 62 |
+| Domain | Ecology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Clean Version | `csv/ds062_ecology_algae_bloom_intensity.csv` |
+| Dirty Version | `csv/ds062_ecology_algae_bloom_intensity_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Range | 2.1 - 147.8 μg/L |
+| Temporal Coverage | 2018-2023 (5 years) |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic ecological processes and statistical patterns observed in actual freshwater monitoring programs. The data structure and variable interactions are based on published research in limnology and water quality management, making it an excellent learning tool for environmental data science applications.

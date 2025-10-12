@@ -1,0 +1,83 @@
+---
+title: "Dataset 35: Invasive Species Establishment Prediction in Natural Ecosystems"
+format: html
+---
+
+# Overview
+
+This dataset contains ecological measurements and environmental factors that influence the establishment of invasive species in natural ecosystems. The goal is to predict whether non-native species will successfully establish populations in new habitats based on key ecological indicators. This binary classification problem is crucial for early intervention strategies in conservation biology and ecosystem management.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds035_ecology_invasive_species_presence_yesno.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds035_ecology_invasive_species_presence_yesno_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Pacific Northwest Ecological Research Institute has been monitoring various forest and grassland sites across Oregon and Washington for the past decade. With climate change and increased global trade, the introduction of non-native species has become a critical threat to biodiversity. Park managers and conservation biologists need to prioritize their limited resources for invasive species monitoring and control efforts.
+
+Currently, field surveys to detect established invasive populations are expensive and time-consuming, often taking months to complete across large protected areas. By the time invasive species are detected through traditional surveys, they may have already established self-sustaining populations that are much more difficult and costly to eradicate. The institute has collected data on ecosystem characteristics that may predict invasive species establishment success.
+
+The research team wants to develop a predictive model that can identify high-risk areas based on readily measurable ecosystem properties. This would allow land managers to focus intensive monitoring efforts on the most vulnerable sites and implement preventive measures before invasions occur, potentially saving millions of dollars in control costs and preventing irreversible ecological damage.
+
+# Problem Statement
+
+Given measurements of native biodiversity, disturbance levels, propagule pressure, and climate matching, predict whether invasive species will successfully establish reproducing populations in a given ecosystem within a 5-year monitoring period.
+
+# Target Variable
+
+**Invasive Species Presence (Yes/No)**: A binary indicator of whether at least one non-native species has established a self-sustaining population (defined as evidence of successful reproduction and population growth over multiple seasons) within the monitored area. This variable is critical because early detection of establishment allows for more effective and less costly intervention strategies. The distinction between mere presence of individuals and actual establishment is important - transient individuals that fail to reproduce do not pose the same long-term ecological threat as established populations.
+
+# Predictor Variables
+
+- **Native Diversity**: Shannon diversity index of native plant and animal species in the ecosystem (range: 0-4). Higher native diversity typically provides biotic resistance against invasion through competitive exclusion and resource competition. Areas with low native diversity often have available ecological niches that invasive species can exploit.
+
+- **Disturbance**: Composite index measuring recent disturbance intensity from factors like fire, logging, grazing, and human activity (scale: 0-10). Disturbance creates opportunities for invasive species by reducing competitive pressure from established native species and creating open habitats with available resources.
+
+- **Propagule Pressure**: Estimated number of invasive species introductions per year based on proximity to roads, urban areas, and trade routes (log-transformed count). Higher propagule pressure increases the likelihood of successful establishment by providing multiple colonization attempts and reducing the effects of demographic stochasticity.
+
+- **Climate Match**: Similarity index between local climate conditions and the native climate of known invasive species (scale: 0-1). Species are more likely to establish in climates similar to their native range, as they are already adapted to those environmental conditions.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds035_ecology_invasive_species_presence_yesno.csv`): Ideal for initial model development and learning core classification techniques without data quality complications
+- **Dirty Version** (`ds035_ecology_invasive_species_presence_yesno_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as equipment failures, measurement errors, and incomplete field surveys
+
+# Suggested Approaches
+
+- **Logistic Regression**: Excellent starting point for interpretability, allowing ecologists to understand the relative importance and direction of each factor's influence on invasion success
+- **Random Forest**: Handles non-linear relationships and interactions between ecological variables well, such as the interaction between disturbance and native diversity
+- **Gradient Boosting (XGBoost)**: Often provides high predictive accuracy for ecological classification problems and can capture complex ecological thresholds and tipping points
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 35 |
+| Domain | Ecology |
+| Problem Type | Binary Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Clean Version | `csv/ds035_ecology_invasive_species_presence_yesno.csv` |
+| Dirty Version | `csv/ds035_ecology_invasive_species_presence_yesno_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Class Balance | ~60% No, ~40% Yes |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect established ecological principles from invasion biology research, including the roles of biotic resistance, disturbance, and propagule pressure in determining invasion success. While synthetic, the data structure and relationships are based on real ecological theory and provide realistic challenges for machine learning applications in conservation biology.

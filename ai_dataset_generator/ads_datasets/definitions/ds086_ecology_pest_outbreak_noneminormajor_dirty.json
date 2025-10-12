@@ -1,0 +1,186 @@
+{
+  "dataset_config": {
+    "name": "ds086_ecology_pest_outbreak_noneminormajor_dirty",
+    "description": "Predict agricultural pest severity levels based on environmental and management factors",
+    "random_seed": 86,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "temperature_avg",
+          "host_plant_density"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "natural_enemy_abundance",
+          "pesticide_applications"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "host_plant_density",
+          "vegetation_index"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "humidity_level",
+          "temperature_avg"
+        ],
+        "correlation": 0.33,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "temperature_avg",
+        "description": "Average temperature in Celsius over growing season",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 22.5,
+          "std": 4.2,
+          "min_clip": 10.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "host_plant_density",
+        "description": "Host plant density per square meter",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 45.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "natural_enemy_abundance",
+        "description": "Natural predator and parasite abundance index",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35.8,
+          "std": 12.3,
+          "min_clip": 0.0,
+          "max_clip": 80.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "pesticide_applications",
+        "description": "Number of pesticide applications in previous season",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 3.2,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "humidity_level",
+        "description": "Average relative humidity percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 68.5,
+          "std": 11.2,
+          "min_clip": 35.0,
+          "max_clip": 95.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "vegetation_index",
+        "description": "Normalized difference vegetation index (NDVI)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.2,
+          "max": 0.9
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_nitrogen",
+        "description": "Soil nitrogen content in ppm",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 28.4,
+          "std": 8.7,
+          "min_clip": 5.0,
+          "max_clip": 60.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "field_edge_ratio",
+        "description": "Ratio of field edge to total field area",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.05,
+          "max": 0.35
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "pest_outbreak_noneminormajor",
+      "description": "Agricultural pest outbreak severity classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 + 0.15*temperature_avg + 0.08*host_plant_density - 0.12*natural_enemy_abundance + 0.25*pesticide_applications + 0.05*humidity_level + 2.8*vegetation_index + 0.06*soil_nitrogen + 1.2*field_edge_ratio)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "None",
+        "None",
+        "None",
+        "Minor",
+        "Minor",
+        "Minor",
+        "Minor",
+        "Major",
+        "Major",
+        "Major"
+      ]
+    }
+  }
+}

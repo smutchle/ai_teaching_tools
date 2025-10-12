@@ -1,0 +1,145 @@
+{
+  "dataset_config": {
+    "name": "ds059_ecology_carbon_sequestration_rate",
+    "description": "Predict tons of CO2 absorbed per hectare annually based on vegetation type, soil organic matter, rainfall, temperature, and land management practices",
+    "random_seed": 59,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "soil_organic_matter",
+          "vegetation_density"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_rainfall",
+          "vegetation_density"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "soil_organic_matter",
+          "management_intensity"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature_avg",
+          "annual_rainfall"
+        ],
+        "correlation": -0.3,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "vegetation_density",
+        "description": "Vegetation biomass density in kg per square meter",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.5,
+          "scale": 8.5,
+          "location": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "soil_organic_matter",
+        "description": "Soil organic matter content as percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.8,
+          "std": 1.2,
+          "min_clip": 0.5,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "annual_rainfall",
+        "description": "Annual precipitation in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 850,
+          "std": 280,
+          "min_clip": 200,
+          "max_clip": 2000
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "temperature_avg",
+        "description": "Average annual temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.5,
+          "std": 6.2,
+          "min_clip": -5,
+          "max_clip": 35
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "management_intensity",
+        "description": "Land management intensity score from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.0,
+          "max": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "forest_age",
+        "description": "Average age of dominant vegetation in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 35,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "elevation",
+        "description": "Elevation above sea level in meters",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 2500
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "carbon_sequestration_rate",
+      "description": "Tons of CO2 absorbed per hectare annually",
+      "data_type": "float",
+      "expression": "2.5 + 1.8*vegetation_density + 0.85*soil_organic_matter + 0.003*annual_rainfall - 0.12*temperature_avg + 0.35*management_intensity + 0.02*forest_age - 0.0008*elevation",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

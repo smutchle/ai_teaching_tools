@@ -1,0 +1,188 @@
+{
+  "dataset_config": {
+    "name": "ds078_business_warehouse_location_suitability_3_levels_dirty",
+    "description": "Rank site appropriateness for distribution center based on transportation access, labor costs, proximity to markets, land cost, and utilities",
+    "random_seed": 78,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "transportation_access_score",
+          "proximity_to_markets_miles"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "land_cost_per_sqft",
+          "utilities_cost_index"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "labor_cost_per_hour",
+          "land_cost_per_sqft"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "proximity_to_markets_miles",
+          "logistics_efficiency_score"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "transportation_access_score",
+        "description": "Transportation infrastructure accessibility score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 18,
+          "min_clip": 10,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "labor_cost_per_hour",
+        "description": "Average hourly labor cost in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.5,
+          "std": 4.2,
+          "min_clip": 12.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "proximity_to_markets_miles",
+        "description": "Average distance to major markets in miles",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 85,
+          "location": 15
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "land_cost_per_sqft",
+        "description": "Land cost per square foot in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12,
+          "location": 2
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "utilities_cost_index",
+        "description": "Utilities cost index (100 = national average)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 105,
+          "std": 22,
+          "min_clip": 60,
+          "max_clip": 180
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "logistics_efficiency_score",
+        "description": "Local logistics and supply chain efficiency score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72,
+          "std": 15,
+          "min_clip": 20,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "zoning_compliance_score",
+        "description": "Zoning and regulatory compliance score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 45,
+          "max": 98
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "workforce_availability_index",
+        "description": "Available skilled workforce index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 68,
+          "std": 16,
+          "min_clip": 25,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "warehouse_location_suitability_3_levels",
+      "description": "Warehouse location suitability rating with 3 levels",
+      "data_type": "categorical",
+      "expression": "0.15*transportation_access_score - 0.08*labor_cost_per_hour - 0.02*proximity_to_markets_miles - 0.12*land_cost_per_sqft - 0.03*utilities_cost_index + 0.12*logistics_efficiency_score + 0.08*zoning_compliance_score + 0.1*workforce_availability_index",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Poor Suitability",
+        "Poor Suitability",
+        "Poor Suitability",
+        "Moderate Suitability",
+        "Moderate Suitability",
+        "Moderate Suitability",
+        "Moderate Suitability",
+        "High Suitability",
+        "High Suitability",
+        "High Suitability"
+      ]
+    }
+  }
+}

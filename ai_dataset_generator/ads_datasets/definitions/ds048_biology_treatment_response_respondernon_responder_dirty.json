@@ -1,0 +1,171 @@
+{
+  "dataset_config": {
+    "name": "ds048_biology_treatment_response_respondernon_responder_dirty",
+    "description": "Predict therapeutic efficacy based on genetic profile, disease severity, age, comorbidities, and biomarkers",
+    "random_seed": 48,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "age",
+          "comorbidity_count"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "disease_severity_score",
+          "inflammatory_biomarker"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "genetic_risk_score",
+          "protein_biomarker_level"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "comorbidity_count",
+          "disease_severity_score"
+        ],
+        "correlation": 0.51,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "genetic_risk_score",
+        "description": "Polygenic risk score based on genetic variants",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.5,
+          "std": 0.15,
+          "min_clip": 0.0,
+          "max_clip": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "disease_severity_score",
+        "description": "Clinical disease severity assessment scale",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 6.5,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "age",
+        "description": "Patient age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 55,
+          "std": 12,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "comorbidity_count",
+        "description": "Number of comorbid conditions",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 2.2,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "inflammatory_biomarker",
+        "description": "C-reactive protein level (mg/L)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 3.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "protein_biomarker_level",
+        "description": "Target protein expression level (ng/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 125,
+          "std": 35,
+          "min_clip": 20,
+          "max_clip": 300
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "metabolic_score",
+        "description": "Metabolic pathway activity score",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.2,
+          "max": 4.8
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "treatment_response_respondernon_responder",
+      "description": "Treatment response classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(2.5 - 3.2*genetic_risk_score - 0.4*disease_severity_score - 0.02*age + 0.3*comorbidity_count - 0.15*inflammatory_biomarker + 0.008*protein_biomarker_level + 0.25*metabolic_score)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Non-responder",
+        "Non-responder",
+        "Non-responder",
+        "Non-responder",
+        "Non-responder",
+        "Responder",
+        "Responder",
+        "Responder",
+        "Responder",
+        "Responder"
+      ]
+    }
+  }
+}

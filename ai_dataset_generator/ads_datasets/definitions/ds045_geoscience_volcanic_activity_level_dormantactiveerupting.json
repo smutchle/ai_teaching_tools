@@ -1,0 +1,178 @@
+{
+  "dataset_config": {
+    "name": "ds045_geoscience_volcanic_activity_level_dormantactiveerupting",
+    "description": "Categorize volcano status based on seismicity, gas emissions, deformation, and thermal anomalies",
+    "random_seed": 45,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "seismic_magnitude",
+          "seismic_frequency"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "so2_emissions",
+          "co2_emissions"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "ground_deformation",
+          "seismic_magnitude"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "thermal_anomaly_temp",
+          "so2_emissions"
+        ],
+        "correlation": 0.51,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "fumarole_temperature",
+          "thermal_anomaly_temp"
+        ],
+        "correlation": 0.69,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "seismic_magnitude",
+        "description": "Average seismic magnitude over monitoring period",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 2.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "seismic_frequency",
+        "description": "Number of seismic events per day",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 15,
+          "location": 1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "so2_emissions",
+        "description": "Sulfur dioxide emissions in tons per day",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 800,
+          "location": 50
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "co2_emissions",
+        "description": "Carbon dioxide emissions in tons per day",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.3,
+          "scale": 1200,
+          "location": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "ground_deformation",
+        "description": "Ground deformation rate in mm per year",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 12.0,
+          "min_clip": -5.0,
+          "max_clip": 80.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "thermal_anomaly_temp",
+        "description": "Thermal anomaly temperature in degrees Celsius above baseline",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.6,
+          "scale": 25,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "fumarole_temperature",
+        "description": "Average fumarole temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 450,
+          "std": 180,
+          "min_clip": 100,
+          "max_clip": 900
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "gas_composition_ratio",
+        "description": "Ratio of magmatic to hydrothermal gas components",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.1,
+          "max": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "volcanic_activity_level_dormantactiveerupting",
+      "description": "Volcanic activity classification based on monitoring data",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-8.5 + 1.2*seismic_magnitude + 0.08*seismic_frequency + 0.003*so2_emissions + 0.002*co2_emissions + 0.15*ground_deformation + 0.12*thermal_anomaly_temp + 0.008*fumarole_temperature + 0.4*gas_composition_ratio)))",
+      "noise_percent": 2.5,
+      "categories": [
+        "Dormant",
+        "Dormant",
+        "Dormant",
+        "Low Activity",
+        "Low Activity",
+        "Active",
+        "Active",
+        "High Activity",
+        "Erupting",
+        "Erupting"
+      ],
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

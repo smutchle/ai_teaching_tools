@@ -1,0 +1,139 @@
+{
+  "dataset_config": {
+    "name": "ds060_ecology_stream_flow_rate",
+    "description": "Estimate cubic meters per second in waterways based on watershed characteristics",
+    "random_seed": 60,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "watershed_area_km2",
+          "annual_precipitation_mm"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_precipitation_mm",
+          "vegetation_cover_percent"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "snowpack_depth_cm",
+          "annual_precipitation_mm"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "watershed_area_km2",
+        "description": "Watershed drainage area in square kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 150,
+          "location": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "annual_precipitation_mm",
+        "description": "Average annual precipitation in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 800,
+          "std": 250,
+          "min_clip": 200,
+          "max_clip": 2000
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "snowpack_depth_cm",
+        "description": "Peak snowpack depth in centimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 25,
+          "min_clip": 0,
+          "max_clip": 150
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "vegetation_cover_percent",
+        "description": "Percentage of watershed covered by vegetation",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72,
+          "std": 18,
+          "min_clip": 15,
+          "max_clip": 95
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "soil_permeability_index",
+        "description": "Soil permeability index (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.5,
+          "max": 8.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "elevation_m",
+        "description": "Average watershed elevation in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1200,
+          "std": 400,
+          "min_clip": 100,
+          "max_clip": 3000
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "stream_gradient_percent",
+        "description": "Average stream gradient as percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 3.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "stream_flow_rate",
+      "description": "Stream flow rate in cubic meters per second",
+      "data_type": "float",
+      "expression": "2.5 + 0.08*watershed_area_km2 + 0.012*annual_precipitation_mm + 0.15*snowpack_depth_cm + 0.05*vegetation_cover_percent - 0.8*soil_permeability_index + 0.002*elevation_m + 1.2*stream_gradient_percent",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

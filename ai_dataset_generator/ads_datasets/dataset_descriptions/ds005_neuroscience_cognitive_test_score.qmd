@@ -1,0 +1,94 @@
+---
+title: "Dataset 5: Cognitive Performance Prediction in Aging Research"
+format: html
+---
+
+# Overview
+
+This dataset contains cognitive assessment data from a longitudinal study examining factors that influence cognitive performance across different age groups. The goal is to predict standardized cognitive test scores based on demographic, lifestyle, and health-related variables. This regression problem is particularly relevant for understanding cognitive aging, early detection of cognitive decline, and developing personalized interventions to maintain cognitive health.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds005_neuroscience_cognitive_test_score.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds005_neuroscience_cognitive_test_score_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Cognitive Aging Research Institute has been conducting a comprehensive study to understand how various lifestyle and demographic factors influence cognitive performance across the lifespan. With an aging global population, there is growing concern about cognitive decline and neurodegenerative diseases like Alzheimer's and dementia. Early identification of individuals at risk for cognitive decline could enable timely interventions and improve quality of life.
+
+The research team has collected data from 500,000 participants aged 18-85 who completed a standardized cognitive assessment battery. Along with the cognitive scores, researchers gathered information about participants' age, educational background, sleep patterns, exercise habits, and stress levels. The challenge is to develop a predictive model that can accurately estimate cognitive performance based on these readily measurable factors.
+
+This type of model could be invaluable for healthcare providers, allowing them to identify patients who might benefit from cognitive training programs, lifestyle modifications, or closer monitoring. Additionally, the model could help researchers understand which factors are most strongly associated with cognitive performance, informing public health recommendations and intervention strategies.
+
+# Problem Statement
+
+Develop a regression model to predict cognitive test scores based on demographic and lifestyle factors. The model should help identify individuals at risk for poor cognitive performance and provide insights into modifiable factors that influence cognitive health.
+
+# Target Variable
+
+**Cognitive Test Score**: A composite score (ranging from 0-100) derived from a standardized cognitive assessment battery that measures multiple cognitive domains including memory, attention, executive function, processing speed, and language abilities. Higher scores indicate better cognitive performance. This score is particularly valuable because:
+
+- It provides a comprehensive measure of overall cognitive health
+- It's standardized and comparable across different populations
+- It can detect subtle changes in cognitive function before clinical symptoms appear
+- It serves as an early indicator for cognitive decline and potential neurodegenerative conditions
+- It helps evaluate the effectiveness of cognitive interventions and lifestyle modifications
+
+# Predictor Variables
+
+- **Age**: Participant's age in years (18-85). Age is the strongest known predictor of cognitive performance, with processing speed and some memory functions typically declining with normal aging.
+
+- **Education Years**: Total years of formal education completed (8-20 years). Higher education is associated with greater cognitive reserve, which may protect against age-related cognitive decline.
+
+- **Sleep Hours**: Average hours of sleep per night over the past month (4-10 hours). Sleep quality and duration are crucial for memory consolidation, attention, and overall cognitive function.
+
+- **Exercise Frequency**: Number of moderate-to-vigorous exercise sessions per week (0-7). Regular physical activity promotes neuroplasticity, improves blood flow to the brain, and is associated with better cognitive performance.
+
+- **Stress Level**: Self-reported stress level on a scale from 1-10 (1=very low stress, 10=very high stress). Chronic stress can impair memory formation and executive function through elevated cortisol levels.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds005_neuroscience_cognitive_test_score.csv`): Ideal for initial model development and learning basic regression techniques. Contains complete data with no missing values or extreme outliers.
+
+- **Dirty Version** (`ds005_neuroscience_cognitive_test_score_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in clinical research. Perfect for practicing data cleaning, imputation techniques, and robust modeling approaches.
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand linear relationships between predictors and cognitive scores. Include interaction terms (e.g., age × education) to capture how effects might vary across different groups.
+
+- **Random Forest Regression**: Use ensemble methods to capture non-linear relationships and automatic feature interactions. This approach can reveal which variables are most important for prediction and handle complex relationships between lifestyle factors.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Implement advanced boosting algorithms for potentially higher predictive accuracy. These methods can capture subtle patterns and provide excellent performance for tabular data prediction tasks.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 5 |
+| Domain | Neuroscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Variable | Cognitive Test Score (0-100) |
+| Clean Version | `csv/ds005_neuroscience_cognitive_test_score.csv` |
+| Dirty Version | `csv/ds005_neuroscience_cognitive_test_score_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect established findings in cognitive aging research while maintaining interpretability for learning purposes. The data patterns are based on real neuroscience literature but should not be used for actual clinical decision-making. Students can use this dataset to practice regression modeling, data preprocessing, feature engineering, and model evaluation techniques in a realistic neuroscience context.

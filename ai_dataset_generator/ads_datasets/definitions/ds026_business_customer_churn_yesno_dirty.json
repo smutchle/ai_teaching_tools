@@ -1,0 +1,195 @@
+{
+  "dataset_config": {
+    "name": "ds026_business_customer_churn_yesno_dirty",
+    "description": "Predict whether customer will cancel service based on contract length, support tickets, usage frequency, and payment delays",
+    "random_seed": 26,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "contract_length_months",
+          "customer_satisfaction_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "support_tickets_count",
+          "customer_satisfaction_score"
+        ],
+        "correlation": -0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "payment_delays_count",
+          "monthly_bill_amount"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "usage_frequency_days",
+          "monthly_bill_amount"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "support_tickets_count",
+          "payment_delays_count"
+        ],
+        "correlation": 0.33,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "contract_length_months",
+        "description": "Length of customer contract in months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 18,
+          "location": 3
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "support_tickets_count",
+        "description": "Number of support tickets filed in last 12 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 4,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "usage_frequency_days",
+        "description": "Number of days service was used in last month",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 22,
+          "std": 6,
+          "min_clip": 1,
+          "max_clip": 30
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "payment_delays_count",
+        "description": "Number of late payments in last 12 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 0.9,
+          "scale": 2,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "monthly_bill_amount",
+        "description": "Average monthly bill amount in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 85.5,
+          "std": 35.2,
+          "min_clip": 15.0,
+          "max_clip": 300.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "customer_satisfaction_score",
+        "description": "Customer satisfaction score from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.2,
+          "std": 1.8,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "account_age_years",
+        "description": "Number of years customer has been with company",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 3.2,
+          "location": 0.1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "service_interruptions_count",
+        "description": "Number of service interruptions in last 6 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 0.8,
+          "scale": 1.5,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "customer_churn_yesno",
+      "description": "Whether customer will cancel service (Yes/No)",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 + 0.08*contract_length_months + 0.45*support_tickets_count - 0.12*usage_frequency_days + 0.65*payment_delays_count - 0.008*monthly_bill_amount - 0.35*customer_satisfaction_score - 0.25*account_age_years + 0.4*service_interruptions_count)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "Yes",
+        "Yes",
+        "Yes"
+      ]
+    }
+  }
+}

@@ -1,0 +1,160 @@
+{
+  "dataset_config": {
+    "name": "ds058_neuroscience_white_matter_integrity",
+    "description": "Quantify neural pathway quality using diffusion metrics",
+    "random_seed": 58,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "age",
+          "cardiovascular_health"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "education_years",
+          "cognitive_reserve"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "cardiovascular_health",
+          "physical_activity"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "head_trauma_severity",
+          "concussion_count"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 55,
+          "std": 18,
+          "min_clip": 18,
+          "max_clip": 95
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "cardiovascular_health",
+        "description": "Cardiovascular health composite score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72,
+          "std": 15,
+          "min_clip": 20,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "education_years",
+        "description": "Years of formal education",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 14,
+          "std": 3.5,
+          "min_clip": 6,
+          "max_clip": 25
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "head_trauma_severity",
+        "description": "Cumulative head trauma severity score (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 0.8,
+          "scale": 2.5,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "apoe4_risk_alleles",
+        "description": "Number of APOE4 risk alleles (0-2)",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 2
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "cognitive_reserve",
+        "description": "Cognitive reserve index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 68,
+          "std": 12,
+          "min_clip": 30,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "physical_activity",
+        "description": "Weekly physical activity hours",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 6.5,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "concussion_count",
+        "description": "Number of documented concussions",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 0.7,
+          "scale": 1.8,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "white_matter_integrity",
+      "description": "White matter integrity composite score (0-100)",
+      "data_type": "float",
+      "expression": "85 - 0.35*age + 0.25*cardiovascular_health + 0.8*education_years - 3.2*head_trauma_severity - 4.5*apoe4_risk_alleles + 0.15*cognitive_reserve + 0.4*physical_activity - 1.8*concussion_count",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

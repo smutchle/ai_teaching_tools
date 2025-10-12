@@ -1,0 +1,188 @@
+{
+  "dataset_config": {
+    "name": "ds050_business_market_segment_4_customer_types_dirty",
+    "description": "Group customers by shared characteristics including purchase patterns, demographics, psychographics, and channel preference",
+    "random_seed": 50,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "annual_income",
+          "average_purchase_value"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "purchase_frequency",
+          "brand_loyalty_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age",
+          "digital_engagement_score"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_income",
+          "premium_product_ratio"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "annual_income",
+        "description": "Customer annual income in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 25,
+          "min_clip": 15,
+          "max_clip": 200
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "age",
+        "description": "Customer age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 15,
+          "min_clip": 18,
+          "max_clip": 80
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "purchase_frequency",
+        "description": "Number of purchases per year",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12,
+          "location": 1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "average_purchase_value",
+        "description": "Average purchase amount in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 150,
+          "std": 75,
+          "min_clip": 10,
+          "max_clip": 800
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "brand_loyalty_score",
+        "description": "Brand loyalty score from 0 to 100",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 60,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "digital_engagement_score",
+        "description": "Digital channel engagement score from 0 to 100",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 25,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "premium_product_ratio",
+        "description": "Ratio of premium to total purchases",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "customer_service_interactions",
+        "description": "Number of customer service contacts per year",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 3,
+          "location": 0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "market_segment_4_customer_types",
+      "description": "Customer market segment classification",
+      "data_type": "categorical",
+      "expression": "0.02*annual_income + 0.15*average_purchase_value + 0.8*purchase_frequency + 0.05*brand_loyalty_score + 0.03*digital_engagement_score + 15*premium_product_ratio - 0.2*customer_service_interactions",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Budget Conscious",
+        "Budget Conscious",
+        "Casual Shoppers",
+        "Casual Shoppers",
+        "Casual Shoppers",
+        "Casual Shoppers",
+        "Premium Seekers",
+        "Premium Seekers",
+        "VIP Customers",
+        "VIP Customers"
+      ]
+    }
+  }
+}

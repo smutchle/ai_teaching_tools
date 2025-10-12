@@ -1,0 +1,95 @@
+---
+title: "Dataset 18: Groundwater Depth Prediction for Sustainable Water Resource Management"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting groundwater depth across various geographic locations, a critical challenge in water resource management and environmental planning. The dataset contains measurements from 500,000 monitoring sites, combining hydrogeological, meteorological, and anthropogenic factors that influence the depth to the water table. This regression problem is essential for sustainable water management, agricultural planning, and environmental protection.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds018_geoscience_groundwater_depth.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds018_geoscience_groundwater_depth_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Central Valley Water Authority is developing a comprehensive groundwater monitoring and prediction system to support sustainable water management across their 50,000 square kilometer jurisdiction. With increasing agricultural demands, urban expansion, and climate variability, accurately predicting groundwater depth has become crucial for making informed decisions about water allocation, well placement, and conservation strategies.
+
+Regional water managers need to understand how various factors—from natural conditions like elevation and precipitation to human activities such as groundwater extraction—influence the depth to the water table. This information helps them identify areas at risk of groundwater depletion, optimize irrigation scheduling, and ensure long-term water security for both agricultural and municipal users.
+
+The authority has established a network of monitoring wells equipped with automated sensors that continuously measure groundwater levels. Combined with geological surveys, meteorological data, and extraction records, this comprehensive dataset enables the development of predictive models that can forecast groundwater depth under different scenarios, supporting evidence-based water resource planning.
+
+# Problem Statement
+
+The goal is to develop a regression model that accurately predicts groundwater depth (in meters below surface) based on environmental and anthropogenic factors. Accurate predictions will enable water resource managers to:
+
+- Identify areas vulnerable to groundwater depletion
+- Optimize well placement for new developments
+- Develop sustainable extraction guidelines
+- Plan for drought contingency scenarios
+- Support precision agriculture initiatives
+
+# Target Variable
+
+**Groundwater Depth**: The vertical distance from the ground surface to the water table, measured in meters. This variable represents the depth at which groundwater can be found and is fundamental for understanding water availability and accessibility. Shallow groundwater (low depth values) is generally easier and less expensive to access, while deeper groundwater may indicate either natural geological conditions or potential over-extraction. Predicting groundwater depth is essential for sustainable water management, as it helps identify trends in water table decline, informs well drilling decisions, and supports long-term water resource planning.
+
+# Predictor Variables
+
+- **Elevation**: Ground elevation above sea level (meters). Higher elevations typically correlate with deeper groundwater due to gravitational drainage patterns and geological formations. Elevation also influences local precipitation patterns and surface water flow.
+
+- **Precipitation**: Annual precipitation (millimeters). Rainfall and snowfall are primary sources of groundwater recharge. Areas with higher precipitation generally maintain shallower water tables, though the relationship can be complex depending on soil infiltration rates and surface runoff.
+
+- **Aquifer Type**: Categorical variable indicating the geological formation containing groundwater (e.g., sandstone, limestone, alluvial). Different aquifer types have varying storage capacities, permeability, and recharge characteristics that significantly influence groundwater depth and availability.
+
+- **Extraction Rate**: Volume of groundwater extracted annually from the area (cubic meters per year). Human extraction for agricultural, industrial, and municipal use directly impacts water table levels, with higher extraction rates typically leading to deeper groundwater levels.
+
+- **Soil Porosity**: Percentage of soil volume consisting of pore spaces. Higher porosity soils allow better water infiltration and storage, affecting both groundwater recharge rates and the relationship between surface conditions and water table depth.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds018_geoscience_groundwater_depth.csv`): Ideal for initial model development and learning fundamental regression concepts. Contains complete data for all variables with no missing values or outliers.
+- **Dirty Version** (`ds018_geoscience_groundwater_depth_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues common in environmental monitoring. Perfect for practicing data cleaning, outlier detection, and robust modeling techniques.
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for handling mixed data types (continuous and categorical) and capturing non-linear relationships between geological and meteorological factors. Provides feature importance rankings to identify key drivers of groundwater depth.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful ensemble method that can capture complex interactions between variables such as the combined effects of precipitation, soil type, and extraction rates on water table levels.
+
+- **Linear Regression with Feature Engineering**: Start with multiple linear regression including polynomial terms and interactions to understand baseline relationships. Consider log transformations for variables like extraction rate and precipitation that may have exponential effects.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 18 |
+| Domain | Geoscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds018_geoscience_groundwater_depth.csv` |
+| Dirty Version | `csv/ds018_geoscience_groundwater_depth_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Variable Range | 5-150 meters |
+| Categorical Variables | 1 (aquifer_type) |
+| Continuous Variables | 4 |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic hydrogeological principles while maintaining interpretability for learning. The data incorporates authentic patterns found in groundwater systems, including the complex interactions between natural recharge processes and human extraction activities. Students can use this dataset to explore fundamental concepts in environmental data science, regression modeling, and sustainable resource management.

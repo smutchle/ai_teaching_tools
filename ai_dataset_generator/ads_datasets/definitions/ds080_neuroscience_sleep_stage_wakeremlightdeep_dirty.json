@@ -1,0 +1,210 @@
+{
+  "dataset_config": {
+    "name": "ds080_neuroscience_sleep_stage_wakeremlightdeep_dirty",
+    "description": "Classify polysomnography recordings into sleep stages (Wake/REM/Light/Deep) using EEG frequency bands, eye movement, muscle tone, heart rate, and time of night",
+    "random_seed": 80,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "delta_power",
+          "theta_power"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "alpha_power",
+          "beta_power"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "muscle_tone",
+          "eye_movement_velocity"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "heart_rate",
+          "muscle_tone"
+        ],
+        "correlation": 0.34,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "gamma_power",
+          "beta_power"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "delta_power",
+        "description": "EEG delta wave power (0.5-4 Hz) in microvolts squared",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "theta_power",
+        "description": "EEG theta wave power (4-8 Hz) in microvolts squared",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 18.0,
+          "location": 3.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "alpha_power",
+        "description": "EEG alpha wave power (8-12 Hz) in microvolts squared",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.5,
+          "std": 4.2,
+          "min_clip": 2.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "beta_power",
+        "description": "EEG beta wave power (12-30 Hz) in microvolts squared",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.3,
+          "std": 3.1,
+          "min_clip": 1.5,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "gamma_power",
+        "description": "EEG gamma wave power (30-100 Hz) in microvolts squared",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 6.0,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "eye_movement_velocity",
+        "description": "Peak eye movement velocity in degrees per second",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.3,
+          "scale": 45.0,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "muscle_tone",
+        "description": "EMG muscle tone amplitude in microvolts",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.8,
+          "std": 6.4,
+          "min_clip": 0.5,
+          "max_clip": 50.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "heart_rate",
+        "description": "Average heart rate in beats per minute",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 68.5,
+          "std": 12.3,
+          "min_clip": 45.0,
+          "max_clip": 110.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "time_of_night",
+        "description": "Time since sleep onset in hours",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 8.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "sleep_stage_wakeremlightdeep",
+      "description": "Sleep stage classification from polysomnography",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(2.5 - 0.18*delta_power + 0.12*theta_power - 0.25*alpha_power - 0.35*beta_power - 0.15*gamma_power - 0.08*eye_movement_velocity - 0.22*muscle_tone - 0.04*heart_rate + 0.3*time_of_night)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Deep",
+        "Deep",
+        "Light",
+        "Light",
+        "Light",
+        "Light",
+        "REM",
+        "REM",
+        "Wake",
+        "Wake"
+      ]
+    }
+  }
+}

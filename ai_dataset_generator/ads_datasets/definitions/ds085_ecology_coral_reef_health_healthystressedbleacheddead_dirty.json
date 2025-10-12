@@ -1,0 +1,187 @@
+{
+  "dataset_config": {
+    "name": "ds085_ecology_coral_reef_health_healthystressedbleacheddead_dirty",
+    "description": "Assess reef ecosystem condition based on environmental factors",
+    "random_seed": 85,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "water_temperature",
+          "bleaching_stress_index"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "nutrient_pollution",
+          "sedimentation_rate"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "ph_level",
+          "carbonate_saturation"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "fishing_pressure",
+          "human_impact_score"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "water_temperature",
+        "description": "Sea surface temperature in Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 27.5,
+          "std": 2.8,
+          "min_clip": 22.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "ph_level",
+        "description": "Ocean pH level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.1,
+          "std": 0.15,
+          "min_clip": 7.5,
+          "max_clip": 8.4
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nutrient_pollution",
+        "description": "Nitrogen and phosphorus concentration (mg/L)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 0.25,
+          "location": 0.05
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "sedimentation_rate",
+        "description": "Sediment deposition rate (mg/cm\u00b2/day)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 8.5,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "fishing_pressure",
+        "description": "Fishing intensity index (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.5,
+          "max": 9.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "carbonate_saturation",
+        "description": "Aragonite saturation state",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.2,
+          "std": 0.8,
+          "min_clip": 1.0,
+          "max_clip": 5.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "bleaching_stress_index",
+        "description": "Thermal stress accumulation index",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 2.8,
+          "location": 0.2
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "human_impact_score",
+        "description": "Cumulative human disturbance score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 4.5,
+          "std": 2.2,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "coral_reef_health_healthystressedbleacheddead",
+      "description": "Coral reef health classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-5.2 + 0.35*water_temperature - 8.5*ph_level + 4.2*nutrient_pollution + 0.18*sedimentation_rate + 0.45*fishing_pressure + 1.8*carbonate_saturation + 0.62*bleaching_stress_index + 0.28*human_impact_score)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Healthy",
+        "Healthy",
+        "Healthy",
+        "Stressed",
+        "Stressed",
+        "Stressed",
+        "Bleached",
+        "Bleached",
+        "Dead",
+        "Dead"
+      ]
+    }
+  }
+}

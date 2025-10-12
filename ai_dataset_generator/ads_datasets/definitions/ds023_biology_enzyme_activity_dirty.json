@@ -1,0 +1,171 @@
+{
+  "dataset_config": {
+    "name": "ds023_biology_enzyme_activity_dirty",
+    "description": "Enzyme activity measured as reaction rate in micromoles per minute under varying experimental conditions",
+    "random_seed": 23,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "temperature",
+          "enzyme_activity_baseline"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "ph_level",
+          "buffer_capacity"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "substrate_concentration",
+          "cofactor_concentration"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "temperature",
+        "description": "Reaction temperature in Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 37.0,
+          "std": 8.0,
+          "min_clip": 15.0,
+          "max_clip": 65.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "ph_level",
+        "description": "pH level of the reaction solution",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.2,
+          "std": 1.5,
+          "min_clip": 4.0,
+          "max_clip": 10.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "substrate_concentration",
+        "description": "Substrate concentration in millimolar",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 5.0,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "inhibitor_concentration",
+        "description": "Competitive inhibitor concentration in micromolar",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 2.5,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "cofactor_concentration",
+        "description": "Essential cofactor concentration in millimolar",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 0.8,
+          "min_clip": 0.1,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "enzyme_activity_baseline",
+        "description": "Baseline enzyme activity factor",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.0,
+          "std": 0.3,
+          "min_clip": 0.2,
+          "max_clip": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "buffer_capacity",
+        "description": "Buffer capacity in millimolar",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 10.0,
+          "max": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "ionic_strength",
+        "description": "Ionic strength of the solution in molar",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.15,
+          "std": 0.05,
+          "min_clip": 0.05,
+          "max_clip": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "enzyme_activity",
+      "description": "Enzyme activity measured as reaction rate in micromoles per minute",
+      "data_type": "float",
+      "expression": "25 + 15*enzyme_activity_baseline + 0.8*temperature + 3.5*np.abs(ph_level - 7.4) * (-1) + 12*substrate_concentration/(substrate_concentration + 2.5) + 8*cofactor_concentration/(cofactor_concentration + 1.0) - 6*inhibitor_concentration/(inhibitor_concentration + 1.5) + 0.02*buffer_capacity + 5*ionic_strength",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

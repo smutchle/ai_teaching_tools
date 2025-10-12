@@ -1,0 +1,161 @@
+{
+  "dataset_config": {
+    "name": "ds011_ecology_water_quality_index",
+    "description": "Water quality index prediction based on key environmental parameters for aquatic ecosystem health assessment",
+    "random_seed": 11,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "ph_level",
+          "dissolved_oxygen"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "turbidity",
+          "total_suspended_solids"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "water_temperature",
+          "dissolved_oxygen"
+        ],
+        "correlation": -0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "nitrogen_levels",
+          "phosphorus_levels"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "ph_level",
+        "description": "pH level of water sample",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.2,
+          "std": 1.1,
+          "min_clip": 5.0,
+          "max_clip": 9.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "dissolved_oxygen",
+        "description": "Dissolved oxygen concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 2.2,
+          "min_clip": 2.0,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "turbidity",
+        "description": "Water turbidity in NTU (Nephelometric Turbidity Units)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.0,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "nitrogen_levels",
+        "description": "Total nitrogen concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 3.5,
+          "location": 0.2
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "phosphorus_levels",
+        "description": "Total phosphorus concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 0.8,
+          "location": 0.05
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "water_temperature",
+        "description": "Water temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.5,
+          "std": 6.8,
+          "min_clip": 0.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "total_suspended_solids",
+        "description": "Total suspended solids concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.6,
+          "scale": 25.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "conductivity",
+        "description": "Electrical conductivity in microsiemens per cm",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 420.0,
+          "std": 180.0,
+          "min_clip": 50.0,
+          "max_clip": 1200.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "water_quality_index",
+      "description": "Overall water quality index score (0-100 scale)",
+      "data_type": "float",
+      "expression": "75 + 3.2*ph_level + 2.8*dissolved_oxygen - 1.5*turbidity - 4.5*nitrogen_levels - 8.2*phosphorus_levels + 0.5*water_temperature - 0.8*total_suspended_solids - 0.02*conductivity",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

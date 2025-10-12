@@ -1,0 +1,149 @@
+{
+  "dataset_config": {
+    "name": "ds063_sociology_crime_rate_per_capita",
+    "description": "Predict offenses per 1000 residents annually based on socioeconomic factors",
+    "random_seed": 63,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "unemployment_rate",
+          "poverty_rate"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "poverty_rate",
+          "education_index"
+        ],
+        "correlation": -0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "unemployment_rate",
+          "education_index"
+        ],
+        "correlation": -0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "housing_density",
+          "police_per_capita"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "unemployment_rate",
+        "description": "Unemployment rate as percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 2.8,
+          "min_clip": 1.0,
+          "max_clip": 18.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "poverty_rate",
+        "description": "Percentage of population below poverty line",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.0,
+          "location": 3.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "police_per_capita",
+        "description": "Number of police officers per 1000 residents",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.3,
+          "std": 0.8,
+          "min_clip": 0.5,
+          "max_clip": 6.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "education_index",
+        "description": "Education index (0-100) based on high school and college completion rates",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72.0,
+          "std": 12.5,
+          "min_clip": 35.0,
+          "max_clip": 95.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "housing_density",
+        "description": "Housing units per square mile",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 850.0,
+          "location": 200.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "median_income",
+        "description": "Median household income in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 55.0,
+          "std": 18.0,
+          "min_clip": 20.0,
+          "max_clip": 120.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "youth_population_pct",
+        "description": "Percentage of population aged 15-24",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 13.5,
+          "std": 3.2,
+          "min_clip": 8.0,
+          "max_clip": 22.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "crime_rate_per_capita",
+      "description": "Offenses per 1000 residents annually",
+      "data_type": "float",
+      "expression": "15.0 + 1.8*unemployment_rate + 0.9*poverty_rate - 2.5*police_per_capita - 0.15*education_index + 0.008*housing_density - 0.12*median_income + 0.7*youth_population_pct",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

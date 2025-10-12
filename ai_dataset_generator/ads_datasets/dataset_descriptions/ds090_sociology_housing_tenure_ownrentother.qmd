@@ -1,0 +1,94 @@
+---
+title: "Dataset 90: Housing Tenure Classification - Predicting Residential Ownership Patterns"
+format: html
+---
+
+# Overview
+
+This dataset explores the socioeconomic factors that influence housing tenure decisions in urban communities. With housing affordability becoming a critical social issue, understanding the predictors of whether individuals or families own, rent, or have alternative housing arrangements provides valuable insights for policy makers, urban planners, and social researchers. This classification problem uses demographic and economic indicators to predict housing tenure status across diverse populations.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds090_sociology_housing_tenure_ownrentother.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds090_sociology_housing_tenure_ownrentother_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Metropolitan Housing Authority of Springfield is developing a comprehensive housing policy framework to address the growing affordability crisis in their region. Over the past decade, they've observed significant shifts in housing tenure patterns, with traditional homeownership rates declining among younger demographics while alternative housing arrangements (such as multi-generational living, cooperative housing, and transitional housing) have increased.
+
+To effectively allocate resources and design targeted housing assistance programs, the authority needs to understand which demographic and economic factors most strongly predict housing tenure outcomes. This understanding will help them identify at-risk populations who may need rental assistance, first-time homebuyer programs, or alternative housing support services.
+
+The authority has collected demographic and economic data from recent community surveys and wants to develop a predictive model that can help them forecast housing needs in different neighborhoods. This model will inform budget allocation decisions, guide the placement of new affordable housing developments, and help design eligibility criteria for various housing assistance programs.
+
+# Problem Statement
+
+Given demographic and socioeconomic characteristics of individuals or households, predict their housing tenure status. This three-class classification problem aims to distinguish between homeowners, renters, and those with other housing arrangements, enabling targeted policy interventions and resource allocation in housing assistance programs.
+
+# Target Variable
+
+**Housing Tenure (Own/Rent/Other)**: This categorical variable represents the primary housing arrangement of the household. "Own" includes households with mortgages or who own their homes outright, representing housing stability and wealth accumulation. "Rent" encompasses traditional rental arrangements, often indicating more transient housing situations or barriers to homeownership. "Other" captures alternative arrangements such as living with family members, cooperative housing, transitional housing, or other non-traditional tenure types that have become increasingly common in modern housing markets. Understanding these patterns is crucial for housing policy as each category represents different needs, risks, and opportunities for intervention.
+
+# Predictor Variables
+
+- **Income**: Annual household income serves as a primary predictor of housing tenure, as it directly affects affordability of homeownership, rental capacity, and access to mortgage financing. Higher incomes typically correlate with homeownership rates.
+
+- **Age**: Age reflects life stage and career progression, with younger individuals more likely to rent due to mobility needs and limited savings, while older individuals often have had time to accumulate wealth for homeownership.
+
+- **Family Size**: Household composition affects housing needs and financial capacity. Larger families may require more space (influencing tenure choice) and may have different income-to-needs ratios affecting affordability.
+
+- **Location**: Geographic location captures regional housing market conditions, including median home prices, rental availability, local employment opportunities, and regional economic conditions that significantly impact housing tenure decisions.
+
+- **Employment Stability**: Job security and employment history affect mortgage eligibility and long-term housing planning. Stable employment enables homeownership through improved creditworthiness and predictable income streams.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds090_sociology_housing_tenure_ownrentother.csv`): Ideal for initial model development and learning, with complete data and no outliers
+- **Dirty Version** (`ds090_sociology_housing_tenure_ownrentother_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in survey data and administrative records
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling mixed data types and providing feature importance rankings to identify which socioeconomic factors most strongly predict housing tenure
+- **Multinomial Logistic Regression**: Provides interpretable coefficients showing how each predictor affects the probability of each housing tenure category
+- **Gradient Boosting (XGBoost/LightGBM)**: Effective for capturing complex interactions between demographic and economic variables that influence housing decisions
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 90 |
+| Domain | Sociology |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 3 (Own/Rent/Other) |
+| Clean Version | `csv/ds090_sociology_housing_tenure_ownrentother.csv` |
+| Dirty Version | `csv/ds090_sociology_housing_tenure_ownrentother_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Educational Applications
+
+This dataset is particularly valuable for teaching:
+- Multi-class classification techniques
+- Handling categorical variables in sociological contexts
+- Feature importance analysis in policy research
+- Data cleaning and missing value imputation strategies
+- Ethical considerations in housing and demographic prediction models
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic patterns observed in housing tenure research while maintaining interpretability for learning objectives. The synthetic nature allows for controlled experimentation without privacy concerns while preserving the complexity of real-world sociological data analysis challenges.

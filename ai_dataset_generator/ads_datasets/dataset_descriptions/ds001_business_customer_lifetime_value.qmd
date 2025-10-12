@@ -1,60 +1,78 @@
 ---
-title: "Dataset 1: Customer Lifetime Value Prediction for E-Commerce"
+title: "Dataset 1: Customer Lifetime Value Prediction for E-commerce Analytics"
 format: html
 ---
 
 # Overview
 
-This dataset focuses on predicting Customer Lifetime Value (CLV) for an e-commerce platform, combining customer behavioral patterns with transactional data to forecast long-term revenue potential. It provides an excellent introduction to regression problems in business analytics, where understanding customer value drives strategic decision-making across marketing, customer service, and product development teams.
+This dataset enables students to explore customer lifetime value (CLV) prediction, one of the most critical metrics in modern business analytics. Using realistic customer transaction data from an e-commerce platform, learners can build regression models to predict the total revenue a customer will generate throughout their relationship with the company. This foundational business problem demonstrates how data science directly impacts strategic decision-making in customer relationship management and marketing optimization.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds001_business_customer_lifetime_value.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds001_business_customer_lifetime_value_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
 
 # Background and Use Case
 
-**TechnoMart Online** is a mid-sized e-commerce platform specializing in electronics, home goods, and lifestyle products. Founded in 2018, the company has grown to serve over 50,000 active customers across North America. As competition intensifies in the online retail space, TechnoMart's leadership recognizes that acquiring new customers costs 5-7 times more than retaining existing ones.
+**TechStyle Marketplace** is a mid-sized e-commerce platform specializing in fashion and lifestyle products. With over 50,000 active customers and growing competition from major retailers, the company's marketing team faces increasing pressure to optimize their customer acquisition and retention strategies. Traditional marketing approaches of treating all customers equally have proven inefficient, leading to wasted marketing spend and missed opportunities for high-value customer development.
 
-The marketing team at TechnoMart faces a critical challenge: how to allocate their limited budget across customer acquisition, retention campaigns, and personalized offers. Currently, they treat all customers equally, sending the same promotional emails and offering identical discount rates. However, preliminary analysis suggests that customer value varies dramatically – while some customers generate thousands in revenue over multiple years, others make single purchases and never return.
+The company's Chief Marketing Officer has initiated a data-driven transformation, recognizing that understanding customer lifetime value is crucial for sustainable growth. By accurately predicting CLV, TechStyle can make informed decisions about customer acquisition costs, personalize marketing campaigns, identify at-risk high-value customers, and allocate resources more effectively across different customer segments.
 
-Sarah Chen, TechnoMart's newly hired Data Science Manager, has been tasked with developing a Customer Lifetime Value prediction model. This model will enable the marketing team to segment customers based on their predicted long-term value, customize retention strategies, and optimize marketing spend. The finance team is particularly interested in using these predictions for revenue forecasting and customer acquisition cost justification.
+The analytics team has compiled historical customer data spanning two years of transactions, capturing key behavioral patterns and engagement metrics. This dataset represents a typical business intelligence challenge where predictive modeling can directly translate into actionable business strategies and improved profitability.
 
 # Problem Statement
 
-Develop a predictive model that estimates the total revenue a customer will generate throughout their relationship with TechnoMart. This regression problem requires analyzing customer behavioral patterns and purchase history to forecast future value, enabling data-driven decisions about marketing investment, customer service prioritization, and retention strategy development.
+Develop a regression model to predict Customer Lifetime Value based on historical customer behavior patterns. The model should help TechStyle Marketplace identify high-value customers early in their journey and optimize marketing investments by understanding which customer characteristics drive long-term revenue generation.
 
 # Target Variable
 
-**Customer Lifetime Value (CLV)**: The predicted total revenue (in USD) that a customer will generate over their entire relationship with the company. This metric represents the net present value of all future purchases, calculated over a 3-year projection period. CLV is crucial for businesses because it:
+**Customer Lifetime Value (CLV)**: The total monetary value (in USD) that a customer is predicted to generate throughout their entire relationship with the company. This metric encompasses all past and projected future purchases, making it essential for strategic business planning. CLV prediction enables companies to:
 
-- **Guides Marketing Investment**: Determines how much the company can afford to spend acquiring and retaining specific customer segments
-- **Enables Customer Segmentation**: Identifies high-value customers who deserve premium service and personalized attention  
-- **Supports Strategic Planning**: Provides revenue forecasts and helps prioritize product development based on valuable customer preferences
-- **Optimizes Resource Allocation**: Helps customer service teams prioritize support requests and retention efforts
+- Set appropriate customer acquisition budgets
+- Identify customers worth investing in for retention campaigns  
+- Segment customers for personalized marketing approaches
+- Optimize pricing and product recommendations
+- Make data-driven decisions about customer service investments
 
-Values in this dataset range from $50 (single-purchase customers) to $5,000+ (loyal, high-spending customers).
+Understanding CLV helps businesses shift from short-term transaction thinking to long-term relationship building, ultimately driving sustainable revenue growth.
 
 # Predictor Variables
 
-- **Purchase Frequency**: Number of orders placed per month (average over customer lifetime). Higher frequency typically indicates stronger engagement and loyalty, correlating with increased lifetime value.
+- **Purchase Frequency**: The average number of purchases made by the customer per month. Higher frequency typically indicates stronger engagement and loyalty, making it a strong predictor of future value.
 
-- **Average Transaction Value**: Mean dollar amount spent per order. This reflects both customer purchasing power and their willingness to buy higher-value items or multiple products per transaction.
+- **Average Transaction Value**: The mean dollar amount spent per transaction. This metric captures the customer's spending power and preferences for higher or lower-priced items.
 
-- **Tenure**: Length of customer relationship in months since first purchase. Longer tenure often indicates satisfied customers who are likely to continue purchasing, though the relationship may not be linear.
+- **Tenure**: The length of the customer relationship measured in months since first purchase. Longer tenure often correlates with higher lifetime value and indicates customer satisfaction and loyalty.
 
-- **Product Categories**: Number of distinct product categories purchased from (Electronics, Home & Garden, Fashion, Sports, Books, etc.). Cross-category purchasing suggests broader engagement with the platform and typically correlates with higher lifetime value.
+- **Product Categories**: The number of distinct product categories the customer has purchased from (e.g., clothing, accessories, shoes, home goods). Cross-category purchasing behavior often indicates deeper engagement with the brand and higher retention likelihood.
 
 # Dataset Versions
 
 This dataset is provided in two versions to support different learning objectives:
 
-- **Clean Version** (`ds001_business_customer_lifetime_value.csv`): Perfect for initial model development, algorithm comparison, and learning core regression techniques. Contains no missing values or outliers, allowing students to focus on modeling concepts.
+- **Clean Version** (`ds001_business_customer_lifetime_value.csv`): Contains complete data with no missing values or extreme outliers. Ideal for initial model development, algorithm comparison, and learning fundamental regression techniques without data quality complications.
 
-- **Dirty Version** (`ds001_business_customer_lifetime_value_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality challenges. Ideal for learning data preprocessing, outlier detection, and robust modeling techniques that handle imperfect data.
+- **Dirty Version** (`ds001_business_customer_lifetime_value_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality challenges. Perfect for practicing data cleaning, outlier detection, imputation strategies, and robust modeling techniques that students will encounter in professional settings.
 
 # Suggested Approaches
 
-**Linear Regression**: Start with multiple linear regression to establish baseline performance and understand feature relationships. The interpretable coefficients provide valuable business insights about which factors most strongly influence customer value.
+**Linear Regression**: Start with multiple linear regression to establish baseline performance and understand feature relationships. This interpretable approach helps students grasp how each predictor variable influences CLV and provides clear coefficients for business stakeholders.
 
-**Random Forest Regression**: Excellent for capturing non-linear relationships between predictors and handling feature interactions automatically. Provides feature importance rankings that can guide business strategy and marketing focus.
+**Random Forest**: Implement ensemble methods to capture non-linear relationships and feature interactions. Random forests are particularly effective for business datasets as they handle mixed data types well and provide feature importance rankings that support business decision-making.
 
-**Gradient Boosting (XGBoost/LightGBM)**: Advanced ensemble methods that often achieve superior predictive performance on business datasets. Particularly effective at modeling complex customer behavior patterns and subtle feature interactions.
+**Gradient Boosting (XGBoost/LightGBM)**: Advanced students can explore boosting algorithms for potentially superior predictive performance. These methods often excel in business applications and provide opportunities to learn hyperparameter tuning and model optimization techniques.
 
 # Dataset Details
 
@@ -63,15 +81,23 @@ This dataset is provided in two versions to support different learning objective
 | Dataset ID | 1 |
 | Domain | Business |
 | Problem Type | Regression |
-| Number of Rows | 1,000 |
-| Number of Features | 4 |
+| Number of Rows | 500,000 |
 | Clean Version | `csv/ds001_business_customer_lifetime_value.csv` |
 | Dirty Version | `csv/ds001_business_customer_lifetime_value_dirty.csv` |
 | Missing Values (Dirty) | 2% |
 | Outliers (Dirty) | 1% |
-| Target Range | $50 - $5,200 |
-| Business Context | E-commerce Customer Analytics |
+
+```python
+# Example loading code
+import pandas as pd
+
+# Load clean version
+df_clean = pd.read_csv('csv/ds001_business_customer_lifetime_value.csv')
+
+# Load dirty version for data cleaning practice
+df_dirty = pd.read_csv('csv/ds001_business_customer_lifetime_value_dirty.csv')
+```
 
 # Notes
 
-This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic e-commerce customer behavior patterns while maintaining interpretability for learning. The data includes both linear and non-linear relationships between predictors and the target variable, making it suitable for comparing different regression algorithms and understanding their strengths in business contexts.
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects common patterns observed in e-commerce customer behavior, making it an excellent foundation for learning business analytics and customer intelligence techniques.

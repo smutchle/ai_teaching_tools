@@ -1,0 +1,187 @@
+{
+  "dataset_config": {
+    "name": "ds096_biology_pollination_syndrome_windinsectbirdbat_dirty",
+    "description": "Classify plant reproductive strategy based on flower morphology, color, scent, nectar, and blooming time",
+    "random_seed": 96,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "nectar_volume",
+          "flower_size"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "petal_width",
+          "flower_size"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "scent_intensity",
+          "nectar_volume"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "color_brightness",
+          "scent_intensity"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "flower_size",
+        "description": "Diameter of flower in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "petal_width",
+        "description": "Average width of petals in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 3.2,
+          "min_clip": 1.0,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "color_brightness",
+        "description": "Flower color brightness index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 15.0,
+          "max": 95.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "scent_intensity",
+        "description": "Scent strength measured in arbitrary units",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.0,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nectar_volume",
+        "description": "Daily nectar production in microliters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45.0,
+          "std": 18.0,
+          "min_clip": 0.1,
+          "max_clip": 120.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "blooming_duration",
+        "description": "Length of blooming period in days",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.5,
+          "scale": 28.0,
+          "location": 3.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "stamen_exposure",
+        "description": "Degree of stamen exposure (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 2.1,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "pollen_grain_size",
+        "description": "Average pollen grain diameter in micrometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35.0,
+          "std": 12.0,
+          "min_clip": 10.0,
+          "max_clip": 80.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "pollination_syndrome_windinsectbirdbat",
+      "description": "Plant reproductive strategy classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 + 0.08*flower_size + 0.12*scent_intensity + 0.05*nectar_volume + 0.03*color_brightness - 0.15*pollen_grain_size + 0.1*stamen_exposure)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Wind",
+        "Wind",
+        "Wind",
+        "Insect",
+        "Insect",
+        "Insect",
+        "Insect",
+        "Bird",
+        "Bird",
+        "Bat"
+      ]
+    }
+  }
+}

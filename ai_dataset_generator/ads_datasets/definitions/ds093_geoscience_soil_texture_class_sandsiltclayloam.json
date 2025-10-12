@@ -1,0 +1,166 @@
+{
+  "dataset_config": {
+    "name": "ds093_geoscience_soil_texture_class_sandsiltclayloam",
+    "description": "Categorize soil physical properties based on particle size distribution, parent material, weathering, and organic content",
+    "random_seed": 93,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "sand_percentage",
+          "clay_percentage"
+        ],
+        "correlation": -0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "weathering_index",
+          "clay_percentage"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "organic_matter_content",
+          "silt_percentage"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "parent_material_hardness",
+          "weathering_index"
+        ],
+        "correlation": -0.48,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "particle_size_mean",
+          "sand_percentage"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "sand_percentage",
+        "description": "Percentage of sand particles (0.05-2.0mm) in soil sample",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45.0,
+          "std": 20.0,
+          "min_clip": 5.0,
+          "max_clip": 85.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "silt_percentage",
+        "description": "Percentage of silt particles (0.002-0.05mm) in soil sample",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35.0,
+          "std": 15.0,
+          "min_clip": 10.0,
+          "max_clip": 70.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "clay_percentage",
+        "description": "Percentage of clay particles (<0.002mm) in soil sample",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 18.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "particle_size_mean",
+        "description": "Mean particle size in micrometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 125.0,
+          "std": 75.0,
+          "min_clip": 10.0,
+          "max_clip": 500.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "parent_material_hardness",
+        "description": "Hardness index of parent rock material (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 2.0,
+          "max": 9.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "weathering_index",
+        "description": "Chemical weathering intensity index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 45.0,
+          "location": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "organic_matter_content",
+        "description": "Organic matter content percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 4.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "soil_texture_class_sandsiltclayloam",
+      "description": "Soil texture classification based on particle size distribution and physical properties",
+      "data_type": "categorical",
+      "expression": "0.6*sand_percentage - 0.4*clay_percentage + 0.3*silt_percentage + 0.02*particle_size_mean - 0.8*weathering_index + 2.0*organic_matter_content - 0.5*parent_material_hardness",
+      "noise_percent": 2.5,
+      "categories": [
+        "Clay",
+        "Clay",
+        "Silty Clay",
+        "Sandy Clay",
+        "Silt",
+        "Loam",
+        "Loam",
+        "Sandy Loam",
+        "Sand",
+        "Sand"
+      ],
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

@@ -1,0 +1,158 @@
+{
+  "dataset_config": {
+    "name": "ds037_ecology_migration_status_residentmigratory",
+    "description": "Classify movement patterns of organisms based on species traits, habitat, latitude, and climate factors",
+    "random_seed": 37,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "latitude",
+          "temperature_range"
+        ],
+        "correlation": -0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "body_mass",
+          "wing_length"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "resource_availability",
+          "habitat_diversity"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature_range",
+          "seasonal_variation"
+        ],
+        "correlation": 0.4,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "latitude",
+        "description": "Absolute latitude in degrees (distance from equator)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 90
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "body_mass",
+        "description": "Body mass in grams (log-normal distribution)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 150,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "wing_length",
+        "description": "Wing length in centimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.5,
+          "std": 4.2,
+          "min_clip": 2.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "habitat_diversity",
+        "description": "Habitat diversity index (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 2.1,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "resource_availability",
+        "description": "Seasonal resource availability score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 18,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "temperature_range",
+        "description": "Annual temperature range in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 25,
+          "std": 12,
+          "min_clip": 2,
+          "max_clip": 60
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "seasonal_variation",
+        "description": "Seasonal resource variation coefficient (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.1,
+          "max": 0.9
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "migration_status_residentmigratory",
+      "description": "Migration pattern classification (Resident vs Migratory)",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(\u22122.5 + 0.08*latitude + 0.002*body_mass + 0.15*wing_length - 0.02*resource_availability + 0.06*temperature_range + 2.0*seasonal_variation - 0.1*habitat_diversity)))",
+      "noise_percent": 2.5,
+      "categories": [
+        "Resident",
+        "Resident",
+        "Resident",
+        "Resident",
+        "Resident",
+        "Migratory",
+        "Migratory",
+        "Migratory",
+        "Migratory",
+        "Migratory"
+      ],
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

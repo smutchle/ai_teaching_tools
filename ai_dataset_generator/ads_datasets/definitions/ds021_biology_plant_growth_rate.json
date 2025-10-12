@@ -1,0 +1,162 @@
+{
+  "dataset_config": {
+    "name": "ds021_biology_plant_growth_rate",
+    "description": "Predict daily biomass increase in grams based on environmental factors",
+    "random_seed": 21,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "light_intensity",
+          "temperature"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "nutrient_nitrogen",
+          "nutrient_phosphorus"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "water_availability",
+          "soil_moisture"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature",
+          "co2_concentration"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "light_intensity",
+        "description": "Light intensity in micromoles per square meter per second",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 800,
+          "std": 200,
+          "min_clip": 100,
+          "max_clip": 1500
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "nutrient_nitrogen",
+        "description": "Nitrogen concentration in soil (mg/kg)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 12,
+          "min_clip": 10,
+          "max_clip": 80
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "nutrient_phosphorus",
+        "description": "Phosphorus concentration in soil (mg/kg)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 25,
+          "std": 8,
+          "min_clip": 5,
+          "max_clip": 50
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "temperature",
+        "description": "Average daily temperature in Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 22,
+          "std": 5,
+          "min_clip": 5,
+          "max_clip": 35
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "water_availability",
+        "description": "Water availability index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 20,
+          "max": 95
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "soil_moisture",
+        "description": "Soil moisture percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35,
+          "std": 10,
+          "min_clip": 10,
+          "max_clip": 60
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "co2_concentration",
+        "description": "CO2 concentration in parts per million",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 400,
+          "std": 50,
+          "min_clip": 300,
+          "max_clip": 600
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "nutrient_potassium",
+        "description": "Potassium concentration in soil (mg/kg)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 30,
+          "location": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "plant_growth_rate",
+      "description": "Daily biomass increase in grams",
+      "data_type": "float",
+      "expression": "0.5 + 0.002*light_intensity + 0.08*nutrient_nitrogen + 0.12*nutrient_phosphorus + 0.15*temperature + 0.025*water_availability + 0.03*soil_moisture + 0.001*co2_concentration + 0.06*nutrient_potassium",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

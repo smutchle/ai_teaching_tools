@@ -1,0 +1,132 @@
+{
+  "dataset_config": {
+    "name": "ds014_sociology_community_trust_index",
+    "description": "Quantify interpersonal trust levels within communities based on crime rate, diversity, median income, civic participation, and tenure",
+    "random_seed": 14,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "median_income",
+          "civic_participation_rate"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "crime_rate_per_1000",
+          "median_income"
+        ],
+        "correlation": -0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "average_residence_years",
+          "civic_participation_rate"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "diversity_index",
+          "median_income"
+        ],
+        "correlation": 0.31,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "crime_rate_per_1000",
+        "description": "Number of reported crimes per 1000 residents annually",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "diversity_index",
+        "description": "Community diversity index based on ethnic and cultural composition (0-1 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.15,
+          "max": 0.95
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "median_income",
+        "description": "Median household income in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 22.0,
+          "min_clip": 25.0,
+          "max_clip": 150.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "civic_participation_rate",
+        "description": "Percentage of residents participating in community activities and local governance",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35.0,
+          "std": 12.0,
+          "min_clip": 5.0,
+          "max_clip": 75.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "average_residence_years",
+        "description": "Average number of years residents have lived in the community",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 12.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "population_density",
+        "description": "Number of residents per square mile",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 2500.0,
+          "location": 200.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "community_trust_index",
+      "description": "Community trust index measuring interpersonal trust levels (0-100 scale)",
+      "data_type": "float",
+      "expression": "45 + 0.35*median_income + 0.28*civic_participation_rate + 0.18*average_residence_years + 12*diversity_index - 0.45*crime_rate_per_1000 - 0.002*population_density",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

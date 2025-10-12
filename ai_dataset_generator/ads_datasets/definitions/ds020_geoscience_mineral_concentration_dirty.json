@@ -1,0 +1,179 @@
+{
+  "dataset_config": {
+    "name": "ds020_geoscience_mineral_concentration_dirty",
+    "description": "Estimate ore grade or mineral content percentage based on geological parameters",
+    "random_seed": 20,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "depth_meters",
+          "pressure_mpa"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature_celsius",
+          "pressure_mpa"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "rock_hardness",
+          "weathering_index"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "porosity_percent",
+          "weathering_index"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "depth_meters",
+        "description": "Depth of sample below surface in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 150,
+          "std": 80,
+          "min_clip": 5,
+          "max_clip": 500
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "temperature_celsius",
+        "description": "Temperature at sampling depth in Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35,
+          "std": 15,
+          "min_clip": 10,
+          "max_clip": 80
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "pressure_mpa",
+        "description": "Geological pressure in megapascals",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 12.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "rock_hardness",
+        "description": "Rock hardness on Mohs scale",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 2.5,
+          "max": 8.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "weathering_index",
+        "description": "Chemical weathering index (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "porosity_percent",
+        "description": "Rock porosity percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 15.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "ph_level",
+        "description": "Soil/rock pH level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.8,
+          "std": 1.2,
+          "min_clip": 4.0,
+          "max_clip": 9.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "silica_content",
+        "description": "Silica content percentage in rock matrix",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 12,
+          "min_clip": 35,
+          "max_clip": 85
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "mineral_concentration",
+      "description": "Ore grade or mineral content percentage",
+      "data_type": "float",
+      "expression": "2.5 + 0.08*depth_meters + 0.12*temperature_celsius + 0.45*pressure_mpa - 1.2*rock_hardness + 0.03*weathering_index + 0.15*porosity_percent - 0.25*ph_level + 0.05*silica_content",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

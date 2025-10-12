@@ -1,0 +1,114 @@
+---
+title: "Dataset 8: Predicting Memory Recall Accuracy in Cognitive Performance Studies"
+format: html
+---
+
+# Overview
+
+This dataset contains memory recall performance data from a simulated cognitive neuroscience study examining factors that influence human memory consolidation and retrieval. The goal is to predict the percentage of correctly recalled items based on various physiological and environmental factors that affect cognitive performance.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds008_neuroscience_memory_recall_accuracy.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds008_neuroscience_memory_recall_accuracy_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Imagine you're working with a team of cognitive neuroscientists at a university research center studying human memory performance. The lab conducts experiments where participants are asked to memorize lists of words, images, or other stimuli, and then recall them after various time intervals. Understanding what factors predict better memory recall is crucial for developing interventions to help students, elderly individuals with mild cognitive decline, and professionals who need to retain large amounts of information.
+
+The research team has collected data from hundreds of participants across different experimental conditions. Each participant's memory performance is measured alongside factors like how long they studied the material, the presence of distracting stimuli during learning, their sleep quality the night before, their stress levels, and their age. This data will help the team understand which factors most strongly predict memory performance and could inform evidence-based recommendations for optimizing learning and recall.
+
+Such research has practical applications in educational psychology (helping students study more effectively), clinical psychology (understanding memory decline), and workplace training programs (optimizing information retention for professionals).
+
+# Problem Statement
+
+The primary research question is: **Can we accurately predict an individual's memory recall performance based on their study behavior, environmental conditions, and personal characteristics?** This is a regression problem where we want to predict a continuous percentage score representing recall accuracy.
+
+# Target Variable
+
+**Memory Recall Accuracy**: This represents the percentage of items (words, images, or concepts) that a participant correctly recalled during a memory test, ranging from 0% to 100%. This is a fundamental measure in cognitive psychology research, as it directly quantifies how well someone's memory system encoded, consolidated, and retrieved information. Predicting recall accuracy is valuable because it can help researchers and practitioners understand optimal conditions for learning and identify individuals who might benefit from memory enhancement interventions.
+
+# Predictor Variables
+
+- **Study Duration**: Time spent studying the material (in minutes). Longer study periods generally improve encoding strength, but the relationship may not be linear due to fatigue effects.
+
+- **Interference Level**: A measure of distracting stimuli present during the learning phase (scale 1-10, where higher values indicate more interference). Background noise, visual distractions, or competing cognitive tasks can impair memory formation.
+
+- **Sleep Quality**: Participant's self-reported sleep quality the night before testing (scale 1-10, where higher values indicate better sleep). Sleep is crucial for memory consolidation, and poor sleep can significantly impact recall performance.
+
+- **Stress Level**: Participant's reported stress level on the day of testing (scale 1-10, where higher values indicate more stress). Chronic and acute stress can impair both memory formation and retrieval through cortisol-mediated mechanisms.
+
+- **Age**: Participant's age in years. Age-related changes in brain structure and function typically lead to gradual declines in certain types of memory performance, particularly episodic memory.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds008_neuroscience_memory_recall_accuracy.csv`): Perfect data with no missing values or outliers, ideal for initial model development and learning fundamental regression techniques.
+- **Dirty Version** (`ds008_neuroscience_memory_recall_accuracy_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as participants skipping questionnaire items or equipment measurement errors.
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with simple linear regression to understand basic relationships between individual predictors and memory performance, then progress to multiple regression to examine combined effects.
+
+- **Random Forest**: Use ensemble methods to capture potential non-linear relationships (e.g., optimal study duration might have diminishing returns) and automatically handle feature interactions.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Implement boosting algorithms to achieve high predictive accuracy while maintaining interpretability through feature importance analysis, which is crucial for scientific understanding.
+
+```python
+# Example analysis approach
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Load the dataset
+df = pd.read_csv('csv/ds008_neuroscience_memory_recall_accuracy.csv')
+
+# Prepare features and target
+X = df[['study_duration', 'interference_level', 'sleep_quality', 'stress_level', 'age']]
+y = df['memory_recall_accuracy']
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Fit Random Forest model
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_model.fit(X_train, y_train)
+
+# Evaluate model
+y_pred = rf_model.predict(X_test)
+print(f"R² Score: {r2_score(y_test, y_pred):.3f}")
+print(f"RMSE: {mean_squared_error(y_test, y_pred, squared=False):.3f}")
+```
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 8 |
+| Domain | Neuroscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Range | 0-100% |
+| Clean Version | `csv/ds008_neuroscience_memory_recall_accuracy.csv` |
+| Dirty Version | `csv/ds008_neuroscience_memory_recall_accuracy_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes in data science and cognitive psychology courses. While the data is simulated, the relationships between variables have been designed to reflect established findings in memory research literature. The dataset provides an excellent opportunity to practice regression modeling while learning about factors that influence human cognitive performance. Students can explore concepts like feature importance, model interpretability, and the trade-offs between model complexity and generalizability in a scientifically meaningful context.

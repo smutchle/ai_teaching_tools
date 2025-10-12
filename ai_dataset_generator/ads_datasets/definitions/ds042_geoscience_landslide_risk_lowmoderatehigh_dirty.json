@@ -1,0 +1,187 @@
+{
+  "dataset_config": {
+    "name": "ds042_geoscience_landslide_risk_lowmoderatehigh_dirty",
+    "description": "Classify terrain stability hazard levels based on slope, soil type, vegetation, rainfall, and seismic activity",
+    "random_seed": 42,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "slope_angle",
+          "drainage_capacity"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "vegetation_density",
+          "soil_cohesion"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_rainfall",
+          "groundwater_level"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "seismic_activity",
+          "slope_angle"
+        ],
+        "correlation": 0.25,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "slope_angle",
+        "description": "Terrain slope angle in degrees",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_cohesion",
+        "description": "Soil cohesion strength in kPa",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.0,
+          "std": 8.0,
+          "min_clip": 2.0,
+          "max_clip": 40.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "vegetation_density",
+        "description": "Vegetation coverage density percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 60.0,
+          "std": 25.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "annual_rainfall",
+        "description": "Annual rainfall in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 800.0,
+          "location": 200.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "seismic_activity",
+        "description": "Seismic activity index (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 3.0,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "drainage_capacity",
+        "description": "Soil drainage capacity index",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 2.0,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "groundwater_level",
+        "description": "Groundwater depth below surface in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.0,
+          "std": 4.5,
+          "min_clip": 0.5,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "rock_weathering",
+        "description": "Rock weathering index (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.0,
+          "max": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "landslide_risk_lowmoderatehigh",
+      "description": "Landslide risk classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(0.08*slope_angle - 0.15*soil_cohesion - 0.02*vegetation_density + 0.001*annual_rainfall + 0.3*seismic_activity - 0.2*drainage_capacity - 0.1*groundwater_level + 0.25*rock_weathering - 3.5)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Low",
+        "Low",
+        "Low",
+        "Low",
+        "Moderate",
+        "Moderate",
+        "Moderate",
+        "High",
+        "High",
+        "High"
+      ]
+    }
+  }
+}

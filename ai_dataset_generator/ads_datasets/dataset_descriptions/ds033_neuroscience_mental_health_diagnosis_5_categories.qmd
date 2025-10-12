@@ -1,0 +1,103 @@
+---
+title: "Dataset 33: Neural Pathways to Mental Wellness - Psychiatric Condition Classification"
+format: html
+---
+
+# Overview
+
+This comprehensive dataset enables the development of machine learning models to classify psychiatric conditions based on clinical assessments and patient behavioral patterns. Designed for educational exploration of mental health informatics, it provides a realistic foundation for understanding how data science can support clinical decision-making in psychiatry and neuroscience research.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds033_neuroscience_mental_health_diagnosis_5_categories.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds033_neuroscience_mental_health_diagnosis_5_categories_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Imagine you're working as a data scientist at the **Center for Computational Psychiatry**, a leading research institution focused on improving mental health outcomes through technology. The clinical team has been collecting extensive patient data through standardized assessments, wearable devices, and structured interviews to better understand the complex relationships between symptoms, behaviors, and psychiatric diagnoses.
+
+Dr. Sarah Chen, the lead psychiatrist, approaches your team with a challenge: "We're seeing an increasing number of patients with complex presentations that don't fit neatly into traditional diagnostic categories. Could we develop a predictive model that helps us identify patterns in our assessment data to support more accurate and timely diagnoses?" The goal isn't to replace clinical judgment, but to provide an additional tool that can highlight potential diagnostic considerations and ensure comprehensive evaluation.
+
+Your team decides to develop a classification system using historical patient data, focusing on four key domains that research has shown to be highly predictive of psychiatric conditions: symptom profiles, sleep disturbances, social functioning, and trauma exposure. This model could serve as a clinical decision support tool, helping identify patients who might benefit from specific interventions or further specialized assessment.
+
+# Problem Statement
+
+The challenge is to predict psychiatric diagnoses based on multidimensional patient assessment data. This classification problem requires understanding complex interactions between psychological symptoms, behavioral patterns, social factors, and historical experiences. Success in this domain could lead to earlier interventions, more personalized treatment approaches, and improved resource allocation in mental health settings.
+
+# Target Variable
+
+**Mental Health Diagnosis (5 categories)**: This variable represents the primary psychiatric diagnosis assigned by licensed clinicians following comprehensive evaluation. The five categories represent major diagnostic clusters commonly seen in outpatient mental health settings:
+
+1. **Anxiety Disorders** - Including generalized anxiety, panic disorder, and phobias
+2. **Mood Disorders** - Primarily depression and bipolar spectrum conditions  
+3. **Trauma-Related Disorders** - PTSD, acute stress reactions, and adjustment disorders
+4. **Attention/Behavioral Disorders** - ADHD and related executive function challenges
+5. **No Significant Diagnosis** - Subclinical presentations or adjustment difficulties
+
+Accurate prediction of these categories is crucial for treatment planning, as each diagnostic cluster typically requires different therapeutic approaches, medication considerations, and monitoring strategies.
+
+# Predictor Variables
+
+## Symptom Checklist Scores
+Standardized assessment scores measuring the presence and severity of various psychiatric symptoms including anxiety, depression, attention difficulties, and behavioral concerns. These scores are derived from validated instruments like the Beck Depression Inventory and Generalized Anxiety Disorder-7 scale.
+
+## Sleep Pattern Metrics  
+Quantitative measures of sleep quality and patterns including sleep duration, sleep efficiency, time to fall asleep, and number of nighttime awakenings. Sleep disturbances are strongly associated with most psychiatric conditions and often serve as early warning signs of mental health changes.
+
+## Social Functioning Assessment
+Scores measuring interpersonal relationships, work/academic performance, and community engagement. Social functioning is both a predictor and outcome of mental health status, making it a critical variable for understanding overall psychological well-being.
+
+## Trauma History Index
+A composite score reflecting exposure to potentially traumatic events, including childhood adversity, accidents, violence, and loss. Trauma exposure significantly influences risk for various psychiatric conditions and affects treatment response patterns.
+
+# Dataset Versions
+
+This dataset is provided in two versions to support different learning objectives:
+
+- **Clean Version** (`ds033_neuroscience_mental_health_diagnosis_5_categories.csv`): Ideal for initial model development and learning fundamental classification techniques. Contains complete data with realistic but clean distributions.
+
+- **Dirty Version** (`ds033_neuroscience_mental_health_diagnosis_5_categories_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues common in clinical settings. Perfect for practicing data preprocessing, imputation strategies, and robust modeling approaches.
+
+# Suggested Approaches
+
+## Random Forest Classification
+Excellent for handling mixed data types and providing feature importance insights. The ensemble approach works well with clinical data where interactions between variables are complex and non-linear.
+
+## Gradient Boosting (XGBoost/LightGBM)
+Particularly effective for this type of structured clinical data, offering strong predictive performance while maintaining some interpretability through feature importance and SHAP values.
+
+## Logistic Regression with Regularization
+Provides highly interpretable results crucial in clinical settings, allowing practitioners to understand which factors most strongly influence diagnostic predictions. L1/L2 regularization helps with feature selection and prevents overfitting.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 33 |
+| Domain | Neuroscience |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 4 predictor variables + 1 target |
+| Clean Version | `csv/ds033_neuroscience_mental_health_diagnosis_5_categories.csv` |
+| Dirty Version | `csv/ds033_neuroscience_mental_health_diagnosis_5_categories_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Classes | 5 (balanced distribution) |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes in data science and machine learning courses. While the relationships between variables have been designed to reflect realistic patterns found in mental health research, this data should never be used for actual clinical decision-making. The dataset structure and variable relationships are based on established research in computational psychiatry and clinical psychology, making it an excellent resource for learning about healthcare analytics while maintaining appropriate ethical boundaries.
+
+**Important**: Always remember that in real clinical settings, data science models serve as decision support tools rather than replacements for professional clinical judgment and comprehensive patient evaluation.

@@ -1,0 +1,141 @@
+{
+  "dataset_config": {
+    "name": "ds062_ecology_algae_bloom_intensity",
+    "description": "Measure chlorophyll concentration in water bodies based on environmental factors",
+    "random_seed": 62,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "water_temperature",
+          "dissolved_oxygen"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "nitrogen_loading",
+          "phosphorus_loading"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "light_availability",
+          "water_clarity"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "nitrogen_loading",
+        "description": "Total nitrogen concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 1.2,
+          "min_clip": 0.1,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "phosphorus_loading",
+        "description": "Total phosphorus concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.8,
+          "std": 0.4,
+          "min_clip": 0.01,
+          "max_clip": 2.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "water_temperature",
+        "description": "Water temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.5,
+          "std": 6.2,
+          "min_clip": 4.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "light_availability",
+        "description": "Photosynthetically active radiation in \u03bcmol/m\u00b2/s",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 850,
+          "location": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "flow_rate",
+        "description": "Water flow rate in m\u00b3/s",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.5,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "water_clarity",
+        "description": "Secchi depth in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.2,
+          "std": 1.8,
+          "min_clip": 0.2,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "dissolved_oxygen",
+        "description": "Dissolved oxygen concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 2.1,
+          "min_clip": 2.0,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "algae_bloom_intensity",
+      "description": "Chlorophyll-a concentration in \u03bcg/L as measure of algae bloom intensity",
+      "data_type": "float",
+      "expression": "5.2 + 12.8*nitrogen_loading + 18.5*phosphorus_loading + 1.4*water_temperature + 0.015*light_availability - 2.1*flow_rate + 3.2*water_clarity - 0.8*dissolved_oxygen",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

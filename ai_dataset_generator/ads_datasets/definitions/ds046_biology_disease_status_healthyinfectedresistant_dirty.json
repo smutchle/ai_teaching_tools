@@ -1,0 +1,156 @@
+{
+  "dataset_config": {
+    "name": "ds046_biology_disease_status_healthyinfectedresistant_dirty",
+    "description": "Classify organism health state based on immune markers, exposure level, genetic factors, nutrition, and stress",
+    "random_seed": 46,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "immune_marker_count",
+          "genetic_resistance_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "exposure_level",
+          "stress_hormone_level"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "nutrition_index",
+          "immune_marker_count"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "stress_hormone_level",
+          "immune_marker_count"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "immune_marker_count",
+        "description": "Count of active immune markers per microliter",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2500,
+          "std": 400,
+          "min_clip": 500,
+          "max_clip": 4500
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "exposure_level",
+        "description": "Pathogen exposure intensity score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 45,
+          "location": 5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "genetic_resistance_score",
+        "description": "Genetic predisposition to disease resistance (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.2,
+          "std": 1.8,
+          "min_clip": 0,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nutrition_index",
+        "description": "Nutritional status index (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72,
+          "std": 15,
+          "min_clip": 20,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "stress_hormone_level",
+        "description": "Cortisol-equivalent stress hormone concentration (ng/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 25,
+          "location": 2
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "age_months",
+        "description": "Age of organism in months",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 1,
+          "max": 120
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "disease_status_healthyinfectedresistant",
+      "description": "Disease status classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 + 0.002*immune_marker_count - 0.08*exposure_level + 0.6*genetic_resistance_score + 0.04*nutrition_index - 0.05*stress_hormone_level - 0.01*age_months)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Infected",
+        "Infected",
+        "Infected",
+        "Healthy",
+        "Healthy",
+        "Healthy",
+        "Healthy",
+        "Resistant",
+        "Resistant",
+        "Resistant"
+      ]
+    }
+  }
+}

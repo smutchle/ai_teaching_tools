@@ -1,0 +1,164 @@
+{
+  "dataset_config": {
+    "name": "ds044_geoscience_drought_severity_5_levels_dirty",
+    "description": "Classify water scarcity intensity based on precipitation, soil moisture, temperature, and vegetation stress",
+    "random_seed": 44,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "precipitation_deficit",
+          "soil_moisture"
+        ],
+        "correlation": -0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature_anomaly",
+          "vegetation_stress_index"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "soil_moisture",
+          "vegetation_stress_index"
+        ],
+        "correlation": -0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "precipitation_deficit",
+          "temperature_anomaly"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "evapotranspiration_rate",
+          "temperature_anomaly"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "precipitation_deficit",
+        "description": "Precipitation deficit in millimeters compared to long-term average",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 45.0,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_moisture",
+        "description": "Soil moisture content as percentage of field capacity",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 55.0,
+          "std": 18.0,
+          "min_clip": 5.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "temperature_anomaly",
+        "description": "Temperature anomaly in degrees Celsius from seasonal average",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.2,
+          "std": 2.8,
+          "min_clip": -5.0,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "vegetation_stress_index",
+        "description": "Normalized vegetation stress index (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 15.0,
+          "max": 85.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "evapotranspiration_rate",
+        "description": "Daily evapotranspiration rate in mm/day",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 3.8,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "groundwater_level",
+        "description": "Groundwater level depth in meters below surface",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.5,
+          "std": 6.2,
+          "min_clip": 1.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "drought_severity_5_levels",
+      "description": "Drought severity classification with 5 intensity levels",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(0.08*precipitation_deficit + 0.12*vegetation_stress_index + 0.35*temperature_anomaly - 0.09*soil_moisture + 0.15*evapotranspiration_rate + 0.05*groundwater_level - 3.5)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "No Drought",
+        "No Drought",
+        "Mild Drought",
+        "Mild Drought",
+        "Moderate Drought",
+        "Moderate Drought",
+        "Severe Drought",
+        "Severe Drought",
+        "Extreme Drought",
+        "Extreme Drought"
+      ]
+    }
+  }
+}

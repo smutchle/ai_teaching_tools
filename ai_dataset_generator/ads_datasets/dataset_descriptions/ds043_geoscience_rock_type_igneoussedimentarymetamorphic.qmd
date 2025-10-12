@@ -1,0 +1,93 @@
+---
+title: "Dataset 43: Rock Type Classification - Geological Material Identification"
+format: html
+---
+
+# Overview
+
+This dataset focuses on the fundamental geological challenge of rock type classification, containing measurements and characteristics of rock samples that can be used to predict whether a specimen is igneous, sedimentary, or metamorphic. The dataset simulates real-world geological survey data and provides an excellent introduction to multi-class classification problems in the geosciences.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds043_geoscience_rock_type_igneoussedimentarymetamorphic.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds043_geoscience_rock_type_igneoussedimentarymetamorphic_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Imagine you're working as a data scientist for a geological consulting firm that supports mining operations, environmental assessments, and geological surveys worldwide. Field geologists collect thousands of rock samples annually, but detailed laboratory analysis of every specimen is time-consuming and expensive. Your team has been tasked with developing an automated classification system that can quickly identify rock types based on readily observable characteristics and basic measurements.
+
+The consulting firm works with mining companies who need rapid preliminary assessments of geological formations to identify potentially valuable mineral deposits. Different rock types are associated with different mineral resources - for example, certain igneous rocks may indicate the presence of precious metals, while specific sedimentary formations might suggest oil and gas reserves. Additionally, environmental engineers need to understand rock types for construction projects, as different rock types have varying stability, permeability, and weathering characteristics.
+
+Your automated classification system would allow field teams to make informed decisions quickly, prioritizing which samples require expensive detailed analysis and helping guide exploration strategies. This could save companies hundreds of thousands of dollars in unnecessary laboratory costs while accelerating the discovery process.
+
+# Problem Statement
+
+The goal is to develop a machine learning model that can accurately classify rock samples into one of three major geological categories (igneous, sedimentary, or metamorphic) based on observable physical and compositional characteristics. This multi-class classification problem requires understanding the complex relationships between mineral composition, physical structure, and geological formation processes.
+
+# Target Variable
+
+**Rock Type (Igneous/Sedimentary/Metamorphic)**: This categorical variable represents the fundamental geological classification of rock samples based on their formation process. 
+
+- **Igneous rocks** form from the cooling and solidification of magma or lava, typically characterized by crystalline structures and specific mineral assemblages
+- **Sedimentary rocks** form from the accumulation and cementation of sediments, often showing layered structures and containing fossils or organic material
+- **Metamorphic rocks** form from the transformation of existing rocks under heat and pressure, displaying unique textures and mineral recrystallization patterns
+
+Accurate rock type prediction is crucial for geological interpretation, resource exploration, and understanding Earth's geological history. It serves as the foundation for more detailed geological analysis and decision-making in both scientific research and commercial applications.
+
+# Predictor Variables
+
+- **Mineral Composition**: Quantitative measurements of key mineral percentages (quartz, feldspar, mica, etc.) present in the rock sample. Different rock types have characteristic mineral assemblages that reflect their formation conditions and processes.
+
+- **Texture**: Categorical description of the rock's physical texture (fine-grained, coarse-grained, glassy, etc.), which provides insights into cooling rates, depositional environments, or metamorphic conditions during formation.
+
+- **Structure**: Describes the larger-scale organizational patterns within the rock (massive, layered, foliated, vesicular), which are diagnostic features that reflect formation processes and subsequent geological history.
+
+- **Formation Depth**: Estimated depth (in meters) at which the rock originally formed, ranging from surface conditions to deep crustal environments. This variable is crucial as it correlates with pressure and temperature conditions during rock formation.
+
+- **Age**: Geological age of the rock formation (in millions of years), which can provide context about the geological environment and processes active during the time of formation.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds043_geoscience_rock_type_igneoussedimentarymetamorphic.csv`): Ideal for initial model development and learning fundamental classification techniques without the complexity of data quality issues
+- **Dirty Version** (`ds043_geoscience_rock_type_igneoussedimentarymetamorphic_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete field measurements, equipment malfunctions, or challenging sampling conditions
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling mixed data types (categorical and numerical) and providing feature importance rankings to understand which geological characteristics are most diagnostic for rock type classification
+
+- **Support Vector Machine (SVM)**: Particularly effective for multi-class problems with clear decision boundaries, which aligns well with the distinct formation processes that define different rock types
+
+- **Gradient Boosting Methods (XGBoost/LightGBM)**: Well-suited for capturing complex interactions between geological variables, such as how mineral composition and formation depth jointly influence rock type classification
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 43 |
+| Domain | Geoscience |
+| Problem Type | Multi-class Classification (3 classes) |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | Igneous, Sedimentary, Metamorphic |
+| Clean Version | `csv/ds043_geoscience_rock_type_igneoussedimentarymetamorphic.csv` |
+| Dirty Version | `csv/ds043_geoscience_rock_type_igneoussedimentarymetamorphic_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic geological principles and correlations observed in nature. The dataset provides an excellent opportunity to explore multi-class classification techniques, feature engineering with mixed data types, and the practical challenges of working with geological data. Students can practice handling both clean and messy data scenarios while learning about the fascinating intersection of machine learning and Earth sciences.

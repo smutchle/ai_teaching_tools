@@ -1,0 +1,156 @@
+{
+  "dataset_config": {
+    "name": "ds013_sociology_social_mobility_score_dirty",
+    "description": "Measure economic advancement across generations",
+    "random_seed": 13,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "parental_education_years",
+          "household_income_quintile"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "parental_education_years",
+          "access_to_resources_index"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "household_income_quintile",
+          "neighborhood_quality_score"
+        ],
+        "correlation": 0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "neighborhood_quality_score",
+          "access_to_resources_index"
+        ],
+        "correlation": 0.47,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "access_to_resources_index",
+          "educational_support_score"
+        ],
+        "correlation": 0.43,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "parental_education_years",
+        "description": "Average years of education completed by parents",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 13.5,
+          "std": 3.2,
+          "min_clip": 6.0,
+          "max_clip": 20.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "household_income_quintile",
+        "description": "Household income quintile ranking (1-5)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.0,
+          "max": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "neighborhood_quality_score",
+        "description": "Composite score of neighborhood characteristics (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 18.5,
+          "min_clip": 10.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "access_to_resources_index",
+        "description": "Index measuring access to educational and cultural resources (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 6.2,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "educational_support_score",
+        "description": "Level of educational support and mentorship available (0-50)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 28.5,
+          "std": 8.3,
+          "min_clip": 0.0,
+          "max_clip": 50.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "social_network_strength",
+        "description": "Strength of professional and social networks (1-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.8,
+          "std": 2.1,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "social_mobility_score",
+      "description": "Composite score measuring economic advancement across generations",
+      "data_type": "float",
+      "expression": "25 + 2.8*parental_education_years + 8.5*household_income_quintile + 0.4*neighborhood_quality_score + 3.2*access_to_resources_index + 0.8*educational_support_score + 2.1*social_network_strength",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

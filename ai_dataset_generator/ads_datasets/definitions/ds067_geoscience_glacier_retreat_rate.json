@@ -1,0 +1,147 @@
+{
+  "dataset_config": {
+    "name": "ds067_geoscience_glacier_retreat_rate",
+    "description": "Geoscience dataset for predicting glacier retreat rate based on climate and topographic factors",
+    "random_seed": 67,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "temperature_anomaly",
+          "albedo"
+        ],
+        "correlation": -0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "precipitation_mm",
+          "temperature_anomaly"
+        ],
+        "correlation": -0.42,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "elevation_m",
+          "temperature_anomaly"
+        ],
+        "correlation": -0.58,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "aspect_degrees",
+          "solar_radiation"
+        ],
+        "correlation": 0.51,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "temperature_anomaly",
+        "description": "Temperature anomaly in degrees Celsius relative to 1961-1990 baseline",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.2,
+          "std": 0.8,
+          "min_clip": -2.0,
+          "max_clip": 4.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "precipitation_mm",
+        "description": "Annual precipitation in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 1800,
+          "location": 200
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "elevation_m",
+        "description": "Glacier terminus elevation in meters above sea level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2200,
+          "std": 650,
+          "min_clip": 500,
+          "max_clip": 4500
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "aspect_degrees",
+        "description": "Glacier aspect in degrees from north (0-360)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 360
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "albedo",
+        "description": "Surface albedo (reflectivity) coefficient",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.65,
+          "std": 0.12,
+          "min_clip": 0.25,
+          "max_clip": 0.9
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "solar_radiation",
+        "description": "Mean annual solar radiation in W/m\u00b2",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 185,
+          "std": 35,
+          "min_clip": 100,
+          "max_clip": 280
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "slope_degrees",
+        "description": "Average glacier slope in degrees",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 25,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "glacier_retreat_rate",
+      "description": "Annual glacier terminus retreat rate in meters per year",
+      "data_type": "float",
+      "expression": "2.5 + 8.5*temperature_anomaly - 0.002*precipitation_mm - 0.001*elevation_m + 0.02*solar_radiation - 15*albedo + 0.08*slope_degrees",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

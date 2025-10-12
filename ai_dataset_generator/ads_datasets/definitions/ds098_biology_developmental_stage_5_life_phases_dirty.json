@@ -1,0 +1,173 @@
+{
+  "dataset_config": {
+    "name": "ds098_biology_developmental_stage_5_life_phases_dirty",
+    "description": "Classify organism maturation level based on size, morphological features, time since birth, and environmental cues",
+    "random_seed": 98,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "body_length_mm",
+          "body_weight_mg"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "days_since_birth",
+          "body_length_mm"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "wing_development_score",
+          "reproductive_organ_size"
+        ],
+        "correlation": 0.48,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "temperature_exposure_c",
+          "nutritional_index"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "body_length_mm",
+        "description": "Body length measurement in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 15.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "body_weight_mg",
+        "description": "Body weight measurement in milligrams",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 125.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "days_since_birth",
+        "description": "Number of days since birth or hatching",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 28,
+          "std": 12,
+          "min_clip": 1,
+          "max_clip": 80
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "wing_development_score",
+        "description": "Wing development score from 0-10 scale",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.2,
+          "std": 2.8,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "reproductive_organ_size",
+        "description": "Reproductive organ development size in mm",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 3.2,
+          "location": 0.1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "temperature_exposure_c",
+        "description": "Average temperature exposure in Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 24.5,
+          "std": 4.2,
+          "min_clip": 15.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "nutritional_index",
+        "description": "Nutritional quality index from 0-100",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 68.5,
+          "std": 15.8,
+          "min_clip": 20.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "developmental_stage_5_life_phases",
+      "description": "Organism developmental stage classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-12 + 0.15*body_length_mm + 0.02*body_weight_mg + 0.18*days_since_birth + 0.8*wing_development_score + 1.2*reproductive_organ_size + 0.05*temperature_exposure_c + 0.01*nutritional_index)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Embryonic",
+        "Early Larval",
+        "Late Larval",
+        "Pupal",
+        "Juvenile",
+        "Pre-Adult",
+        "Young Adult",
+        "Mature Adult",
+        "Reproductive Adult",
+        "Senescent Adult"
+      ]
+    }
+  }
+}

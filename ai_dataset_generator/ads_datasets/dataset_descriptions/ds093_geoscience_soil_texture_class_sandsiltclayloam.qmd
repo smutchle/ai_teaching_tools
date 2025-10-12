@@ -1,0 +1,83 @@
+---
+title: "Dataset 93: Soil Texture Classification for Agricultural Land Assessment"
+format: html
+---
+
+# Overview
+
+This dataset contains comprehensive soil physical and chemical properties collected from agricultural sites across diverse geological regions. The primary objective is to classify soil texture into four major categories (Sand, Silt, Clay, Loam) based on particle size distribution, parent material characteristics, weathering patterns, and organic matter content. This classification problem is fundamental to precision agriculture, environmental monitoring, and sustainable land management practices.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds093_geoscience_soil_texture_class_sandsiltclayloam.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds093_geoscience_soil_texture_class_sandsiltclayloam_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Regional Agricultural Extension Service has been tasked with developing a rapid soil assessment tool for farmers and land managers across a multi-state region. Traditional soil texture analysis requires expensive laboratory equipment and can take weeks to complete, creating bottlenecks in agricultural planning and crop selection decisions. The extension service has collected detailed soil samples from 500,000 representative sites across various farming operations, including row crop farms, orchards, and pastureland.
+
+Each soil sample was analyzed for particle size distribution using laser diffraction, parent material composition through X-ray fluorescence, weathering intensity via chemical weathering indices, and organic matter content through loss-on-ignition methods. The goal is to develop a predictive model that can classify soil texture using these readily measurable parameters, enabling farmers to make informed decisions about irrigation scheduling, fertilizer application rates, and crop variety selection without waiting for lengthy laboratory analyses.
+
+This predictive capability would be particularly valuable during critical planting seasons when rapid soil assessment can mean the difference between optimal crop establishment and reduced yields. The model could be integrated into mobile field applications, allowing agricultural consultants to provide immediate recommendations based on quick field measurements.
+
+# Problem Statement
+
+Develop a classification model that can accurately predict soil texture class (Sand, Silt, Clay, or Loam) based on measurable soil physical and chemical properties. The model should achieve high accuracy while remaining interpretable for agricultural practitioners who need to understand the reasoning behind soil classifications.
+
+# Target Variable
+
+**Soil Texture Class (Sand/Silt/Clay/Loam)**: This categorical variable represents the dominant particle size fraction in the soil sample, which fundamentally controls soil behavior including water retention, nutrient holding capacity, drainage characteristics, and workability. Sand-dominated soils typically drain quickly but require frequent irrigation and fertilization. Silt soils offer moderate water and nutrient retention with good fertility potential. Clay soils have excellent nutrient retention but may present drainage and compaction challenges. Loam represents the ideal agricultural soil with balanced proportions of all particle sizes, providing optimal water retention, drainage, and nutrient availability. Accurate texture classification is essential for determining appropriate management practices, predicting crop performance, and assessing land value for agricultural purposes.
+
+# Predictor Variables
+
+- **Particle Size Distribution**: Quantitative measurements of sand (0.05-2.0mm), silt (0.002-0.05mm), and clay (<0.002mm) fractions expressed as percentages. These direct measurements form the foundation of soil texture classification and strongly influence all soil physical properties.
+
+- **Parent Material**: Categorical variable describing the geological origin of the soil (igneous, sedimentary, metamorphic, or alluvial). Parent material influences the mineralogy and initial particle size distribution of soils, affecting long-term fertility and physical characteristics.
+
+- **Weathering Intensity**: Numerical index (0-100) measuring the degree of chemical and physical breakdown of original minerals. Higher weathering typically results in finer particle sizes and altered mineral composition, directly impacting texture development.
+
+- **Organic Content**: Percentage of organic matter in the soil sample, measured through loss-on-ignition. Organic matter acts as a binding agent between particles and can modify the apparent texture class by improving aggregation and water retention properties.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds093_geoscience_soil_texture_class_sandsiltclayloam.csv`): Ideal for initial model development and learning fundamental classification techniques without data quality complications
+- **Dirty Version** (`ds093_geoscience_soil_texture_class_sandsiltclayloam_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world field sampling conditions where equipment malfunctions, sample contamination, or measurement errors can occur
+
+# Suggested Approaches
+
+- **Random Forest Classification**: Excellent for handling mixed data types (continuous and categorical) while providing feature importance rankings to identify which soil properties are most predictive of texture class
+- **Support Vector Machine (SVM)**: Effective for multi-class problems with clear decision boundaries, particularly useful when particle size distributions create distinct clusters in feature space
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful ensemble method that can capture complex interactions between parent material and weathering effects on final texture classification
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 93 |
+| Domain | Geoscience |
+| Problem Type | Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Target Classes | 4 (Sand, Silt, Clay, Loam) |
+| Clean Version | `csv/ds093_geoscience_soil_texture_class_sandsiltclayloam.csv` |
+| Dirty Version | `csv/ds093_geoscience_soil_texture_class_sandsiltclayloam_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic pedological processes and soil formation patterns while maintaining interpretability for students learning classification techniques. The data incorporates established soil science principles including the influence of parent material on texture development and the role of weathering in particle size reduction.

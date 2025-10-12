@@ -1,0 +1,188 @@
+{
+  "dataset_config": {
+    "name": "ds010_ecology_forest_biomass_dirty",
+    "description": "Predict total organic matter per hectare in forest ecosystems based on ecological factors",
+    "random_seed": 10,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "tree_density",
+          "species_richness"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "soil_nitrogen",
+          "soil_phosphorus"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_rainfall",
+          "mean_temperature"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "tree_density",
+          "forest_biomass"
+        ],
+        "correlation": 0.56,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "soil_nitrogen",
+          "forest_biomass"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "tree_density",
+        "description": "Number of trees per hectare",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 450,
+          "std": 120,
+          "min_clip": 50,
+          "max_clip": 900
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "species_richness",
+        "description": "Number of distinct tree species in the plot",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 15,
+          "location": 3
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_nitrogen",
+        "description": "Soil nitrogen content in mg/kg",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 0.9,
+          "min_clip": 0.5,
+          "max_clip": 6.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "soil_phosphorus",
+        "description": "Soil phosphorus content in mg/kg",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.5,
+          "std": 6.2,
+          "min_clip": 3.0,
+          "max_clip": 45.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "annual_rainfall",
+        "description": "Total annual rainfall in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1200,
+          "std": 350,
+          "min_clip": 400,
+          "max_clip": 2500
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "mean_temperature",
+        "description": "Mean annual temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.2,
+          "std": 4.8,
+          "min_clip": 2.0,
+          "max_clip": 28.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "elevation",
+        "description": "Elevation above sea level in meters",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 100,
+          "max": 2200
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "canopy_cover",
+        "description": "Percentage of canopy cover",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 75.5,
+          "std": 18.2,
+          "min_clip": 20.0,
+          "max_clip": 95.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "forest_biomass",
+      "description": "Total organic matter per hectare in tonnes",
+      "data_type": "float",
+      "expression": "50 + 0.15*tree_density + 8.5*species_richness + 25*soil_nitrogen + 1.2*soil_phosphorus + 0.08*annual_rainfall + 3.2*mean_temperature - 0.02*elevation + 0.8*canopy_cover",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

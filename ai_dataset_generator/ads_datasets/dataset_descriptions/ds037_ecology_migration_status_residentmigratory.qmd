@@ -1,0 +1,87 @@
+---
+title: "Dataset 37: Avian Migration Pattern Classification - Predicting Resident vs Migratory Behavior"
+format: html
+---
+
+# Overview
+
+This dataset contains ecological and environmental data for 500,000 bird species, designed to predict whether each species exhibits resident (non-migratory) or migratory behavior. The dataset combines morphological traits, habitat preferences, geographic distribution, and environmental factors to model one of nature's most fascinating phenomena - animal migration patterns.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds037_ecology_migration_status_residentmigratory.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds037_ecology_migration_status_residentmigratory_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Climate change is rapidly altering global ecosystems, forcing wildlife managers and conservation biologists to reassess migration corridors and habitat protection strategies. The North American Bird Conservation Initiative has launched a comprehensive study to predict how changing environmental conditions might affect migration patterns of various bird species across the continent.
+
+Dr. Sarah Chen, a conservation ecologist at the Pacific Wildlife Research Center, leads a team tasked with developing predictive models to identify which species are most likely to be migratory versus resident. This information is crucial for establishing protected areas, timing conservation interventions, and predicting how species distributions might shift under climate change scenarios. Traditional field studies to determine migration status can take years and require extensive banding and tracking efforts across vast geographic ranges.
+
+The team has compiled data from multiple sources including museum specimens, citizen science observations, satellite tracking studies, and environmental databases. Their goal is to create a machine learning model that can accurately predict migration behavior based on readily available species characteristics and environmental variables, enabling rapid assessment of newly studied species or populations.
+
+# Problem Statement
+
+Given a bird species' physical characteristics, habitat preferences, geographic location, and local environmental conditions, can we accurately predict whether the species exhibits migratory or resident behavior? This classification problem has direct applications in conservation planning, climate change impact assessment, and wildlife management strategies.
+
+# Target Variable
+
+**Migration Status (Resident/Migratory)**: This binary variable indicates whether a species remains in the same general area year-round (Resident) or undertakes seasonal movements between breeding and non-breeding areas (Migratory). Understanding migration status is crucial for conservation because migratory species face unique challenges including habitat loss along migration corridors, timing mismatches with food sources, and increased energy demands. Migratory species often require international conservation cooperation and are generally more vulnerable to environmental changes, making accurate prediction of this behavior essential for effective conservation planning.
+
+# Predictor Variables
+
+- **Species Traits**: Morphological characteristics including body mass, wing length, bill shape, and leg length. These traits are strongly linked to migration capability - for example, longer wings typically indicate better long-distance flight ability, while body mass affects energy storage capacity for long journeys.
+
+- **Habitat Type**: Primary habitat classification (forest, grassland, wetland, urban, etc.) influences migration patterns as some habitats provide year-round resources while others are seasonally variable. Wetland species often migrate following water availability, while forest species may be more resident if resources remain stable.
+
+- **Latitude**: Geographic latitude of the species' primary range affects seasonal variation in daylight, temperature, and resource availability. Species at higher latitudes experience more extreme seasonal changes, often driving migration to more temperate regions during winter.
+
+- **Resource Availability**: Measures of food resource stability and abundance throughout the year, including seasonal variation in insects, seeds, nectar, or other food sources. Species dependent on highly seasonal resources are more likely to migrate.
+
+- **Climate**: Local climate variables including temperature range, precipitation patterns, and seasonal variability. Harsh winter conditions often drive migration, while stable climates may support resident populations.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds037_ecology_migration_status_residentmigratory.csv`): Ideal for initial model development and learning, with complete data for all variables and no outliers
+- **Dirty Version** (`ds037_ecology_migration_status_residentmigratory_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in ecological datasets where field measurements may be incomplete or contain errors
+
+# Suggested Approaches
+
+- **Random Forest**: Excellent for handling mixed variable types and capturing non-linear relationships between ecological variables. The model's interpretability helps identify which traits most strongly predict migration behavior.
+
+- **Logistic Regression**: Provides clear interpretable coefficients showing how each factor influences migration probability, useful for understanding ecological relationships and communicating results to stakeholders.
+
+- **Gradient Boosting (XGBoost)**: Can capture complex interactions between environmental and morphological variables, potentially revealing subtle patterns in migration behavior that simpler models might miss.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 37 |
+| Domain | Ecology |
+| Problem Type | Binary Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | Resident, Migratory |
+| Clean Version | `csv/ds037_ecology_migration_status_residentmigratory.csv` |
+| Dirty Version | `csv/ds037_ecology_migration_status_residentmigratory_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic ecological patterns while maintaining interpretability for learning objectives. The data structure and variable relationships are based on established ecological principles and real-world migration studies, making it an excellent resource for students to practice classification techniques on ecologically meaningful data.

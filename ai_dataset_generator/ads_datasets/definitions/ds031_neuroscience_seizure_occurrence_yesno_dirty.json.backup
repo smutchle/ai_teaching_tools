@@ -1,0 +1,174 @@
+{
+  "dataset_config": {
+    "name": "ds031_neuroscience_seizure_occurrence_yesno_dirty",
+    "description": "Predict epileptic seizure occurrence based on EEG patterns, medication adherence, sleep quality, and stress triggers",
+    "random_seed": 31,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "medication_adherence_score",
+          "seizure_frequency_history"
+        ],
+        "correlation": -0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "sleep_quality_index",
+          "stress_level_score"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "eeg_spike_amplitude",
+          "eeg_theta_power"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "stress_level_score",
+          "seizure_frequency_history"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "eeg_spike_amplitude",
+        "description": "Peak amplitude of epileptiform spikes in microvolts",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 45.0,
+          "location": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "eeg_theta_power",
+        "description": "Theta wave power density in dB",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 25.5,
+          "std": 8.2,
+          "min_clip": 5.0,
+          "max_clip": 60.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "medication_adherence_score",
+        "description": "Medication adherence score from 0-100",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 78.5,
+          "std": 18.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "sleep_quality_index",
+        "description": "Sleep quality index from 0-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 2.1,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "stress_level_score",
+        "description": "Perceived stress level score from 0-40",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.3,
+          "std": 7.5,
+          "min_clip": 0.0,
+          "max_clip": 40.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "seizure_frequency_history",
+        "description": "Number of seizures in past 6 months",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 3.5,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "eeg_background_activity",
+        "description": "Background EEG activity regularity score 0-100",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 72.8,
+          "std": 15.6,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "seizure_occurrence_yesno",
+      "description": "Binary indicator of seizure occurrence",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(\u22122.1 + 0.08*eeg_spike_amplitude + 0.05*eeg_theta_power - 0.04*medication_adherence_score - 0.15*sleep_quality_index + 0.12*stress_level_score + 0.35*seizure_frequency_history - 0.02*eeg_background_activity)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "Yes",
+        "Yes"
+      ]
+    }
+  }
+}

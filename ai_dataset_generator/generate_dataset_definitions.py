@@ -30,7 +30,7 @@ DEFINITIONS_DIR = OUTPUT_DIR / "definitions"
 # Dataset parameters
 MISSING_RATE = 0.02  # 2% missing values for dirty datasets
 OUTLIER_RATE = 0.01  # 1% outliers for dirty datasets
-N_ROWS = 1000  # Number of rows per dataset
+N_ROWS = 500000  # Number of rows per dataset
 
 
 def setup_directories():
@@ -92,89 +92,40 @@ def generate_dataset_definition(chatbot, dataset_info, api_documentation, is_dir
     # Create prompt for LLM with API documentation context
     prompt = f"""You are generating a synthetic dataset configuration in JSON format for data science instruction.
 
-IMPORTANT: Read and follow the API documentation below carefully to ensure correct JSON format.
-
 # API Documentation
 
 {api_documentation}
 
 # Your Task
 
-Generate a complete synthetic dataset configuration in JSON format for data science instruction.
+Read the API documentation above carefully and use it to generate a complete, valid JSON configuration file for the following dataset.
 
-Dataset Information:
+## Dataset Information
 - Type: {dataset_type}
 - Domain: {domain}
 - Target Variable: {target}
 - Predictor Variables: {predictors}
 - Description: {description}
 - Dataset ID: {dataset_id}
+- Dataset Name: {dataset_name}
 
-Requirements:
-1. Generate a dataset with {N_ROWS} rows
-2. Create appropriate numeric features based on the predictor variables listed
-3. The target variable should be "{target}" and type should be "{dataset_type}"
-4. For regression: target data_type should be "float"
-5. For classification: target data_type should be "categorical" with appropriate categories
-6. Create realistic feature distributions (normal, uniform, etc.)
-7. Add appropriate correlations between related features (0.3 to 0.7 range)
-8. Target expression should use the features with realistic coefficients
-9. Add 2.5% noise to the target (noise_percent: 2.5)
-10. Parse the predictor variables text and create 4-8 numeric features with appropriate names
-11. Dataset name: "{dataset_name}"
-{"12. Add missing_rate: 0.02 to ALL features" if is_dirty else "12. Set missing_rate: 0.0 for all features"}
-{"13. Add outlier_rate: 0.01 and outlier_method: 'extreme_both' to ALL numeric features" if is_dirty else "13. Set outlier_rate: 0.0 for all features"}
+## Requirements
+1. Set n_rows to {N_ROWS}
+2. Set random_seed to {dataset_id}
+3. Parse the predictor variables text and create 4-8 appropriate numeric features with realistic names
+4. For the target variable:
+   - Name: "{clean_name(target)}"
+   - Type: "{"categorical" if dataset_type == "classification" else "float"}"
+   - Create an appropriate expression using the features with realistic coefficients
+   - Add noise_percent: 2.5
+   - For classification: include a "categories" array with exactly 10 meaningful labels
+5. Add appropriate correlations between related features (0.3 to 0.7 range)
+6. Use realistic distributions for each feature (normal, uniform, weibull, etc.)
+7. {"Set missing_rate: 0.02 for ALL features and target" if is_dirty else "Set missing_rate: 0.0 for all features and target"}
+8. {"Set outlier_rate: 0.01 and outlier_method: 'extreme_both' for ALL numeric features and numeric targets" if is_dirty else "Set outlier_rate: 0.0 for all features and target"}
 
-Output only valid JSON in this exact format (no additional text):
-
-{{
-  "dataset_config": {{
-    "name": "{dataset_name}",
-    "description": "Dataset description here",
-    "random_seed": {dataset_id},
-    "n_rows": {N_ROWS},
-    "correlations": [
-      {{
-        "variables": ["feature1", "feature2"],
-        "correlation": 0.5,
-        "method": "cholesky"
-      }}
-    ],
-    "features": [
-      {{
-        "name": "feature_name",
-        "description": "Feature description",
-        "data_type": "float",
-        "distribution": {{
-          "type": "normal",
-          "mean": 50,
-          "std": 10
-        }},
-        "missing_rate": {"0.02" if is_dirty else "0.0"},
-        {"\"outlier_rate\": 0.01," if is_dirty else ""}
-        {"\"outlier_method\": \"extreme_both\"" if is_dirty else ""}
-      }}
-    ],
-    "target": {{
-      "name": "{clean_name(target)}",
-      "description": "{description}",
-      "data_type": "{"categorical" if dataset_type == "classification" else "float"}",
-      "expression": "feature1 * 2 + feature2 * 3",
-      "noise_percent": 2.5,
-      {"\"categories\": [\"Category1\", \"Category2\", \"Category3\", \"Category4\", \"Category5\", \"Category6\", \"Category7\", \"Category8\", \"Category9\", \"Category10\"]" if dataset_type == "classification" else ""}
-      "missing_rate": {"0.02" if is_dirty else "0.0"}
-      {"\"outlier_rate\": 0.01," if is_dirty and dataset_type == "regression" else ""}
-      {"\"outlier_method\": \"extreme_both\"" if is_dirty and dataset_type == "regression" else ""}
-    }}
-  }}
-}}
-
-Remember:
-- For classification targets: MUST have "categories" array with exactly 10 labels
-- Target expression can ONLY use numeric feature names (data_type: float or int)
-- Each feature MUST have a valid distribution specification
-- Correlations should be between -1.0 and 1.0
-- Output ONLY the JSON, no additional text before or after
+## Output Format
+Output ONLY valid JSON following the exact structure defined in the API documentation above. Do not include any explanatory text before or after the JSON.
 """
 
     # Get JSON response from LLM
@@ -300,6 +251,35 @@ Generate engaging, educational content that would be useful for students learnin
     return response
 
 
+def is_dataset_already_processed(dataset_id, target, domain):
+    """
+    Check if a dataset has already been processed.
+
+    Args:
+        dataset_id: The dataset ID
+        target: The target variable name
+        domain: The domain name
+
+    Returns:
+        Boolean indicating if all required files exist
+    """
+    clean_name = create_dataset_name(dataset_id, target, domain)
+    dirty_name = clean_name + "_dirty"
+
+    # Check for all required files
+    clean_def_path = DEFINITIONS_DIR / f"{clean_name}.json"
+    dirty_def_path = DEFINITIONS_DIR / f"{dirty_name}.json"
+    quarto_path = DESCRIPTIONS_DIR / f"{clean_name}.qmd"
+
+    all_exist = (
+        clean_def_path.exists() and
+        dirty_def_path.exists() and
+        quarto_path.exists()
+    )
+
+    return all_exist
+
+
 def main():
     """Main execution function."""
     print("=" * 80)
@@ -344,6 +324,7 @@ def main():
 
     # Track progress
     dataset_metadata = []
+    skipped_count = 0
 
     # Process each dataset
     for i, dataset_info in enumerate(datasets, 1):
@@ -357,6 +338,22 @@ def main():
         # Generate names
         clean_name = create_dataset_name(dataset_id, dataset_info['target'], dataset_info['domain'])
         dirty_name = clean_name + "_dirty"
+
+        # Check if dataset has already been processed
+        if is_dataset_already_processed(dataset_id, dataset_info['target'], dataset_info['domain']):
+            print(f"  ⏭ Skipping - dataset already processed")
+            skipped_count += 1
+
+            # Still add to metadata for index generation
+            dataset_metadata.append({
+                'id': dataset_id,
+                'name': clean_name,
+                'domain': dataset_info['domain'],
+                'type': dataset_info['type'],
+                'target': dataset_info['target'],
+                'description': dataset_info['description']
+            })
+            continue
 
         # Generate clean definition
         print(f"  Generating clean definition...")
@@ -447,7 +444,11 @@ def main():
     print(f"\n{'=' * 80}")
     print("Processing Complete!")
     print(f"{'=' * 80}")
-    print(f"Generated:")
+    print(f"Summary:")
+    print(f"  - Total datasets in config: {len(datasets)}")
+    print(f"  - Skipped (already processed): {skipped_count}")
+    print(f"  - Newly generated: {len(dataset_metadata) - skipped_count}")
+    print(f"\nGenerated:")
     print(f"  - {len(dataset_metadata) * 2} dataset definitions (clean + dirty)")
     print(f"  - {len(dataset_metadata)} Quarto markdown files")
     print(f"  - 1 index.qmd")

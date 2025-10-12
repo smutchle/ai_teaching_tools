@@ -1,0 +1,91 @@
+---
+title: "Dataset 46: Immune Response Classification - Predicting Disease Status in Plant Pathology"
+format: html
+---
+
+# Overview
+
+This dataset contains comprehensive biological measurements from a controlled study examining plant immune responses to a common fungal pathogen. The goal is to classify plants into three distinct health categories based on their immune markers, environmental exposure, genetic background, nutritional status, and stress indicators. This multi-class classification problem provides an excellent opportunity to explore complex biological relationships and develop predictive models for disease resistance screening.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds046_biology_disease_status_healthyinfectedresistant.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds046_biology_disease_status_healthyinfectedresistant_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Agricultural researchers at a leading plant pathology institute are studying how different factors influence crop resistance to *Fusarium oxysporum*, a devastating soil-borne fungal pathogen that causes significant yield losses worldwide. Understanding which plants will remain healthy, become infected, or develop resistance after pathogen exposure is crucial for developing disease-resistant crop varieties and optimizing agricultural practices.
+
+In this study, researchers exposed 500,000 genetically diverse plant specimens to controlled levels of the pathogen under laboratory conditions. They measured various biological and environmental parameters before, during, and after exposure to understand the complex interplay between genetics, immunity, and environmental factors in determining disease outcomes. The ability to predict disease status from these measurements would enable early identification of resistant varieties and help farmers make informed decisions about crop management.
+
+This research has direct applications in precision agriculture, where farmers could potentially test their crops' immune profiles to predict disease susceptibility before symptoms appear, allowing for targeted interventions and reducing pesticide use while maximizing crop yields.
+
+# Problem Statement
+
+Given measurements of immune markers, pathogen exposure levels, genetic factors, nutritional status, and stress indicators, can we accurately predict whether a plant will remain healthy, become infected, or develop resistance when exposed to a fungal pathogen? This three-class classification problem requires identifying complex patterns in biological data to support agricultural decision-making and crop breeding programs.
+
+# Target Variable
+
+**Disease Status (Healthy/Infected/Resistant)**: This categorical variable represents the final health outcome of each plant 30 days after pathogen exposure:
+
+- **Healthy**: Plants showing no signs of infection and maintaining normal physiological function
+- **Infected**: Plants displaying clear disease symptoms including wilting, chlorosis, or stunted growth
+- **Resistant**: Plants that were exposed to the pathogen but successfully mounted an immune response, showing minimal to no symptoms while maintaining pathogen-fighting capabilities
+
+Accurately predicting this outcome is valuable for crop breeding programs, enabling researchers to identify promising genetic lines early in the development process and understand which factors contribute most to disease resistance.
+
+# Predictor Variables
+
+- **Immune Markers**: Quantitative measurements of key immune system proteins and metabolites, including pathogenesis-related (PR) proteins, phytoalexins, and reactive oxygen species. Higher values typically indicate stronger immune responses.
+
+- **Exposure Level**: Controlled measure of pathogen concentration each plant was exposed to, measured in colony-forming units per gram of soil. This represents the infection pressure each plant faced.
+
+- **Genetic Factors**: Composite score representing the presence of known disease resistance genes (R-genes) and quantitative trait loci (QTL) associated with pathogen resistance, derived from molecular marker analysis.
+
+- **Nutrition**: Standardized nutritional status score based on essential macro and micronutrient levels in plant tissue, as proper nutrition is crucial for maintaining immune function.
+
+- **Stress**: Environmental stress index combining measurements of water stress, temperature fluctuations, and light conditions, as stressed plants are typically more susceptible to disease.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds046_biology_disease_status_healthyinfectedresistant.csv`): Ideal for initial model development and learning, with complete measurements for all variables
+- **Dirty Version** (`ds046_biology_disease_status_healthyinfectedresistant_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as equipment malfunctions, sample contamination, or measurement errors common in biological research
+
+# Suggested Approaches
+
+- **Random Forest**: Excellent for handling the complex, non-linear relationships between biological variables while providing feature importance rankings to identify key predictors of disease resistance
+- **Support Vector Machine (SVM)**: Well-suited for this multi-class problem with potentially complex decision boundaries between health status categories
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful ensemble methods that can capture subtle interactions between genetic, environmental, and physiological factors
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 46 |
+| Domain | Biology |
+| Problem Type | Classification (Multi-class) |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 3 (Healthy, Infected, Resistant) |
+| Clean Version | `csv/ds046_biology_disease_status_healthyinfectedresistant.csv` |
+| Dirty Version | `csv/ds046_biology_disease_status_healthyinfectedresistant_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic biological processes and correlations observed in plant pathology research, while maintaining interpretability for learning objectives. The dataset provides an excellent opportunity to practice handling imbalanced classes, feature engineering with biological data, and interpreting model results in a scientific context.

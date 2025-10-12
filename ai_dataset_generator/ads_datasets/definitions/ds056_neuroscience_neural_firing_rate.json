@@ -1,0 +1,159 @@
+{
+  "dataset_config": {
+    "name": "ds056_neuroscience_neural_firing_rate",
+    "description": "Predict action potentials per second based on stimulus intensity, neuron type, network connectivity, and neuromodulators",
+    "random_seed": 56,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "stimulus_intensity",
+          "neural_firing_rate_baseline"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "dopamine_level",
+          "acetylcholine_level"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "connectivity_strength",
+          "neural_firing_rate_baseline"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "membrane_potential",
+          "neural_firing_rate_baseline"
+        ],
+        "correlation": 0.68,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "stimulus_intensity",
+        "description": "Intensity of applied stimulus in microamps",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.0,
+          "std": 8.0,
+          "min_clip": 0.0,
+          "max_clip": 50.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "neuron_type_index",
+        "description": "Numerical index representing neuron type classification",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 3.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "connectivity_strength",
+        "description": "Synaptic connectivity strength measure",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 0.8,
+          "location": 0.2
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "dopamine_level",
+        "description": "Dopamine concentration in nanomoles",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 0.8,
+          "min_clip": 0.0,
+          "max_clip": 6.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "acetylcholine_level",
+        "description": "Acetylcholine concentration in nanomoles",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.8,
+          "std": 0.6,
+          "min_clip": 0.0,
+          "max_clip": 4.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "membrane_potential",
+        "description": "Resting membrane potential in millivolts",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": -65.0,
+          "std": 8.0,
+          "min_clip": -85.0,
+          "max_clip": -45.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "neural_firing_rate_baseline",
+        "description": "Baseline firing rate without stimulus",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 12.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "network_inhibition",
+        "description": "Level of inhibitory network activity",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.1,
+          "max": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "neural_firing_rate",
+      "description": "Action potentials per second",
+      "data_type": "float",
+      "expression": "neural_firing_rate_baseline + 2.8*stimulus_intensity + 4.5*neuron_type_index + 8.2*connectivity_strength + 3.1*dopamine_level + 2.7*acetylcholine_level + 0.4*(membrane_potential + 65) - 6.8*network_inhibition",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

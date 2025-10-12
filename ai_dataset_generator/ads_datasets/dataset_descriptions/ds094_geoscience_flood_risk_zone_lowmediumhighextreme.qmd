@@ -1,0 +1,94 @@
+---
+title: "Dataset 94: Flood Risk Assessment for Urban Planning"
+format: html
+---
+
+# Overview
+
+This dataset contains geospatial and environmental measurements used to classify flood risk zones across different geographical areas. It's designed to help students learn classification techniques while working with realistic geoscience data that has direct applications in urban planning, emergency management, and climate adaptation strategies.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds094_geoscience_flood_risk_zone_lowmediumhighextreme.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds094_geoscience_flood_risk_zone_lowmediumhighextreme_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The City of Riverside Valley is experiencing rapid urban development along its river corridors and hillsides. Following several recent extreme weather events that caused significant flooding in neighboring regions, the city's Planning Department has initiated a comprehensive flood risk assessment project. They need to classify all areas within the city limits into appropriate flood risk categories to guide zoning decisions, insurance requirements, and emergency preparedness planning.
+
+The city has collected extensive geographical and meteorological data across 500,000 sample locations throughout their jurisdiction. Each location has been surveyed for key environmental factors that influence flood susceptibility. The goal is to develop a predictive model that can automatically classify any location's flood risk based on these measurable characteristics, enabling the city to efficiently assess flood risk for new development proposals and existing neighborhoods.
+
+This type of analysis is critical for sustainable urban development, as it helps prevent construction in high-risk areas, informs building code requirements, and guides the placement of flood mitigation infrastructure like retention ponds and improved drainage systems.
+
+# Problem Statement
+
+Given geographical and environmental characteristics of a location, predict its flood risk classification (Low, Medium, High, or Extreme). This multi-class classification problem requires understanding the complex relationships between topographical features, hydrological proximity, weather patterns, land use, and drainage infrastructure.
+
+# Target Variable
+
+**Flood Risk Zone (Low/Medium/High/Extreme)**: This ordinal categorical variable represents the assessed flood risk level for each location based on historical flood patterns and expert geological assessment. 
+
+- **Low**: Areas with minimal flood risk, typically elevated locations with good drainage and distance from water bodies
+- **Medium**: Areas with moderate flood risk that may experience minor flooding during severe weather events
+- **High**: Areas with significant flood risk that are likely to flood during major storm events
+- **Extreme**: Areas with very high flood risk, often in floodplains or low-lying areas near water bodies
+
+Accurate prediction of flood risk zones is essential for public safety, property protection, and informed land-use planning decisions.
+
+# Predictor Variables
+
+**Elevation (meters above sea level)**: The height of the location relative to sea level. Higher elevations generally correlate with lower flood risk as water flows downhill. This is often the most important predictor in flood risk models.
+
+**Proximity to Water (meters)**: Distance to the nearest significant water body (rivers, lakes, streams). Locations closer to water sources face higher flood risk due to potential overflow and storm surge effects.
+
+**Rainfall Intensity (mm/hour)**: Average rainfall intensity during storm events for the area. Higher rainfall intensity increases surface runoff and overwhelms drainage systems, leading to higher flood risk.
+
+**Land Cover Type**: Categorical variable describing the primary land use (Urban, Forest, Agricultural, Wetland, etc.). Different land covers have varying water absorption rates and runoff characteristics. Urban areas with impermeable surfaces typically have higher flood risk.
+
+**Drainage Quality Score**: A composite score (1-10) rating the effectiveness of local drainage infrastructure. Higher scores indicate better drainage systems that can handle excess water flow, reducing flood risk.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds094_geoscience_flood_risk_zone_lowmediumhighextreme.csv`): Ideal for initial model development and learning fundamental classification techniques
+- **Dirty Version** (`ds094_geoscience_flood_risk_zone_lowmediumhighextreme_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in environmental monitoring
+
+# Suggested Approaches
+
+**Random Forest Classifier**: Excellent for handling mixed data types and capturing non-linear relationships between geographical features. The ensemble approach works well with environmental data and provides feature importance rankings.
+
+**Gradient Boosting (XGBoost/LightGBM)**: Effective for this ordinal classification problem, as boosting methods can capture complex interactions between elevation, proximity to water, and drainage factors.
+
+**Ordinal Logistic Regression**: Since the target variable has a natural ordering (Low < Medium < High < Extreme), ordinal regression methods can leverage this structure for potentially better performance than standard multi-class approaches.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 94 |
+| Domain | Geoscience |
+| Problem Type | Multi-class Classification (Ordinal) |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 4 (Low, Medium, High, Extreme) |
+| Clean Version | `csv/ds094_geoscience_flood_risk_zone_lowmediumhighextreme.csv` |
+| Dirty Version | `csv/ds094_geoscience_flood_risk_zone_lowmediumhighextreme_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic geoscience principles while maintaining interpretability for learning. The data incorporates established relationships between topographical features and flood risk, making it suitable for exploring both basic classification techniques and advanced topics like handling ordinal targets and geospatial feature engineering.

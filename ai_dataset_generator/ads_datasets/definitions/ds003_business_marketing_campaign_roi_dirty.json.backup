@@ -1,0 +1,177 @@
+{
+  "dataset_config": {
+    "name": "ds003_business_marketing_campaign_roi_dirty",
+    "description": "Estimate return on investment for marketing initiatives",
+    "random_seed": 3,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "budget_thousands",
+          "audience_size_millions"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "creative_score",
+          "marketing_campaign_roi"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "digital_channel_mix",
+          "audience_size_millions"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "budget_thousands",
+          "creative_score"
+        ],
+        "correlation": 0.4,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "budget_thousands",
+        "description": "Marketing campaign budget in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 250.0,
+          "std": 100.0,
+          "min_clip": 10.0,
+          "max_clip": 1000.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "digital_channel_mix",
+        "description": "Percentage of budget allocated to digital channels",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.2,
+          "max": 0.95
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "audience_size_millions",
+        "description": "Target audience size in millions of people",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 15.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "seasonality_index",
+        "description": "Seasonal demand index (1.0 = average, >1.0 = high season)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.0,
+          "std": 0.25,
+          "min_clip": 0.5,
+          "max_clip": 1.8
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "creative_score",
+        "description": "Creative quality score from 1-100",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 18.0,
+          "min_clip": 10.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "market_competition_score",
+        "description": "Market competition intensity score from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.0,
+          "max": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "campaign_duration_weeks",
+        "description": "Campaign duration in weeks",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 8.0,
+          "location": 1.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "brand_awareness_baseline",
+        "description": "Pre-campaign brand awareness percentage",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.35,
+          "std": 0.15,
+          "min_clip": 0.05,
+          "max_clip": 0.85
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "marketing_campaign_roi",
+      "description": "Marketing campaign return on investment ratio",
+      "data_type": "float",
+      "expression": "0.8 + 0.003*budget_thousands + 1.2*digital_channel_mix + 0.05*audience_size_millions + 0.6*seasonality_index + 0.008*creative_score - 0.08*market_competition_score + 0.02*campaign_duration_weeks + 0.7*brand_awareness_baseline",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

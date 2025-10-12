@@ -1,0 +1,85 @@
+---
+title: "Dataset 25: Inventory Turnover Prediction for Retail Operations"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting inventory turnover days across different retail products, helping businesses optimize their stock management and cash flow. The challenge involves understanding how product characteristics, market dynamics, and operational factors influence how quickly inventory moves through the supply chain.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds025_business_inventory_turnover_days.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds025_business_inventory_turnover_days_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+RetailMax, a mid-sized retail chain specializing in consumer electronics and home goods, has been struggling with inventory management across their 50 stores. The company carries over 2,000 different products ranging from seasonal items like space heaters and fans to evergreen electronics like smartphones and laptops. Poor inventory planning has led to significant issues: high-demand items frequently stock out during peak seasons, while slow-moving products tie up valuable warehouse space and working capital.
+
+The company's CFO has identified inventory optimization as a critical priority, noting that excess inventory is costing the company approximately $2.3 million annually in storage costs and markdowns. Meanwhile, stockouts are resulting in lost sales and customer dissatisfaction. The data science team has been tasked with developing a predictive model that can accurately forecast how long it will take to sell through current stock levels for each product.
+
+This prediction capability would enable RetailMax to make data-driven decisions about reorder quantities, identify products that need promotional pricing, and optimize warehouse space allocation. The model would be integrated into their existing inventory management system to provide daily recommendations for purchasing and merchandising teams.
+
+# Problem Statement
+
+The goal is to predict the number of days required to sell through current inventory levels for retail products. This regression problem requires understanding the complex relationships between product characteristics, market conditions, and operational factors that influence sales velocity.
+
+# Target Variable
+
+**Inventory Turnover Days**: This measures the expected number of days required to completely sell through current stock levels at the current sales rate. Lower values indicate fast-moving products that generate quick returns on investment, while higher values suggest slow-moving inventory that ties up capital and storage space. Accurate prediction of this metric enables retailers to optimize purchasing decisions, identify products requiring promotional support, and maintain optimal stock levels to balance customer satisfaction with operational efficiency.
+
+# Predictor Variables
+
+- **Product Category**: The classification of products into distinct categories (Electronics, Home & Garden, Clothing, Sports, Books, etc.). Different categories exhibit varying demand patterns, with electronics typically showing faster turnover than specialty items like books or seasonal goods.
+
+- **Seasonality**: A measure of how much a product's demand fluctuates throughout the year, ranging from highly seasonal items (like winter coats or beach equipment) to stable year-round products. Seasonal products often show dramatic variations in turnover rates depending on timing.
+
+- **Price Point**: The retail price tier of the product (Budget, Mid-range, Premium, Luxury). Price significantly impacts purchase decisions and sales velocity, with budget items typically showing faster turnover but lower margins, while premium products may move more slowly but generate higher profits per unit.
+
+- **Storage Costs**: The monthly cost associated with storing one unit of the product, including warehouse space, climate control, security, and handling. Higher storage costs create pressure for faster turnover and may influence pricing and promotional strategies.
+
+- **Demand Variability**: A measure of how consistent or unpredictable customer demand is for the product. Products with high demand variability are more difficult to forecast and may require safety stock, while stable demand products enable more efficient inventory management.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds025_business_inventory_turnover_days.csv`): Ideal for initial model development and learning, with complete data and no anomalies
+- **Dirty Version** (`ds025_business_inventory_turnover_days_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete product information or data entry errors
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships between categorical variables like product category and continuous outcomes, while providing feature importance insights for business stakeholders.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Particularly effective for this type of business prediction problem, with strong performance on mixed data types and built-in handling of categorical variables.
+
+- **Linear Regression with Feature Engineering**: A interpretable baseline approach that can incorporate polynomial terms and interaction effects between seasonality and product category, providing clear business insights about factor relationships.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 25 |
+| Domain | Business |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds025_business_inventory_turnover_days.csv` |
+| Dirty Version | `csv/ds025_business_inventory_turnover_days_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects common patterns observed in retail inventory management, making it an excellent learning tool for understanding business analytics applications.

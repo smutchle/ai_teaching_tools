@@ -1,0 +1,109 @@
+---
+title: "Dataset 98: Organism Developmental Stage Classification - A Multi-Phase Life Cycle Analysis"
+format: html
+---
+
+# Overview
+
+This dataset focuses on the classification of developmental stages in organisms based on morphological, temporal, and environmental factors. Students will work with biological data to predict which of five distinct life phases an organism is currently experiencing, making this an excellent introduction to multi-class classification problems in biological sciences.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds098_biology_developmental_stage_5_life_phases.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds098_biology_developmental_stage_5_life_phases_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Marine biologists studying the Pacific Northwest coastline have been monitoring the development of *Metamorphicus educatus*, a fictional species of marine invertebrate with a complex five-stage life cycle. This organism serves as a key indicator species for ecosystem health, as its developmental progression is highly sensitive to environmental changes including temperature fluctuations, pollution levels, and food availability.
+
+Field researchers collect specimens during regular sampling expeditions, but determining the exact developmental stage requires expensive laboratory analysis that can take weeks to complete. The research team needs a faster, more cost-effective method to classify specimens in the field, enabling real-time ecosystem monitoring and more responsive conservation efforts.
+
+The ability to quickly and accurately identify developmental stages would revolutionize their research workflow, allowing for immediate data collection and analysis during critical environmental events such as temperature spikes, algal blooms, or pollution incidents. This rapid classification system could serve as an early warning system for ecosystem disruption.
+
+# Problem Statement
+
+Given measurable physical characteristics, age, and environmental conditions, can we accurately predict which of the five developmental stages an organism has reached? This multi-class classification problem requires distinguishing between subtle but important biological transitions that occur throughout the organism's life cycle.
+
+# Target Variable
+
+**Developmental Stage (5 life phases)**: This categorical variable represents the current life phase of the organism, encoded as stages 1 through 5. Each stage corresponds to distinct biological processes:
+- **Stage 1**: Larval phase with rapid cellular division
+- **Stage 2**: Early juvenile with initial organ formation  
+- **Stage 3**: Late juvenile with sexual differentiation
+- **Stage 4**: Adult reproductive phase
+- **Stage 5**: Senescent phase with declining reproductive capacity
+
+Accurate stage classification is crucial for understanding population dynamics, predicting reproductive success, assessing environmental stress impacts, and timing conservation interventions. Misclassification could lead to incorrect population assessments and ineffective management strategies.
+
+# Predictor Variables
+
+The dataset includes four key predictor variables that biologists have identified as most relevant for developmental stage determination:
+
+- **Size**: Body length measured in millimeters, representing overall growth progression. Size typically increases with developmental stage but can be influenced by environmental factors and individual genetic variation.
+
+- **Morphological Features**: A composite score (0-100) capturing key anatomical characteristics such as appendage development, shell thickness, pigmentation patterns, and organ visibility. Higher scores generally indicate more advanced developmental features.
+
+- **Time Since Birth**: Age in days from documented birth/hatching event. While developmental progression is generally age-related, environmental factors can accelerate or delay transitions between stages.
+
+- **Environmental Cues**: A standardized index (0-10) representing favorable environmental conditions including water temperature, food availability, and chemical composition. Optimal conditions (higher scores) typically promote normal developmental progression.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds098_biology_developmental_stage_5_life_phases.csv`): Perfect for initial model development and learning fundamental classification techniques. Contains complete data with no missing values or outliers.
+
+- **Dirty Version** (`ds098_biology_developmental_stage_5_life_phases_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as measurement errors, damaged specimens, or incomplete field records. Ideal for practicing data cleaning and robust modeling techniques.
+
+# Suggested Approaches
+
+Consider these machine learning approaches for this multi-class classification problem:
+
+- **Random Forest**: Excellent for handling mixed data types and providing feature importance insights. The ensemble approach works well with biological data where relationships may be non-linear and interactions between variables are important.
+
+- **Support Vector Machine (SVM)**: Particularly effective for multi-class problems with clear decision boundaries. Can handle the complexity of biological classification while maintaining interpretability.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful for capturing subtle patterns in developmental transitions. The boosting approach can identify complex relationships between morphological features and environmental factors.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 98 |
+| Domain | Biology |
+| Problem Type | Multi-class Classification (5 classes) |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Clean Version | `csv/ds098_biology_developmental_stage_5_life_phases.csv` |
+| Dirty Version | `csv/ds098_biology_developmental_stage_5_life_phases_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Class Distribution | Approximately balanced across 5 stages |
+| Difficulty Level | Intermediate |
+
+# Learning Objectives
+
+Working with this dataset will help students:
+
+- Practice multi-class classification techniques
+- Understand biological data characteristics and challenges  
+- Learn to handle missing values and outliers in real-world scenarios
+- Develop feature interpretation skills in scientific contexts
+- Apply cross-validation strategies for model evaluation
+- Compare different classification algorithms' performance
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic biological patterns while maintaining clear learning objectives. The data structure and variable relationships are based on actual marine biology research methodologies, making this dataset an excellent bridge between academic learning and real-world scientific applications.

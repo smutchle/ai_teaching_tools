@@ -1,0 +1,150 @@
+{
+  "dataset_config": {
+    "name": "ds079_business_ad_click_yesno",
+    "description": "Predict engagement with digital advertisement",
+    "random_seed": 79,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "headline_relevance_score",
+          "click_through_rate"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "user_age",
+          "user_income_k"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "ad_position_rank",
+          "click_through_rate"
+        ],
+        "correlation": -0.55,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "ad_position_rank",
+        "description": "Position of ad on page (1=top, higher=lower)",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 1,
+          "max": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "image_quality_score",
+        "description": "Image content quality score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 18,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "headline_relevance_score",
+        "description": "Headline relevance to user interests (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 1.8,
+          "min_clip": 0,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "user_age",
+        "description": "User age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 38,
+          "std": 12,
+          "min_clip": 18,
+          "max_clip": 75
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "user_income_k",
+        "description": "User annual income in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 55,
+          "location": 25
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "time_of_day_hour",
+        "description": "Hour of day when ad was shown (0-23)",
+        "data_type": "int",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 23
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "click_through_rate",
+        "description": "Historical CTR for similar ads (0-1)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.045,
+          "std": 0.025,
+          "min_clip": 0.001,
+          "max_clip": 0.2
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "ad_click_yesno",
+      "description": "Whether user clicked on the advertisement",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-3.2 - 0.25*ad_position_rank + 0.02*image_quality_score + 0.35*headline_relevance_score - 0.008*user_age + 0.012*user_income_k + 0.15*np.sin(2*3.141592654*time_of_day_hour/24) + 8*click_through_rate)))",
+      "noise_percent": 2.5,
+      "categories": [
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "No",
+        "Yes",
+        "Yes",
+        "Yes"
+      ],
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

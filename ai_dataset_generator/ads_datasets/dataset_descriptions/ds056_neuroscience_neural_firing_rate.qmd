@@ -1,0 +1,89 @@
+---
+title: "Dataset 56: Neural Firing Rate Prediction in Computational Neuroscience"
+format: html
+---
+
+# Overview
+
+This dataset captures the complex relationship between various neurobiological factors and neural firing rates in cortical neurons. Students will predict action potential frequency (spikes per second) based on stimulus characteristics, cellular properties, and network dynamics. This regression problem introduces learners to the quantitative aspects of computational neuroscience while providing hands-on experience with biological data patterns.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds056_neuroscience_neural_firing_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds056_neuroscience_neural_firing_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Dr. Sarah Chen's computational neuroscience lab at the Neural Systems Institute is developing a brain-computer interface (BCI) system to help paralyzed patients control robotic prosthetics through thought alone. The success of their BCI depends critically on accurately predicting how individual neurons will respond to different stimuli and changing brain states.
+
+The research team has been recording from hundreds of neurons in the motor cortex of volunteer patients during various motor imagery tasks. They need to understand how factors like stimulus strength, neuron classification, local network connectivity, and chemical neuromodulator levels influence the rate at which neurons fire action potentials. This knowledge will allow them to optimize stimulus protocols and improve the precision of their brain-computer interface.
+
+Traditional approaches rely on simplified models that often fail to capture the rich dynamics of neural responses. By developing machine learning models that can accurately predict firing rates from multiple biological variables, the team hopes to create more responsive and intuitive prosthetic control systems that could dramatically improve quality of life for paralyzed individuals.
+
+# Problem Statement
+
+Given measurements of stimulus intensity, neuron type, network connectivity metrics, and neuromodulator concentrations, predict the neural firing rate (action potentials per second) of individual cortical neurons. This is a regression problem where accurate predictions could enable better brain-computer interface design and deepen our understanding of neural computation.
+
+# Target Variable
+
+**Neural Firing Rate**: Measured in action potentials per second (Hz), this represents how frequently a neuron generates electrical spikes. Firing rates typically range from 0-100 Hz in cortical neurons, with most neurons firing between 1-50 Hz during active states. This variable is crucial because:
+
+- It directly correlates with information transmission in the brain
+- Higher firing rates generally indicate stronger neural responses to stimuli
+- Firing rate patterns encode motor intentions that BCIs must decode
+- Understanding firing rate dynamics is essential for treating neurological disorders
+- It serves as a fundamental measure of neural activity in computational models
+
+# Predictor Variables
+
+**Stimulus Intensity**: The strength of external input to the neuron, measured in standardized units (0-100). Higher intensities typically drive increased firing rates, but the relationship may be nonlinear due to saturation effects and inhibitory mechanisms.
+
+**Neuron Type**: Categorical variable indicating the morphological and functional class of the neuron (e.g., pyramidal, interneuron, fast-spiking). Different neuron types have distinct firing properties, with pyramidal cells typically showing sustained responses while interneurons often exhibit rapid, brief bursts.
+
+**Network Connectivity**: A continuous measure (0-1) representing how well-connected the neuron is within the local neural circuit. Highly connected neurons may show enhanced responses due to network amplification, but could also experience more inhibitory input.
+
+**Neuromodulators**: Concentration levels of chemical messengers like dopamine, acetylcholine, and norepinephrine that modulate neural excitability. These substances can dramatically alter firing patterns and represent the brain's internal state and attention levels.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds056_neuroscience_neural_firing_rate.csv`): Ideal for initial model development and learning core concepts without data quality complications
+- **Dirty Version** (`ds056_neuroscience_neural_firing_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world experimental conditions where electrode recordings may fail or artifacts contaminate measurements
+
+# Suggested Approaches
+
+**Random Forest Regression**: Excellent for capturing nonlinear relationships between biological variables and handling mixed data types (categorical neuron types with continuous variables). The model's interpretability features can reveal which factors most strongly influence firing rates.
+
+**Gradient Boosting (XGBoost/LightGBM)**: Well-suited for this problem due to its ability to model complex interactions between stimulus intensity, neuron type, and network effects. Particularly effective when neuromodulator levels create conditional relationships.
+
+**Neural Networks**: Given the biological inspiration, deep learning approaches can capture sophisticated nonlinear dynamics. Consider using regularization techniques to prevent overfitting, especially when working with the smaller clean dataset.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 56 |
+| Domain | Neuroscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds056_neuroscience_neural_firing_rate.csv` |
+| Dirty Version | `csv/ds056_neuroscience_neural_firing_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects actual patterns observed in neuroscience research, including nonlinear stimulus-response curves, cell-type-specific firing properties, and neuromodulatory effects on neural excitability.

@@ -1,9 +1,9 @@
 {
   "dataset_config": {
     "name": "ds002_business_employee_productivity_score",
-    "description": "Dataset to predict employee productivity scores based on experience, training, team dynamics, and work arrangements",
+    "description": "Employee productivity dataset measuring individual output and efficiency based on experience, training, team dynamics, and work arrangements",
     "random_seed": 2,
-    "n_rows": 1000,
+    "n_rows": 500000,
     "correlations": [
       {
         "variables": [
@@ -15,7 +15,7 @@
       },
       {
         "variables": [
-          "training_hours",
+          "training_hours_completed",
           "skill_certifications"
         ],
         "correlation": 0.55,
@@ -24,9 +24,17 @@
       {
         "variables": [
           "team_size",
-          "project_complexity"
+          "project_complexity_score"
         ],
         "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "years_experience",
+          "training_hours_completed"
+        ],
+        "correlation": 0.35,
         "method": "cholesky"
       }
     ],
@@ -38,23 +46,25 @@
         "distribution": {
           "type": "weibull",
           "shape": 2.0,
-          "scale": 8.0,
+          "scale": 8.5,
           "location": 0.5
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
-        "name": "training_hours",
-        "description": "Annual training hours completed",
-        "data_type": "float",
+        "name": "training_hours_completed",
+        "description": "Total professional development and training hours completed annually",
+        "data_type": "int",
         "distribution": {
           "type": "normal",
           "mean": 45,
-          "std": 15,
-          "min_clip": 10,
+          "std": 18,
+          "min_clip": 5,
           "max_clip": 120
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
         "name": "team_size",
@@ -62,71 +72,90 @@
         "data_type": "int",
         "distribution": {
           "type": "normal",
-          "mean": 8,
+          "mean": 7,
           "std": 3,
-          "min_clip": 3,
-          "max_clip": 20
+          "min_clip": 2,
+          "max_clip": 15
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
         "name": "work_from_home_days",
-        "description": "Number of work-from-home days per month",
+        "description": "Average number of remote work days per week",
         "data_type": "float",
         "distribution": {
           "type": "uniform",
-          "min": 0,
-          "max": 15
+          "min": 0.0,
+          "max": 5.0
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
         "name": "base_salary",
-        "description": "Annual base salary in thousands",
+        "description": "Annual base salary in thousands USD",
         "data_type": "float",
         "distribution": {
           "type": "normal",
           "mean": 75,
-          "std": 20,
+          "std": 25,
           "min_clip": 35,
-          "max_clip": 150
+          "max_clip": 180
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
         "name": "skill_certifications",
         "description": "Number of professional certifications held",
         "data_type": "int",
         "distribution": {
-          "type": "normal",
-          "mean": 3,
-          "std": 2,
-          "min_clip": 0,
-          "max_clip": 10
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 3.2,
+          "location": 0
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       },
       {
-        "name": "project_complexity",
-        "description": "Average project complexity score (1-10 scale)",
+        "name": "project_complexity_score",
+        "description": "Average complexity rating of assigned projects (1-10 scale)",
         "data_type": "float",
         "distribution": {
           "type": "normal",
-          "mean": 6.5,
+          "mean": 6.2,
           "std": 1.8,
-          "min_clip": 1,
-          "max_clip": 10
+          "min_clip": 1.0,
+          "max_clip": 10.0
         },
-        "missing_rate": 0.0
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "meeting_hours_per_week",
+        "description": "Average hours spent in meetings per week",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12,
+          "std": 5,
+          "min_clip": 2,
+          "max_clip": 30
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
       }
     ],
     "target": {
       "name": "employee_productivity_score",
-      "description": "Quantify individual employee output and efficiency",
+      "description": "Composite productivity score measuring employee output and efficiency (0-100 scale)",
       "data_type": "float",
-      "expression": "50 + 2.5*years_experience + 0.8*training_hours - 0.5*team_size + 0.3*work_from_home_days + 0.15*base_salary + 1.2*skill_certifications + 2.0*project_complexity",
+      "expression": "45 + 1.8*years_experience + 0.25*training_hours_completed + 0.8*team_size + 2.2*work_from_home_days + 0.12*base_salary + 1.5*skill_certifications + 2.5*project_complexity_score - 0.35*meeting_hours_per_week",
       "noise_percent": 2.5,
-      "missing_rate": 0.0
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
     }
   }
 }

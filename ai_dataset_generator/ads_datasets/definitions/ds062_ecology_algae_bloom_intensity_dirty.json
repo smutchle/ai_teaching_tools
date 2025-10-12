@@ -1,0 +1,179 @@
+{
+  "dataset_config": {
+    "name": "ds062_ecology_algae_bloom_intensity_dirty",
+    "description": "Measure chlorophyll concentration in water bodies based on nutrient loading, water temperature, light availability, and flow rate",
+    "random_seed": 62,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "nitrogen_loading",
+          "phosphorus_loading"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "water_temperature",
+          "light_penetration"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "dissolved_oxygen",
+          "flow_rate"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "nitrogen_loading",
+          "water_temperature"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "nitrogen_loading",
+        "description": "Total nitrogen concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 2.5,
+          "location": 0.1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "phosphorus_loading",
+        "description": "Total phosphorus concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 0.8,
+          "location": 0.05
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "water_temperature",
+        "description": "Water temperature in degrees Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 18.5,
+          "std": 6.2,
+          "min_clip": 2.0,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "light_penetration",
+        "description": "Light availability as Secchi disk depth in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 1.4,
+          "min_clip": 0.2,
+          "max_clip": 8.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "flow_rate",
+        "description": "Water flow rate in cubic meters per second",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 12.0,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "dissolved_oxygen",
+        "description": "Dissolved oxygen concentration in mg/L",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.2,
+          "std": 2.1,
+          "min_clip": 1.0,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "ph_level",
+        "description": "Water pH level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.8,
+          "std": 0.8,
+          "min_clip": 5.5,
+          "max_clip": 9.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "turbidity",
+        "description": "Water turbidity in NTU",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.3,
+          "scale": 15.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "algae_bloom_intensity",
+      "description": "Chlorophyll concentration in micrograms per liter",
+      "data_type": "float",
+      "expression": "5.2 + 8.5*nitrogen_loading + 12.3*phosphorus_loading + 1.8*water_temperature + 2.1*light_penetration - 0.4*flow_rate - 0.6*dissolved_oxygen + 1.5*ph_level + 0.3*turbidity",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

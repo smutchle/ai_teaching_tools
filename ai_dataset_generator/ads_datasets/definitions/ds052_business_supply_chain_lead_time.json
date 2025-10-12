@@ -1,0 +1,140 @@
+{
+  "dataset_config": {
+    "name": "ds052_business_supply_chain_lead_time",
+    "description": "Estimate days from order to delivery based on supplier distance, order complexity, customs requirements, and shipping method",
+    "random_seed": 52,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "supplier_distance_km",
+          "shipping_cost"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "order_complexity_score",
+          "customs_processing_hours"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "shipping_priority_level",
+          "shipping_cost"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "supplier_distance_km",
+        "description": "Distance from supplier to destination in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 2500,
+          "location": 50
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "order_complexity_score",
+        "description": "Complexity score of the order from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 2.0,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "customs_processing_hours",
+        "description": "Expected customs processing time in hours",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 12,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "shipping_priority_level",
+        "description": "Shipping priority level from 1 (standard) to 5 (express)",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.8,
+          "std": 1.2,
+          "min_clip": 1,
+          "max_clip": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "shipping_cost",
+        "description": "Shipping cost in USD",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 150,
+          "std": 75,
+          "min_clip": 25,
+          "max_clip": 500
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "order_weight_kg",
+        "description": "Total weight of the order in kilograms",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 25,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "supplier_reliability_score",
+        "description": "Supplier reliability score from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 7.5,
+          "std": 1.5,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "supply_chain_lead_time",
+      "description": "Total lead time from order to delivery in days",
+      "data_type": "float",
+      "expression": "3 + 0.002*supplier_distance_km + 1.5*order_complexity_score + 0.08*customs_processing_hours - 2.5*shipping_priority_level + 0.3*order_weight_kg - 0.5*supplier_reliability_score",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

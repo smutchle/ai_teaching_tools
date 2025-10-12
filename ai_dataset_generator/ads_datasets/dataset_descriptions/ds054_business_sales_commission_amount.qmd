@@ -1,0 +1,92 @@
+---
+title: "Dataset 54: Sales Commission Optimization - Predicting Fair Compensation in B2B Sales"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting sales commission amounts for business-to-business (B2B) sales representatives based on deal characteristics and contextual factors. It provides an excellent opportunity to explore regression modeling in a realistic business context where fair compensation directly impacts employee motivation, retention, and overall sales performance.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds054_business_sales_commission_amount.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds054_business_sales_commission_amount_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+TechSolutions Global, a mid-sized software company, has been struggling with sales team turnover and inconsistent commission calculations across their regional offices. With over 200 sales representatives worldwide, the company's current commission structure relies heavily on manual calculations by regional managers, leading to perceived unfairness and disputes over compensation.
+
+The Head of Sales Operations has initiated a data-driven approach to standardize commission calculations across all regions. By analyzing historical sales data and commission payouts, the company aims to develop a predictive model that can automatically calculate fair and consistent commission amounts based on objective deal characteristics. This system would not only ensure transparency but also help sales representatives understand how different factors influence their potential earnings.
+
+The stakes are high: sales representatives who feel unfairly compensated are 40% more likely to leave within six months, and replacing a skilled sales professional costs approximately $75,000 in recruitment, training, and lost productivity. A fair, predictable commission structure could significantly improve retention while maintaining competitive compensation levels.
+
+# Problem Statement
+
+Develop a regression model to predict appropriate commission amounts for sales deals based on deal characteristics, negotiation factors, and market context. The model should provide consistent, fair compensation calculations that can be applied across different regions and product lines while maintaining competitive compensation levels.
+
+# Target Variable
+
+**Sales Commission Amount**: The monetary commission paid to the sales representative for closing a deal, measured in USD. This variable represents the actual compensation earned and serves as the ground truth for developing fair compensation models. Predicting commission amounts accurately is crucial for:
+
+- **Budget Planning**: Finance teams need to forecast commission expenses accurately
+- **Sales Motivation**: Representatives can estimate potential earnings for pipeline deals
+- **Fairness and Transparency**: Consistent calculations reduce disputes and improve morale
+- **Competitive Positioning**: Ensures compensation remains attractive compared to industry standards
+
+Commission amounts typically range from $500 for small deals to $25,000+ for enterprise-level contracts, reflecting the significant variation in deal complexity and value.
+
+# Predictor Variables
+
+- **Deal Size**: The total monetary value of the closed deal in USD. Larger deals typically warrant higher commission rates due to increased effort, longer sales cycles, and greater impact on company revenue.
+
+- **Product Mix**: Categorical variable indicating the primary product category sold (Software License, Cloud Subscription, Professional Services, Hardware, or Hybrid Bundle). Different products have varying profit margins and strategic importance, influencing commission rates.
+
+- **Negotiation Duration**: The number of days from initial contact to deal closure. Longer negotiations often involve more complex deals, multiple stakeholders, and greater sales effort, potentially justifying higher compensation.
+
+- **Client Industry**: The industry sector of the purchasing organization (Technology, Healthcare, Finance, Manufacturing, Retail, Government, etc.). Some industries are more strategic or challenging to penetrate, affecting commission structures.
+
+- **Region**: Geographic sales region (North America, Europe, Asia-Pacific, Latin America, Middle East/Africa). Regional differences in market maturity, competition, and cost of living influence compensation levels.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds054_business_sales_commission_amount.csv`): Ideal for initial model development and learning, with no missing values or extreme outliers
+- **Dirty Version** (`ds054_business_sales_commission_amount_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete CRM records or data entry errors
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with interpretable models to understand the relationship between deal characteristics and commission amounts. Feature engineering might include interaction terms between deal size and product mix.
+
+- **Random Forest Regression**: Capture non-linear relationships and interactions between variables, particularly useful for modeling how commission rates might vary across different combinations of region, industry, and product type.
+
+- **Gradient Boosting Models (XGBoost/LightGBM)**: Achieve high predictive accuracy while maintaining reasonable interpretability through feature importance analysis, crucial for explaining commission calculations to sales teams.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 54 |
+| Domain | Business |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds054_business_sales_commission_amount.csv` |
+| Dirty Version | `csv/ds054_business_sales_commission_amount_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The commission structures and industry patterns reflect common practices in B2B software sales but should not be used for actual compensation decisions.

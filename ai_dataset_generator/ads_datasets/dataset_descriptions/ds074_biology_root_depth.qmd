@@ -1,0 +1,90 @@
+---
+title: "Dataset 74: Plant Root Depth Prediction for Ecological Restoration"
+format: html
+---
+
+# Overview
+
+This dataset contains measurements of plant rooting systems across various soil conditions and plant species, designed to predict maximum root penetration depth. The data simulates field measurements from ecological restoration sites where understanding root architecture is crucial for successful plant establishment and ecosystem recovery.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds074_biology_root_depth.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds074_biology_root_depth_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Following severe wildfire damage in a Mediterranean ecosystem, restoration ecologists need to select appropriate plant species for different microhabitats within the recovery zone. The success of restoration efforts heavily depends on matching plants with suitable rooting characteristics to specific soil conditions. Deep-rooted species can access groundwater during dry periods and provide soil stabilization, while shallow-rooted species may be better suited for areas with hardpan layers or seasonal waterlogging.
+
+Field researchers have collected data from 500,000 sampling points across the restoration site, measuring soil properties and documenting the maximum rooting depth achieved by different plant species. This information will inform species selection guidelines and help predict which plants are likely to establish successfully in different areas of the restoration zone.
+
+The restoration team needs a predictive model that can estimate potential rooting depth based on easily measurable soil characteristics and planned species selections. This will allow them to optimize plant placement across the landscape and identify areas that may require soil amendments before planting.
+
+# Problem Statement
+
+Develop a regression model to predict maximum root depth (in centimeters) based on soil physical and chemical properties and plant species characteristics. The model should help restoration practitioners make informed decisions about species-site matching in ecological restoration projects.
+
+# Target Variable
+
+**Root Depth**: Maximum vertical penetration of plant roots measured in centimeters from the soil surface. This metric is critical for understanding a plant's ability to access deep water sources, contribute to soil stabilization, and compete successfully in different environments. Accurate prediction of root depth helps ecologists assess drought tolerance, erosion control potential, and long-term establishment success of planted species.
+
+# Predictor Variables
+
+- **Soil Moisture**: Volumetric water content (%) measured at 30cm depth during the growing season. Higher moisture levels generally promote deeper root growth by reducing the energetic cost of root extension.
+
+- **Soil Texture**: Categorical classification (clay, loam, sand) indicating the relative proportions of particle sizes. Clay soils may restrict root penetration due to compaction, while sandy soils allow easier root extension but may lack water retention.
+
+- **Soil Compaction**: Bulk density measurement (g/cm³) indicating soil compactness. Higher compaction values create physical barriers to root penetration and can significantly limit maximum rooting depth.
+
+- **Species**: Plant species identifier indicating the taxonomic group. Different species have evolved distinct rooting strategies, from shallow fibrous systems to deep taproots, reflecting their ecological adaptations.
+
+- **Nutrient Distribution**: Depth-weighted index of available nitrogen and phosphorus in the soil profile. Uniform nutrient distribution encourages deeper rooting, while surface-concentrated nutrients may promote shallow root systems.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds074_biology_root_depth.csv`): Ideal for initial model development and learning basic regression techniques without data quality complications
+- **Dirty Version** (`ds074_biology_root_depth_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world field data collection challenges such as equipment failures, measurement errors, and extreme environmental conditions
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for handling mixed data types (categorical species, continuous soil measurements) and capturing non-linear relationships between soil properties and root growth
+- **Gradient Boosting**: Effective for modeling complex interactions between soil factors and species characteristics, with built-in feature importance ranking
+- **Multiple Linear Regression with Interactions**: Interpretable baseline approach that can reveal how soil conditions differently affect various species' rooting patterns
+
+```r
+# Example loading code
+library(readr)
+clean_data <- read_csv("csv/ds074_biology_root_depth.csv")
+dirty_data <- read_csv("csv/ds074_biology_root_depth_dirty.csv")
+```
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 74 |
+| Domain | Biology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds074_biology_root_depth.csv` |
+| Dirty Version | `csv/ds074_biology_root_depth_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The dataset incorporates established ecological principles about plant-soil interactions and root architecture patterns observed in Mediterranean ecosystems.

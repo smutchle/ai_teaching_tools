@@ -1,0 +1,89 @@
+---
+title: "Dataset 99: Micronutrient Status Classification in Human Populations"
+format: html
+---
+
+# Overview
+
+This dataset contains comprehensive nutritional assessment data for classifying micronutrient status in human populations. It combines dietary intake assessments, biochemical markers, anthropometric measurements, and absorption capacity indicators to predict whether individuals have deficient, adequate, or excess levels of essential micronutrients. This multi-class classification problem is fundamental to nutritional epidemiology and public health interventions.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds099_biology_nutritional_status_deficientadequateexcess.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds099_biology_nutritional_status_deficientadequateexcess_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Micronutrient deficiencies affect over 2 billion people worldwide, leading to serious health consequences including impaired immune function, developmental delays, and increased mortality risk. Traditional methods of assessing nutritional status rely heavily on expensive laboratory tests that may not be readily available in resource-limited settings. Public health organizations need cost-effective screening tools to identify at-risk populations and design targeted intervention programs.
+
+Consider a scenario where a global health NGO is working with rural communities in Southeast Asia to address widespread malnutrition. They have limited resources for comprehensive laboratory testing but can collect dietary surveys, basic anthropometric measurements, and simple biomarker assessments. By developing a predictive model using this dataset, they could create a screening tool that identifies individuals most likely to have micronutrient deficiencies, allowing them to prioritize interventions and allocate resources more effectively.
+
+This approach could also be valuable for healthcare systems in developing countries, where early identification of nutritional status could prevent progression to severe deficiency states and reduce healthcare costs associated with treating advanced malnutrition complications.
+
+# Problem Statement
+
+The goal is to develop a classification model that can accurately predict an individual's micronutrient status (Deficient/Adequate/Excess) based on readily obtainable dietary, anthropometric, and basic biochemical indicators. This prediction could enable early intervention, improve resource allocation in public health programs, and support personalized nutrition recommendations.
+
+# Target Variable
+
+**Nutritional Status (Deficient/Adequate/Excess)**: This three-class target variable represents the overall micronutrient status of individuals based on composite assessments of essential vitamins and minerals including iron, zinc, vitamin A, vitamin D, folate, and vitamin B12. 
+
+- **Deficient**: Individuals with one or more micronutrient levels below established clinical thresholds, indicating increased risk of health complications
+- **Adequate**: Individuals with micronutrient levels within normal physiological ranges
+- **Excess**: Individuals with elevated micronutrient levels that may indicate over-supplementation or metabolic dysfunction
+
+Accurate prediction of this status is crucial for preventing both deficiency-related diseases (anemia, night blindness, neural tube defects) and toxicity from excessive intake, while optimizing nutritional interventions at the population level.
+
+# Predictor Variables
+
+- **Diet Quality**: Composite score based on dietary diversity, frequency of nutrient-rich foods consumption, and adherence to recommended dietary patterns. Higher scores indicate better overall diet quality and greater likelihood of adequate micronutrient intake.
+
+- **Biomarkers**: Laboratory measurements including serum ferritin, hemoglobin levels, retinol concentrations, and other biochemical indicators that directly reflect micronutrient status. These provide objective measures of nutritional state but may be influenced by inflammation and other factors.
+
+- **Anthropometry**: Physical measurements including height, weight, BMI, and body composition indicators. These reflect overall nutritional status and can indicate chronic malnutrition or metabolic conditions that affect micronutrient metabolism.
+
+- **Absorption Capacity**: Indicators of gastrointestinal health and nutrient absorption efficiency, including measures of gut inflammation, digestive enzyme activity, and presence of absorption-impairing conditions. This variable accounts for individual differences in nutrient bioavailability.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds099_biology_nutritional_status_deficientadequateexcess.csv`): Ideal for initial model development and learning, with complete data for all observations and no measurement errors
+- **Dirty Version** (`ds099_biology_nutritional_status_deficientadequateexcess_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete dietary recalls, failed laboratory tests, and measurement errors
+
+# Suggested Approaches
+
+- **Random Forest**: Excellent for handling mixed data types and capturing non-linear relationships between nutritional variables, while providing feature importance rankings to identify key predictors
+- **Gradient Boosting (XGBoost/LightGBM)**: Effective for achieving high predictive accuracy with imbalanced nutritional status classes and handling complex interactions between dietary and metabolic factors
+- **Logistic Regression (Multinomial)**: Provides interpretable coefficients for understanding the relationship between predictors and nutritional outcomes, valuable for clinical decision-making and policy recommendations
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 99 |
+| Domain | Biology |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Target Classes | 3 (Deficient/Adequate/Excess) |
+| Clean Version | `csv/ds099_biology_nutritional_status_deficientadequateexcess.csv` |
+| Dirty Version | `csv/ds099_biology_nutritional_status_deficientadequateexcess_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic biological and nutritional principles while maintaining interpretability for learning objectives. The data structure and variable relationships are based on established nutritional epidemiology research but do not represent actual human subjects data.

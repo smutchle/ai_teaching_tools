@@ -1,0 +1,182 @@
+{
+  "dataset_config": {
+    "name": "ds084_ecology_wetland_type_marshswampbogfen",
+    "description": "Classify wetland ecosystem categories based on hydrology, vegetation, soil chemistry, climate, and topography",
+    "random_seed": 84,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "water_depth_cm",
+          "soil_ph"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_precipitation_mm",
+          "water_depth_cm"
+        ],
+        "correlation": 0.52,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "organic_matter_percent",
+          "soil_ph"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "elevation_m",
+          "annual_precipitation_mm"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "vegetation_density_index",
+          "water_depth_cm"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "water_depth_cm",
+        "description": "Average water depth in centimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 25.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "soil_ph",
+        "description": "Soil pH level",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 1.1,
+          "min_clip": 3.5,
+          "max_clip": 8.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "organic_matter_percent",
+        "description": "Percentage of organic matter in soil",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 15.0,
+          "location": 2.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "annual_precipitation_mm",
+        "description": "Annual precipitation in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 850.0,
+          "std": 180.0,
+          "min_clip": 400.0,
+          "max_clip": 1500.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "elevation_m",
+        "description": "Elevation above sea level in meters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 320.0,
+          "std": 85.0,
+          "min_clip": 0.0,
+          "max_clip": 800.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "vegetation_density_index",
+        "description": "Vegetation density index (0-100 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65.0,
+          "std": 18.0,
+          "min_clip": 10.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "nitrogen_content_ppm",
+        "description": "Soil nitrogen content in parts per million",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 45.0,
+          "location": 8.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "temperature_range_c",
+        "description": "Annual temperature range in Celsius",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 22.0,
+          "std": 6.5,
+          "min_clip": 8.0,
+          "max_clip": 40.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "wetland_type_marshswampbogfen",
+      "description": "Wetland ecosystem type classification",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(0.08*water_depth_cm - 0.95*soil_ph + 0.12*organic_matter_percent + 0.002*annual_precipitation_mm - 0.005*elevation_m + 0.03*vegetation_density_index + 0.02*nitrogen_content_ppm - 0.15*temperature_range_c - 2.5)))",
+      "noise_percent": 2.5,
+      "categories": [
+        "Bog",
+        "Bog",
+        "Fen",
+        "Fen",
+        "Fen",
+        "Marsh",
+        "Marsh",
+        "Marsh",
+        "Swamp",
+        "Swamp"
+      ],
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

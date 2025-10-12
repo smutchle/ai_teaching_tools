@@ -1,0 +1,97 @@
+---
+title: "Dataset 30: Cognitive Decline Classification in Aging Populations"
+format: html
+---
+
+# Overview
+
+This comprehensive neuroscience dataset focuses on classifying cognitive impairment stages in aging adults, ranging from normal cognitive function through Mild Cognitive Impairment (MCI) to dementia. The dataset combines multiple data modalities including demographic information, biomarker measurements, neuroimaging features, cognitive assessment scores, and genetic markers to create a rich, multivariate classification challenge that mirrors real-world clinical research scenarios.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds030_neuroscience_cognitive_impairment_normalmcidementia.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds030_neuroscience_cognitive_impairment_normalmcidementia_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Global Alzheimer's Research Institute has been conducting a longitudinal study to develop an early detection system for cognitive decline in aging populations. With over 55 million people worldwide living with dementia and numbers projected to triple by 2050, there is an urgent need for accurate, non-invasive methods to identify individuals at risk of cognitive decline before severe symptoms manifest.
+
+Dr. Sarah Chen, a computational neuroscientist leading the research team, has been tasked with developing a machine learning model that can classify patients into three categories: Normal cognitive function, Mild Cognitive Impairment (MCI), and Dementia. The goal is to create a screening tool that can be deployed in clinical settings to help healthcare providers make more informed decisions about patient care, treatment planning, and resource allocation.
+
+The research team has collected data from 500,000 participants aged 55-90 over a two-year period, combining traditional cognitive assessments with cutting-edge biomarker analysis and neuroimaging techniques. This multi-modal approach provides a comprehensive view of each patient's cognitive health status and represents the kind of rich, complex dataset that modern neuroscience researchers work with daily.
+
+# Problem Statement
+
+The primary objective is to develop a classification model that can accurately distinguish between three stages of cognitive function: Normal, Mild Cognitive Impairment (MCI), and Dementia. This is a challenging multi-class classification problem that requires handling diverse data types and understanding complex interactions between biological, genetic, and cognitive factors. Success in this task could lead to earlier interventions, better patient outcomes, and more efficient healthcare resource utilization.
+
+# Target Variable
+
+**Cognitive Impairment (Normal/MCI/Dementia)**: This three-class target variable represents the clinical diagnosis of cognitive status based on comprehensive neuropsychological evaluation and clinical assessment. 
+
+- **Normal**: Individuals showing age-appropriate cognitive function with no significant decline in memory, executive function, or daily living activities
+- **MCI (Mild Cognitive Impairment)**: Patients experiencing noticeable cognitive changes that are greater than expected for their age but do not significantly interfere with daily life. MCI often represents a transitional stage between normal aging and dementia
+- **Dementia**: Individuals with severe cognitive decline affecting memory, thinking, and reasoning abilities to the extent that it interferes with daily functioning
+
+Accurate prediction of this variable is crucial for early intervention strategies, as treatments are often more effective when implemented during the MCI stage before progression to dementia.
+
+# Predictor Variables
+
+- **Age**: Chronological age of participants (55-90 years). Age is the strongest known risk factor for cognitive decline and provides important baseline information for risk assessment.
+
+- **Biomarkers**: Laboratory measurements including cerebrospinal fluid (CSF) levels of amyloid-beta 42, tau protein, and phosphorylated tau - key proteins associated with Alzheimer's disease pathology. These biomarkers can detect disease-related changes years before clinical symptoms appear.
+
+- **Imaging Features**: Quantitative measurements from structural MRI scans including hippocampal volume, cortical thickness, white matter integrity, and regional brain volumes. These neuroimaging biomarkers reflect structural brain changes associated with cognitive decline.
+
+- **Cognitive Scores**: Results from standardized neuropsychological tests measuring memory, attention, executive function, language, and visuospatial abilities. These scores provide direct assessment of cognitive performance across multiple domains.
+
+- **Genetics**: Genetic risk factors including APOE genotype status (particularly the ε4 allele), family history of dementia, and polygenic risk scores based on known dementia-associated genetic variants. Genetic information provides insight into inherited susceptibility to cognitive decline.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds030_neuroscience_cognitive_impairment_normalmcidementia.csv`): Ideal for initial model development and learning. All variables are complete with no missing values or outliers, allowing students to focus on model selection and evaluation techniques.
+
+- **Dirty Version** (`ds030_neuroscience_cognitive_impairment_normalmcidementia_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in clinical research. This version is perfect for practicing data preprocessing, missing value imputation, and outlier detection techniques.
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling mixed data types and providing feature importance rankings. The ensemble approach works well with the diverse predictor variables and can capture complex interactions between biomarkers, imaging features, and cognitive scores.
+
+- **Gradient Boosting Methods (XGBoost, LightGBM)**: These methods excel at handling tabular data with mixed variable types and can effectively model the sequential nature of cognitive decline (Normal → MCI → Dementia).
+
+- **Support Vector Machines with RBF Kernel**: Particularly effective for multi-class classification problems with complex decision boundaries, which is common when dealing with overlapping clinical categories like MCI.
+
+- **Neural Networks**: Deep learning approaches can capture complex non-linear relationships between the diverse predictor variables and may be especially useful for integrating the different data modalities (genetic, imaging, cognitive, biomarker).
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 30 |
+| Domain | Neuroscience |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 15 |
+| Target Classes | 3 (Normal, MCI, Dementia) |
+| Clean Version | `csv/ds030_neuroscience_cognitive_impairment_normalmcidementia.csv` |
+| Dirty Version | `csv/ds030_neuroscience_cognitive_impairment_normalmcidementia_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Class Distribution | Approximately balanced across three categories |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect current understanding of cognitive decline mechanisms while maintaining interpretability for learning. The dataset incorporates realistic correlations between age, genetic risk factors, biomarkers, and cognitive outcomes based on established neuroscience literature. Students working with this dataset will gain experience with multi-modal data integration, clinical classification challenges, and the complexities of real-world healthcare data analysis.

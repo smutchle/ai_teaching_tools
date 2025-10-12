@@ -1,0 +1,175 @@
+---
+title: "ADS Datasets - Synthetic Datasets for Data Science Education"
+format: html
+---
+
+# Welcome
+
+This collection contains 100 synthetic datasets designed for teaching and learning data science concepts. Each dataset is provided in two versions:
+
+- **Clean Version**: No missing values or outliers - ideal for initial model development
+- **Dirty Version**: Contains 2% missing values and 1% outliers - simulates real-world data challenges
+
+All datasets are synthetic and generated for educational purposes.
+
+# Dataset Catalog
+
+
+## Biology
+
+- 📊 [021: Plant Growth Rate](dataset_descriptions/ds021_biology_plant_growth_rate.qmd)
+- 📊 [022: Protein Expression Level](dataset_descriptions/ds022_biology_protein_expression_level.qmd)
+- 📊 [023: Enzyme Activity](dataset_descriptions/ds023_biology_enzyme_activity.qmd)
+- 📊 [024: Organism Lifespan](dataset_descriptions/ds024_biology_organism_lifespan.qmd)
+- 🏷️ [046: Disease Status (Healthy/Infected/Resistant)](dataset_descriptions/ds046_biology_disease_status_healthyinfectedresistant.qmd)
+- 🏷️ [047: Cell Type (6 tissue classes)](dataset_descriptions/ds047_biology_cell_type_6_tissue_classes.qmd)
+- 🏷️ [048: Treatment Response (Responder/Non-responder)](dataset_descriptions/ds048_biology_treatment_response_respondernon_responder.qmd)
+- 🏷️ [049: Organism Sex (Male/Female/Hermaphrodite)](dataset_descriptions/ds049_biology_organism_sex_malefemalehermaphrodite.qmd)
+- 📊 [071: Metabolic Rate](dataset_descriptions/ds071_biology_metabolic_rate.qmd)
+- 📊 [072: Photosynthesis Efficiency](dataset_descriptions/ds072_biology_photosynthesis_efficiency.qmd)
+- 📊 [073: Antibody Titer](dataset_descriptions/ds073_biology_antibody_titer.qmd)
+- 📊 [074: Root Depth](dataset_descriptions/ds074_biology_root_depth.qmd)
+- 🏷️ [096: Pollination Syndrome (Wind/Insect/Bird/Bat)](dataset_descriptions/ds096_biology_pollination_syndrome_windinsectbirdbat.qmd)
+- 🏷️ [097: Antimicrobial Resistance (Susceptible/Resistant)](dataset_descriptions/ds097_biology_antimicrobial_resistance_susceptibleresistant.qmd)
+- 🏷️ [098: Developmental Stage (5 life phases)](dataset_descriptions/ds098_biology_developmental_stage_5_life_phases.qmd)
+- 🏷️ [099: Nutritional Status (Deficient/Adequate/Excess)](dataset_descriptions/ds099_biology_nutritional_status_deficientadequateexcess.qmd)
+
+## Business
+
+- 📊 [001: Customer Lifetime Value](dataset_descriptions/ds001_business_customer_lifetime_value.qmd)
+- 📊 [002: Employee Productivity Score](dataset_descriptions/ds002_business_employee_productivity_score.qmd)
+- 📊 [003: Marketing Campaign ROI](dataset_descriptions/ds003_business_marketing_campaign_roi.qmd)
+- 📊 [004: Real Estate Price](dataset_descriptions/ds004_business_real_estate_price.qmd)
+- 📊 [025: Inventory Turnover Days](dataset_descriptions/ds025_business_inventory_turnover_days.qmd)
+- 🏷️ [026: Customer Churn (Yes/No)](dataset_descriptions/ds026_business_customer_churn_yesno.qmd)
+- 🏷️ [027: Loan Default Risk (Low/Med/High)](dataset_descriptions/ds027_business_loan_default_risk_lowmedhigh.qmd)
+- 🏷️ [028: Product Purchase (Yes/No)](dataset_descriptions/ds028_business_product_purchase_yesno.qmd)
+- 🏷️ [029: Employee Attrition (Stay/Leave)](dataset_descriptions/ds029_business_employee_attrition_stayleave.qmd)
+- 🏷️ [050: Market Segment (4 customer types)](dataset_descriptions/ds050_business_market_segment_4_customer_types.qmd)
+- 📊 [051: Website Conversion Rate](dataset_descriptions/ds051_business_website_conversion_rate.qmd)
+- 📊 [052: Supply Chain Lead Time](dataset_descriptions/ds052_business_supply_chain_lead_time.qmd)
+- 📊 [053: Brand Sentiment Score](dataset_descriptions/ds053_business_brand_sentiment_score.qmd)
+- 📊 [054: Sales Commission Amount](dataset_descriptions/ds054_business_sales_commission_amount.qmd)
+- 📊 [075: Customer Satisfaction Score](dataset_descriptions/ds075_business_customer_satisfaction_score.qmd)
+- 🏷️ [076: Fraud Detection (Genuine/Fraudulent)](dataset_descriptions/ds076_business_fraud_detection_genuinefraudulent.qmd)
+- 🏷️ [077: Hiring Decision (Reject/Interview/Offer)](dataset_descriptions/ds077_business_hiring_decision_rejectinterviewoffer.qmd)
+- 🏷️ [078: Warehouse Location Suitability (3 levels)](dataset_descriptions/ds078_business_warehouse_location_suitability_3_levels.qmd)
+- 🏷️ [079: Ad Click (Yes/No)](dataset_descriptions/ds079_business_ad_click_yesno.qmd)
+- 🏷️ [100: Delivery Success (On-time/Delayed/Failed)](dataset_descriptions/ds100_business_delivery_success_on_timedelayedfailed.qmd)
+
+## Ecology
+
+- 📊 [009: Species Abundance](dataset_descriptions/ds009_ecology_species_abundance.qmd)
+- 📊 [010: Forest Biomass](dataset_descriptions/ds010_ecology_forest_biomass.qmd)
+- 📊 [011: Water Quality Index](dataset_descriptions/ds011_ecology_water_quality_index.qmd)
+- 📊 [012: Pollinator Visitation Rate](dataset_descriptions/ds012_ecology_pollinator_visitation_rate.qmd)
+- 🏷️ [034: Habitat Quality (Poor/Fair/Good/Excellent)](dataset_descriptions/ds034_ecology_habitat_quality_poorfairgoodexcellent.qmd)
+- 🏷️ [035: Invasive Species Presence (Yes/No)](dataset_descriptions/ds035_ecology_invasive_species_presence_yesno.qmd)
+- 🏷️ [036: Conservation Priority (Low/Med/High/Critical)](dataset_descriptions/ds036_ecology_conservation_priority_lowmedhighcritical.qmd)
+- 🏷️ [037: Migration Status (Resident/Migratory)](dataset_descriptions/ds037_ecology_migration_status_residentmigratory.qmd)
+- 📊 [059: Carbon Sequestration Rate](dataset_descriptions/ds059_ecology_carbon_sequestration_rate.qmd)
+- 📊 [060: Stream Flow Rate](dataset_descriptions/ds060_ecology_stream_flow_rate.qmd)
+- 📊 [061: Seed Dispersal Distance](dataset_descriptions/ds061_ecology_seed_dispersal_distance.qmd)
+- 📊 [062: Algae Bloom Intensity](dataset_descriptions/ds062_ecology_algae_bloom_intensity.qmd)
+- 🏷️ [084: Wetland Type (Marsh/Swamp/Bog/Fen)](dataset_descriptions/ds084_ecology_wetland_type_marshswampbogfen.qmd)
+- 🏷️ [085: Coral Reef Health (Healthy/Stressed/Bleached/Dead)](dataset_descriptions/ds085_ecology_coral_reef_health_healthystressedbleacheddead.qmd)
+- 🏷️ [086: Pest Outbreak (None/Minor/Major)](dataset_descriptions/ds086_ecology_pest_outbreak_noneminormajor.qmd)
+- 🏷️ [087: Vegetation Type (6 biome classes)](dataset_descriptions/ds087_ecology_vegetation_type_6_biome_classes.qmd)
+
+## Geoscience
+
+- 📊 [017: Soil Erosion Rate](dataset_descriptions/ds017_geoscience_soil_erosion_rate.qmd)
+- 📊 [018: Groundwater Depth](dataset_descriptions/ds018_geoscience_groundwater_depth.qmd)
+- 📊 [019: Earthquake Magnitude](dataset_descriptions/ds019_geoscience_earthquake_magnitude.qmd)
+- 📊 [020: Mineral Concentration](dataset_descriptions/ds020_geoscience_mineral_concentration.qmd)
+- 🏷️ [042: Landslide Risk (Low/Moderate/High)](dataset_descriptions/ds042_geoscience_landslide_risk_lowmoderatehigh.qmd)
+- 🏷️ [043: Rock Type (Igneous/Sedimentary/Metamorphic)](dataset_descriptions/ds043_geoscience_rock_type_igneoussedimentarymetamorphic.qmd)
+- 🏷️ [044: Drought Severity (5 levels)](dataset_descriptions/ds044_geoscience_drought_severity_5_levels.qmd)
+- 🏷️ [045: Volcanic Activity Level (Dormant/Active/Erupting)](dataset_descriptions/ds045_geoscience_volcanic_activity_level_dormantactiveerupting.qmd)
+- 📊 [067: Glacier Retreat Rate](dataset_descriptions/ds067_geoscience_glacier_retreat_rate.qmd)
+- 📊 [068: Soil pH Level](dataset_descriptions/ds068_geoscience_soil_ph_level.qmd)
+- 📊 [069: Coastal Erosion Rate](dataset_descriptions/ds069_geoscience_coastal_erosion_rate.qmd)
+- 📊 [070: Geothermal Gradient](dataset_descriptions/ds070_geoscience_geothermal_gradient.qmd)
+- 🏷️ [092: Aquifer Vulnerability (Low/Moderate/High)](dataset_descriptions/ds092_geoscience_aquifer_vulnerability_lowmoderatehigh.qmd)
+- 🏷️ [093: Soil Texture Class (Sand/Silt/Clay/Loam)](dataset_descriptions/ds093_geoscience_soil_texture_class_sandsiltclayloam.qmd)
+- 🏷️ [094: Flood Risk Zone (Low/Medium/High/Extreme)](dataset_descriptions/ds094_geoscience_flood_risk_zone_lowmediumhighextreme.qmd)
+- 🏷️ [095: Mineral Deposit Type (5 ore classes)](dataset_descriptions/ds095_geoscience_mineral_deposit_type_5_ore_classes.qmd)
+
+## Neuroscience
+
+- 📊 [005: Cognitive Test Score](dataset_descriptions/ds005_neuroscience_cognitive_test_score.qmd)
+- 📊 [006: Brain Region Volume](dataset_descriptions/ds006_neuroscience_brain_region_volume.qmd)
+- 📊 [007: Reaction Time](dataset_descriptions/ds007_neuroscience_reaction_time.qmd)
+- 📊 [008: Memory Recall Accuracy](dataset_descriptions/ds008_neuroscience_memory_recall_accuracy.qmd)
+- 🏷️ [030: Cognitive Impairment (Normal/MCI/Dementia)](dataset_descriptions/ds030_neuroscience_cognitive_impairment_normalmcidementia.qmd)
+- 🏷️ [031: Seizure Occurrence (Yes/No)](dataset_descriptions/ds031_neuroscience_seizure_occurrence_yesno.qmd)
+- 🏷️ [032: Brain Tumor Type (4 classes)](dataset_descriptions/ds032_neuroscience_brain_tumor_type_4_classes.qmd)
+- 🏷️ [033: Mental Health Diagnosis (5 categories)](dataset_descriptions/ds033_neuroscience_mental_health_diagnosis_5_categories.qmd)
+- 📊 [055: Dopamine Receptor Density](dataset_descriptions/ds055_neuroscience_dopamine_receptor_density.qmd)
+- 📊 [056: Neural Firing Rate](dataset_descriptions/ds056_neuroscience_neural_firing_rate.qmd)
+- 📊 [057: Learning Curve Slope](dataset_descriptions/ds057_neuroscience_learning_curve_slope.qmd)
+- 📊 [058: White Matter Integrity](dataset_descriptions/ds058_neuroscience_white_matter_integrity.qmd)
+- 🏷️ [080: Sleep Stage (Wake/REM/Light/Deep)](dataset_descriptions/ds080_neuroscience_sleep_stage_wakeremlightdeep.qmd)
+- 🏷️ [081: Pain Perception Level (None/Mild/Moderate/Severe)](dataset_descriptions/ds081_neuroscience_pain_perception_level_nonemildmoderatesevere.qmd)
+- 🏷️ [082: Handedness (Left/Right/Ambidextrous)](dataset_descriptions/ds082_neuroscience_handedness_leftrightambidextrous.qmd)
+- 🏷️ [083: Addiction Risk (Low/Medium/High)](dataset_descriptions/ds083_neuroscience_addiction_risk_lowmediumhigh.qmd)
+
+## Sociology
+
+- 📊 [013: Social Mobility Score](dataset_descriptions/ds013_sociology_social_mobility_score.qmd)
+- 📊 [014: Community Trust Index](dataset_descriptions/ds014_sociology_community_trust_index.qmd)
+- 📊 [015: Education Attainment Years](dataset_descriptions/ds015_sociology_education_attainment_years.qmd)
+- 📊 [016: Volunteer Hours per Year](dataset_descriptions/ds016_sociology_volunteer_hours_per_year.qmd)
+- 🏷️ [038: Voting Behavior (5 party choices)](dataset_descriptions/ds038_sociology_voting_behavior_5_party_choices.qmd)
+- 🏷️ [039: Social Class (Working/Middle/Upper)](dataset_descriptions/ds039_sociology_social_class_workingmiddleupper.qmd)
+- 🏷️ [040: Technology Adoption (Early/Late/Non-adopter)](dataset_descriptions/ds040_sociology_technology_adoption_earlylatenon_adopter.qmd)
+- 🏷️ [041: Marriage Stability (Stable/At-risk/Dissolved)](dataset_descriptions/ds041_sociology_marriage_stability_stableat_riskdissolved.qmd)
+- 📊 [063: Crime Rate per Capita](dataset_descriptions/ds063_sociology_crime_rate_per_capita.qmd)
+- 📊 [064: Social Network Size](dataset_descriptions/ds064_sociology_social_network_size.qmd)
+- 📊 [065: Income Inequality Index](dataset_descriptions/ds065_sociology_income_inequality_index.qmd)
+- 📊 [066: Voter Turnout Percentage](dataset_descriptions/ds066_sociology_voter_turnout_percentage.qmd)
+- 🏷️ [088: Work-Life Balance (Poor/Fair/Good)](dataset_descriptions/ds088_sociology_work_life_balance_poorfairgood.qmd)
+- 🏷️ [089: Religious Affiliation (6 categories)](dataset_descriptions/ds089_sociology_religious_affiliation_6_categories.qmd)
+- 🏷️ [090: Housing Tenure (Own/Rent/Other)](dataset_descriptions/ds090_sociology_housing_tenure_ownrentother.qmd)
+- 🏷️ [091: Media Consumption Type (4 platforms)](dataset_descriptions/ds091_sociology_media_consumption_type_4_platforms.qmd)
+
+
+# Dataset Statistics
+
+
+| Metric | Count |
+|--------|-------|
+| Total Datasets | 100 |
+| Regression Problems | 50 |
+| Classification Problems | 50 |
+| Domains | 6 |
+| Total Rows (all datasets) | 100,000,000 |
+
+# Using These Datasets
+
+1. **Choose a Dataset**: Browse by domain or problem type
+2. **Download CSV Files**: Access from `csv/` directory
+3. **Start with Clean**: Use clean version for initial exploration
+4. **Practice with Dirty**: Test data cleaning and outlier detection on dirty version
+5. **Compare Results**: See how data quality affects model performance
+
+# Domains Covered
+
+- **Biology**: 16 datasets (8 regression, 8 classification)
+- **Business**: 20 datasets (10 regression, 10 classification)
+- **Ecology**: 16 datasets (8 regression, 8 classification)
+- **Geoscience**: 16 datasets (8 regression, 8 classification)
+- **Neuroscience**: 16 datasets (8 regression, 8 classification)
+- **Sociology**: 16 datasets (8 regression, 8 classification)
+
+
+# About
+
+These datasets were generated using the AI Dataset Generator tool, which creates realistic synthetic data for educational purposes. Each dataset includes:
+
+- Realistic feature distributions
+- Meaningful correlations between variables
+- Interpretable target relationships
+- Appropriate levels of noise and complexity
+
+For questions or feedback, please see the project repository.

@@ -1,0 +1,97 @@
+---
+title: "Dataset 71: Metabolic Rate Prediction in Small Mammals"
+format: html
+---
+
+# Overview
+
+This dataset contains physiological and behavioral measurements from 500,000 small mammals collected to study energy expenditure patterns. The goal is to predict daily metabolic rate (kilocalories per day) based on key biological factors including body mass, environmental temperature, activity levels, dietary composition, and age.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds071_biology_metabolic_rate.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds071_biology_metabolic_rate_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+A wildlife conservation research team is studying energy requirements of small mammal populations in various ecosystems to better understand their survival strategies and habitat needs. With climate change affecting food availability and environmental conditions, accurately predicting metabolic demands has become crucial for conservation planning.
+
+The research team has been collecting data on various mammal species including voles, shrews, and small rodents across different seasons and habitats. Traditional methods of measuring metabolic rate through respirometry are time-intensive and require specialized equipment, making field studies challenging. By developing a predictive model, researchers could estimate metabolic rates using easily measurable characteristics, enabling larger-scale ecological studies.
+
+This predictive capability would support wildlife management decisions, help identify vulnerable populations with high energy demands, and inform habitat restoration efforts by understanding the energetic costs of survival in different environments.
+
+# Problem Statement
+
+Develop a regression model to predict daily metabolic rate in small mammals using readily observable biological and environmental factors. The model should provide accurate estimates that can replace time-intensive laboratory measurements in field research settings.
+
+# Target Variable
+
+**Metabolic Rate**: Daily energy expenditure measured in kilocalories per day (kcal/day). This represents the total amount of energy an organism uses for all physiological processes including basal metabolism, thermoregulation, digestion, and physical activity. Metabolic rate is a fundamental measure of an organism's energy budget and directly impacts survival, reproduction, and ecological interactions. Accurate prediction of metabolic rate enables researchers to assess habitat quality, predict population responses to environmental changes, and understand species' energetic constraints without invasive measurement procedures.
+
+# Predictor Variables
+
+- **Body Mass** (grams): The animal's body weight, which is the strongest predictor of metabolic rate due to scaling relationships in physiology. Larger animals generally have higher absolute metabolic rates but lower mass-specific rates.
+
+- **Temperature** (°C): Environmental temperature during measurement, affecting thermoregulatory costs. Small mammals must expend additional energy to maintain body temperature in cold conditions.
+
+- **Activity Level** (scale 1-10): Behavioral activity rating based on movement patterns and time spent active versus resting. Higher activity levels correspond to increased energy expenditure beyond basal metabolism.
+
+- **Diet Composition** (% protein): Percentage of protein in the animal's diet, influencing metabolic efficiency. Protein-rich diets typically require more energy for digestion and processing compared to carbohydrate or fat-based diets.
+
+- **Age** (months): Age of the individual, as metabolic rates can vary across life stages due to growth demands, reproductive status, and physiological efficiency changes.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds071_biology_metabolic_rate.csv`): Ideal for initial model development and learning fundamental regression techniques
+- **Dirty Version** (`ds071_biology_metabolic_rate_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in biological field studies
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with this interpretable baseline to understand variable relationships and coefficients' biological meaning
+- **Random Forest**: Capture non-linear relationships and interactions between variables, such as how temperature effects vary with body mass
+- **Gradient Boosting**: Achieve high predictive accuracy while maintaining some interpretability through feature importance rankings
+
+```python
+# Example loading code
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+
+# Load clean version
+df_clean = pd.read_csv('csv/ds071_biology_metabolic_rate.csv')
+
+# Load dirty version for advanced practice
+df_dirty = pd.read_csv('csv/ds071_biology_metabolic_rate_dirty.csv')
+```
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 71 |
+| Domain | Biology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds071_biology_metabolic_rate.csv` |
+| Dirty Version | `csv/ds071_biology_metabolic_rate_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The scaling relationships and physiological constraints reflect actual patterns observed in mammalian metabolism research, making this dataset suitable for learning both statistical modeling techniques and biological data analysis principles.

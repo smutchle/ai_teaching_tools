@@ -1,0 +1,92 @@
+---
+title: "Dataset 96: Pollination Syndrome Classification - Predicting Plant Reproductive Strategies from Floral Traits"
+format: html
+---
+
+# Overview
+
+This dataset contains floral characteristics of 500,000 plant species designed to predict their pollination syndrome - the primary mechanism by which they achieve reproduction. Students will classify plants into four major pollination categories (Wind, Insect, Bird, Bat) based on morphological and phenological traits, providing hands-on experience with multi-class classification in ecological contexts.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds096_biology_pollination_syndrome_windinsectbirdbat.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds096_biology_pollination_syndrome_windinsectbirdbat_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Conservation biologists at the Global Biodiversity Research Institute are developing an automated field identification system to rapidly assess pollination networks in threatened ecosystems. With over 300,000 flowering plant species worldwide, manually determining pollination syndromes is time-intensive and requires specialized expertise. However, this information is crucial for understanding ecosystem stability and predicting the cascading effects of pollinator decline.
+
+The research team has collected standardized measurements of floral traits from herbarium specimens and field observations across diverse biomes. Their goal is to create a machine learning model that can predict pollination syndromes from easily observable floral characteristics, enabling rapid biodiversity assessments and informing conservation priorities.
+
+This predictive capability would be particularly valuable in remote or understudied regions where botanical expertise is limited, allowing field researchers to quickly categorize plant reproductive strategies and identify potential vulnerabilities in pollination networks before conducting more detailed ecological surveys.
+
+# Problem Statement
+
+Given observable floral characteristics, predict the primary pollination syndrome of flowering plants to support biodiversity conservation efforts and ecological research. This multi-class classification problem requires distinguishing between four distinct reproductive strategies based on morphological and temporal features.
+
+# Target Variable
+
+**Pollination Syndrome (Wind/Insect/Bird/Bat)**: The primary mechanism by which a plant species achieves pollination, representing millions of years of co-evolutionary adaptation between plants and their pollinating vectors. Understanding pollination syndromes is essential for:
+
+- **Conservation Planning**: Identifying which pollinators are critical for ecosystem stability
+- **Agricultural Management**: Optimizing crop pollination strategies
+- **Climate Change Research**: Predicting how shifting pollinator ranges affect plant reproduction
+- **Restoration Ecology**: Selecting appropriate plant species for habitat restoration projects
+
+Each syndrome represents distinct evolutionary pressures and ecological relationships that shape entire ecosystem dynamics.
+
+# Predictor Variables
+
+- **Flower Morphology**: Quantitative measurements of flower structure including petal length, tube depth, and opening diameter. These dimensions directly constrain which pollinators can access nectar and pollen, with deep tubes favoring long-tongued insects or birds, while open, flat flowers accommodate various insect visitors.
+
+- **Color**: Categorical and spectral measurements of floral coloration, including UV reflectance patterns invisible to human eyes but crucial for pollinator attraction. Different pollinators have evolved distinct color preferences - bees favor blue and UV patterns, birds prefer red, while wind-pollinated flowers are typically inconspicuous.
+
+- **Scent**: Chemical composition and intensity of floral fragrances, measured through gas chromatography analysis. Scent profiles are highly specialized, with sweet fragrances attracting butterflies, musky odors appealing to flies, and some bat-pollinated flowers emitting strong nocturnal scents.
+
+- **Nectar**: Volume and sugar concentration of nectar rewards, representing the energy investment plants make to attract pollinators. High-volume, high-sugar nectar typically indicates vertebrate pollination, while modest rewards suggest insect pollination or wind dispersal.
+
+- **Blooming Time**: Temporal patterns of flower opening, including daily timing and seasonal duration. Night-blooming flowers often indicate bat or moth pollination, while daytime bloomers target diurnal pollinators. Seasonal timing must align with pollinator activity periods.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds096_biology_pollination_syndrome_windinsectbirdbat.csv`): Ideal for initial model development and learning core classification concepts without data quality complications
+- **Dirty Version** (`ds096_biology_pollination_syndrome_windinsectbirdbat_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world challenges like incomplete herbarium records, measurement errors, and extreme phenotypes
+
+# Suggested Approaches
+
+- **Random Forest**: Excellent for handling mixed variable types and providing feature importance rankings to understand which floral traits are most predictive of pollination syndromes
+- **Support Vector Machine with RBF Kernel**: Effective for complex, non-linear relationships between floral traits and pollination strategies, particularly useful when syndromes overlap in feature space
+- **Gradient Boosting (XGBoost)**: Strong performance on tabular data with ability to capture intricate interactions between morphological and chemical features that define pollination syndromes
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 96 |
+| Domain | Biology |
+| Problem Type | Multi-class Classification |
+| Number of Classes | 4 (Wind, Insect, Bird, Bat) |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds096_biology_pollination_syndrome_windinsectbirdbat.csv` |
+| Dirty Version | `csv/ds096_biology_pollination_syndrome_windinsectbirdbat_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between floral traits and pollination syndromes have been designed to reflect real ecological patterns while maintaining clear learning objectives. The feature relationships are based on established principles in pollination ecology and plant-animal coevolution, making this dataset both pedagogically valuable and scientifically grounded.

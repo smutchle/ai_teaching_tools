@@ -1,0 +1,85 @@
+---
+title: "Dataset 16: Predicting Community Volunteer Engagement"
+format: html
+---
+
+# Overview
+
+This dataset explores the factors that influence individual volunteer participation in community service activities. It contains demographic, socioeconomic, and social connection variables to predict annual volunteer hours, making it ideal for studying civic engagement patterns and developing targeted volunteer recruitment strategies.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds016_sociology_volunteer_hours_per_year.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds016_sociology_volunteer_hours_per_year_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The National Community Service Foundation is launching a nationwide initiative to increase volunteer participation across diverse communities. They need to understand what factors drive volunteer engagement to design effective outreach programs and allocate resources efficiently. Historical data shows that volunteer rates vary significantly across different demographic groups, but the foundation lacks a comprehensive model to predict individual volunteer behavior.
+
+The foundation has partnered with local community organizations to collect data on volunteer participation patterns. They want to develop a predictive model that can identify individuals most likely to contribute significant volunteer hours, allowing them to tailor recruitment messages and focus outreach efforts where they'll be most effective. This model will also help identify underserved communities where additional support structures might be needed to facilitate volunteer participation.
+
+Understanding volunteer behavior is crucial for addressing community needs, as volunteer work contributes an estimated $184 billion annually to the U.S. economy. By better predicting and encouraging volunteer engagement, communities can more effectively tackle local challenges ranging from education support to environmental conservation.
+
+# Problem Statement
+
+Given demographic and socioeconomic information about individuals, predict the number of hours they will volunteer annually for unpaid community service activities. This regression problem aims to quantify the relationship between personal characteristics and civic engagement levels.
+
+# Target Variable
+
+**Volunteer Hours per Year**: This continuous variable measures the total number of hours an individual dedicates to unpaid community service activities annually, ranging from 0 to approximately 500+ hours. This includes activities such as mentoring youth, serving meals at shelters, environmental cleanup, tutoring, community event organization, and religious or nonprofit organization support. Understanding volunteer hour commitment is valuable for resource planning, volunteer program design, and measuring community social capital. Organizations can use these predictions to estimate available volunteer capacity, plan project timelines, and identify potential volunteer coordinators who might contribute substantial time commitments.
+
+# Predictor Variables
+
+- **Age**: Individual's age in years. Research shows volunteer patterns vary across life stages, with retirees often having more available time while young professionals may have competing priorities.
+
+- **Income**: Annual household income in dollars. Economic stability can influence volunteer capacity, as financial security may provide more flexibility for unpaid activities, though the relationship isn't always linear.
+
+- **Education**: Highest level of education completed (encoded as years of schooling). Educational attainment often correlates with civic engagement, awareness of community issues, and social networks that facilitate volunteer opportunities.
+
+- **Employment Status**: Current employment situation (full-time, part-time, unemployed, retired, student). Work status directly affects time availability and may influence the types of volunteer activities individuals can commit to.
+
+- **Community Ties**: A composite score measuring social connections within the local community, including length of residence, local family connections, neighborhood involvement, and social network density. Stronger community ties typically correlate with higher volunteer engagement.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds016_sociology_volunteer_hours_per_year.csv`): Ideal for initial model development and learning, with complete data for all observations and no extreme outliers
+- **Dirty Version** (`ds016_sociology_volunteer_hours_per_year_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as survey non-response and data entry errors
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand baseline relationships between predictors and volunteer hours, providing interpretable coefficients for policy insights.
+
+- **Random Forest**: Implement ensemble methods to capture non-linear relationships and interactions between variables, such as how age and employment status might jointly influence volunteer capacity.
+
+- **Ridge/Lasso Regression**: Apply regularization techniques to handle potential multicollinearity between socioeconomic variables and perform feature selection to identify the most important predictors.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 16 |
+| Domain | Sociology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds016_sociology_volunteer_hours_per_year.csv` |
+| Dirty Version | `csv/ds016_sociology_volunteer_hours_per_year_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The data reflects general patterns observed in volunteer behavior research but should not be used for actual policy decisions without validation on real-world data.

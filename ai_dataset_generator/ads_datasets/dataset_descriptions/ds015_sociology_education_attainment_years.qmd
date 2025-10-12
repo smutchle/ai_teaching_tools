@@ -1,0 +1,92 @@
+---
+title: "Dataset 15: Educational Attainment Prediction - Socioeconomic Factors in Academic Achievement"
+format: html
+---
+
+# Overview
+
+This dataset explores the complex relationship between socioeconomic factors and educational outcomes by examining how parental education, household income, school quality, and peer influence affect the total years of formal education an individual completes. This regression problem provides an excellent opportunity to understand how social determinants shape educational trajectories and life outcomes.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds015_sociology_education_attainment_years.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds015_sociology_education_attainment_years_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+The Metropolitan Education Research Institute has been commissioned by the Department of Education to develop a predictive model that can identify students at risk of early educational dropout and help allocate resources more effectively. With growing concerns about educational inequality and its long-term societal impacts, policymakers need evidence-based tools to understand which factors most strongly influence educational attainment.
+
+A team of sociologists and data scientists has collected comprehensive data on 500,000 individuals who have completed their formal education, tracking key socioeconomic indicators from their childhood and adolescence. The goal is to build a predictive model that can help educational administrators and social workers identify students who may benefit from additional support services, mentoring programs, or financial assistance.
+
+This research has immediate practical applications: school districts can use these insights to design targeted intervention programs, colleges can better understand their applicant pools, and social service agencies can allocate resources to maximize educational outcomes in underserved communities.
+
+# Problem Statement
+
+**Objective**: Predict the total years of formal education an individual will complete based on their socioeconomic background and environmental factors.
+
+This is a regression problem where we aim to build a model that can accurately estimate educational attainment (measured in years) using key predictor variables that are typically observable during a student's formative years.
+
+# Target Variable
+
+**Education Attainment Years**: The total number of years of formal education completed by an individual, ranging from elementary school through potential graduate studies. This variable typically ranges from 6-7 years (elementary school only) to 20+ years (including doctoral studies). 
+
+Understanding and predicting educational attainment is crucial because it serves as a strong predictor of lifetime earnings, health outcomes, civic engagement, and social mobility. Educational attainment also has intergenerational effects, influencing the opportunities available to an individual's children and contributing to cycles of advantage or disadvantage.
+
+# Predictor Variables
+
+- **Parental Education**: Average years of education completed by parents/guardians. This captures the educational culture of the household and often correlates with educational expectations, academic support, and familiarity with educational systems.
+
+- **Household Income**: Annual household income during the individual's formative years (ages 10-18), measured in thousands of dollars. Economic resources affect access to educational opportunities, tutoring, extracurricular activities, and the ability to delay workforce entry for continued education.
+
+- **School Quality**: A composite index measuring the quality of educational institutions attended, incorporating factors like teacher qualifications, student-teacher ratios, graduation rates, and available resources. Higher quality schools provide better preparation for advanced education.
+
+- **Peer Influence**: A measure of the educational aspirations and achievements within the individual's peer group during adolescence. Peer networks significantly influence educational goals, study habits, and post-graduation plans through social norms and expectations.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds015_sociology_education_attainment_years.csv`): Ideal for initial model development and learning core regression concepts without data quality complications
+- **Dirty Version** (`ds015_sociology_education_attainment_years_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete survey responses and measurement errors
+
+# Suggested Approaches
+
+- **Linear Regression**: Start with multiple linear regression to understand the linear relationships between socioeconomic factors and educational outcomes. This provides interpretable coefficients showing the expected change in education years for each unit change in predictors.
+
+- **Random Forest Regression**: Capture potential non-linear relationships and interactions between variables (e.g., the effect of household income might vary depending on parental education level). Random forests also provide feature importance rankings.
+
+- **Gradient Boosting**: Use XGBoost or similar algorithms to model complex patterns while maintaining good predictive performance. These methods can capture subtle interactions between socioeconomic factors that might not be apparent in linear models.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 15 |
+| Domain | Sociology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Clean Version | `csv/ds015_sociology_education_attainment_years.csv` |
+| Dirty Version | `csv/ds015_sociology_education_attainment_years_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Range | 6-22 years |
+| Recommended Split | 70% train, 15% validation, 15% test |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect real-world patterns documented in sociological research while maintaining interpretability for learning purposes. The synthetic nature allows for controlled experimentation with different modeling approaches without privacy concerns related to actual educational records.
+
+Students working with this dataset should consider the ethical implications of predictive modeling in education, including potential biases, fairness concerns, and the appropriate use of such models in educational policy and intervention design.

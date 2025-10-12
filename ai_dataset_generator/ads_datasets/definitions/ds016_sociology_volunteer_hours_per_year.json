@@ -1,0 +1,149 @@
+{
+  "dataset_config": {
+    "name": "ds016_sociology_volunteer_hours_per_year",
+    "description": "Estimate annual time devoted to unpaid community service",
+    "random_seed": 16,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "income",
+          "education_years"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age",
+          "community_involvement_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "education_years",
+          "civic_engagement_index"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "income",
+          "employment_hours_per_week"
+        ],
+        "correlation": 0.4,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Age of the individual in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 15,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "income",
+        "description": "Annual household income in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.5,
+          "scale": 60,
+          "location": 20
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "education_years",
+        "description": "Years of formal education completed",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 14,
+          "std": 3,
+          "min_clip": 8,
+          "max_clip": 22
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "employment_hours_per_week",
+        "description": "Hours worked per week in paid employment",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 38,
+          "std": 12,
+          "min_clip": 0,
+          "max_clip": 70
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "community_involvement_score",
+        "description": "Index of community ties and social connections (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 55,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "civic_engagement_index",
+        "description": "Measure of civic participation and awareness (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 5.5,
+          "std": 2.0,
+          "min_clip": 0,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "religious_attendance",
+        "description": "Religious service attendance frequency per month",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 3,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "volunteer_hours_per_year",
+      "description": "Annual time devoted to unpaid community service in hours",
+      "data_type": "float",
+      "expression": "20 + 0.8*age + 0.3*income + 4*education_years - 0.6*employment_hours_per_week + 1.2*community_involvement_score + 8*civic_engagement_index + 6*religious_attendance",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

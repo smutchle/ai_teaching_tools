@@ -1,0 +1,92 @@
+---
+title: "Dataset 24: Predicting Organism Lifespan in Wild Populations"
+format: html
+---
+
+# Overview
+
+This dataset contains comprehensive biological and environmental data collected from a longitudinal study of small mammal populations in temperate forest ecosystems. The primary goal is to predict organism lifespan based on key biological factors including diet quality, genetic markers, stress indicators, and reproductive history. This regression problem offers students an excellent opportunity to explore how multiple biological factors interact to influence survival outcomes in natural populations.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds024_biology_organism_lifespan.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds024_biology_organism_lifespan_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Conservation biologists studying the decline of small mammal populations in fragmented forest habitats need to understand which factors most significantly impact individual survival. Climate change, habitat fragmentation, and human encroachment have created new stressors for wildlife populations, making it crucial to identify the key determinants of lifespan variation within species.
+
+A research team has been monitoring individual organisms across multiple forest sites for over a decade, collecting detailed data on diet quality (measured through fecal analysis and foraging behavior), genetic diversity markers, physiological stress indicators (cortisol levels), and complete reproductive histories. Understanding how these factors combine to predict lifespan can inform habitat management decisions, breeding program strategies, and population viability assessments.
+
+This predictive model could help wildlife managers identify at-risk individuals or populations, optimize habitat restoration efforts, and develop early warning systems for population declines. The insights gained from this analysis are particularly valuable for species reintroduction programs and captive breeding initiatives.
+
+# Problem Statement
+
+Given an organism's diet quality score, genetic diversity index, stress exposure levels, and reproductive event count, predict the total lifespan of the individual measured in days. This regression problem requires modeling complex biological relationships where multiple factors may interact synergistically or antagonistically to influence survival outcomes.
+
+# Target Variable
+
+**Organism Lifespan**: The total survival duration of an individual organism measured in days from birth to natural death. This variable ranges from approximately 200 to 2,800 days, reflecting natural variation in small mammal lifespans. Accurate lifespan prediction is crucial for population modeling, conservation planning, and understanding evolutionary trade-offs between reproduction and longevity. In conservation biology, lifespan predictions help assess population sustainability and guide management interventions.
+
+# Predictor Variables
+
+- **Diet Quality**: A composite score (0-100) measuring nutritional adequacy based on protein content, essential fatty acids, mineral availability, and dietary diversity. Higher scores indicate better nutrition, which typically correlates with improved immune function and longevity.
+
+- **Genetic Factors**: A genetic diversity index (0-1) calculated from microsatellite markers, measuring individual heterozygosity and genetic health. Higher genetic diversity generally confers disease resistance and adaptive advantages that can extend lifespan.
+
+- **Stress Exposure**: A standardized measure (0-10) of chronic stress based on cortisol metabolite levels in fecal samples, habitat quality assessments, and predation pressure indicators. Higher values indicate greater physiological stress, which can accelerate aging and reduce survival.
+
+- **Reproduction Events**: The total number of successful reproductive events (births/litters) throughout an individual's lifetime. This variable captures the evolutionary trade-off between current reproduction and future survival, where increased reproductive effort may reduce longevity.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds024_biology_organism_lifespan.csv`): Ideal for initial model development and learning, with complete data for all observations and no extreme outliers
+- **Dirty Version** (`ds024_biology_organism_lifespan_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete field observations, measurement errors, and exceptional individuals
+
+# Suggested Approaches
+
+- **Multiple Linear Regression**: Start with linear models to understand basic relationships and variable importance, examining potential interactions between genetic factors and environmental stressors
+- **Random Forest Regression**: Capture non-linear relationships and complex interactions between biological variables, while providing feature importance rankings
+- **Gradient Boosting**: Model complex biological interactions and potential threshold effects, particularly useful for capturing the non-linear relationship between reproductive effort and survival
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 24 |
+| Domain | Biology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds024_biology_organism_lifespan.csv` |
+| Dirty Version | `csv/ds024_biology_organism_lifespan_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+```r
+# Example loading code
+library(readr)
+
+# Load clean version
+data_clean <- read_csv("csv/ds024_biology_organism_lifespan.csv")
+
+# Load dirty version for data cleaning practice
+data_dirty <- read_csv("csv/ds024_biology_organism_lifespan_dirty.csv")
+```
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic biological trade-offs and ecological principles while maintaining interpretability. The data incorporates known biological phenomena such as the reproduction-longevity trade-off, the benefits of genetic diversity, and the costs of chronic stress exposure.

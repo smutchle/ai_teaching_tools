@@ -1,0 +1,161 @@
+{
+  "dataset_config": {
+    "name": "ds064_sociology_social_network_size",
+    "description": "Estimate number of meaningful social connections based on personality traits, age, occupation, urbanization, and digital literacy",
+    "random_seed": 64,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "extroversion_score",
+          "agreeableness_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "digital_literacy_score",
+          "age"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "urbanization_index",
+          "occupation_prestige"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "extroversion_score",
+          "openness_score"
+        ],
+        "correlation": 0.4,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "extroversion_score",
+        "description": "Extroversion personality trait score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50,
+          "std": 15,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "agreeableness_score",
+        "description": "Agreeableness personality trait score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 55,
+          "std": 12,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "openness_score",
+        "description": "Openness to experience personality trait score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 48,
+          "std": 14,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "age",
+        "description": "Age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 16,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "occupation_prestige",
+        "description": "Occupational prestige score",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 20,
+          "min_clip": 10,
+          "max_clip": 90
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "urbanization_index",
+        "description": "Level of urbanization in residential area",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0,
+          "max": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "digital_literacy_score",
+        "description": "Digital technology proficiency score",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.5,
+          "scale": 65,
+          "location": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "social_activity_frequency",
+        "description": "Frequency of participation in social activities per month",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 8,
+          "location": 1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "social_network_size",
+      "description": "Number of meaningful social connections",
+      "data_type": "float",
+      "expression": "15 + 0.45*extroversion_score + 0.25*agreeableness_score + 0.15*openness_score - 0.08*age + 0.12*occupation_prestige + 0.08*urbanization_index + 0.18*digital_literacy_score + 1.2*social_activity_frequency",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

@@ -1,13 +1,13 @@
 {
   "dataset_config": {
     "name": "ds001_business_customer_lifetime_value_dirty",
-    "description": "Predict total revenue from a customer over their relationship with company based on purchase behavior, transaction patterns, tenure, and product preferences",
+    "description": "Predict total revenue from a customer over their relationship with company",
     "random_seed": 1,
-    "n_rows": 1000,
+    "n_rows": 500000,
     "correlations": [
       {
         "variables": [
-          "purchase_frequency",
+          "purchase_frequency_monthly",
           "avg_transaction_value"
         ],
         "correlation": 0.45,
@@ -16,152 +16,146 @@
       {
         "variables": [
           "tenure_months",
-          "total_purchases"
+          "total_products_purchased"
         ],
-        "correlation": 0.65,
+        "correlation": 0.62,
         "method": "cholesky"
       },
       {
         "variables": [
-          "premium_product_purchases",
-          "avg_transaction_value"
+          "avg_transaction_value",
+          "premium_category_purchases"
         ],
-        "correlation": 0.52,
+        "correlation": 0.58,
         "method": "cholesky"
       },
       {
         "variables": [
-          "customer_engagement_score",
-          "purchase_frequency"
+          "purchase_frequency_monthly",
+          "total_products_purchased"
         ],
-        "correlation": 0.38,
+        "correlation": 0.51,
         "method": "cholesky"
       }
     ],
     "features": [
       {
-        "name": "purchase_frequency",
+        "name": "purchase_frequency_monthly",
         "description": "Average number of purchases per month",
         "data_type": "float",
         "distribution": {
-          "type": "normal",
-          "mean": 2.5,
-          "std": 1.2,
-          "min_clip": 0.1
+          "type": "weibull",
+          "shape": 2.1,
+          "scale": 3.5,
+          "location": 0.5
         },
         "missing_rate": 0.02,
         "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
       },
       {
         "name": "avg_transaction_value",
-        "description": "Average dollar amount per transaction",
+        "description": "Average transaction value in dollars",
         "data_type": "float",
         "distribution": {
           "type": "normal",
           "mean": 85.0,
           "std": 35.0,
-          "min_clip": 10.0
+          "min_clip": 5.0,
+          "max_clip": 500.0
         },
         "missing_rate": 0.02,
         "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
       },
       {
         "name": "tenure_months",
-        "description": "Number of months as active customer",
-        "data_type": "float",
+        "description": "Number of months as customer",
+        "data_type": "int",
         "distribution": {
           "type": "weibull",
-          "shape": 1.5,
+          "shape": 1.8,
           "scale": 24.0,
           "location": 1.0
         },
         "missing_rate": 0.02,
         "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
       },
       {
-        "name": "total_purchases",
-        "description": "Total number of purchases made",
-        "data_type": "float",
+        "name": "total_products_purchased",
+        "description": "Total number of distinct products purchased",
+        "data_type": "int",
         "distribution": {
           "type": "normal",
-          "mean": 15.0,
+          "mean": 12.0,
           "std": 8.0,
-          "min_clip": 1.0
+          "min_clip": 1.0,
+          "max_clip": 50.0
         },
         "missing_rate": 0.02,
         "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
       },
       {
-        "name": "premium_product_purchases",
-        "description": "Number of premium category purchases",
-        "data_type": "float",
+        "name": "premium_category_purchases",
+        "description": "Number of purchases in premium categories",
+        "data_type": "int",
         "distribution": {
-          "type": "normal",
-          "mean": 3.2,
-          "std": 2.1,
-          "min_clip": 0.0
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 4.0,
+          "location": 0.0
         },
         "missing_rate": 0.02,
         "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
       },
       {
-        "name": "product_category_diversity",
-        "description": "Number of different product categories purchased",
+        "name": "discount_usage_rate",
+        "description": "Percentage of purchases using discounts",
         "data_type": "float",
         "distribution": {
           "type": "uniform",
-          "min": 1.0,
-          "max": 8.0
+          "min": 0.0,
+          "max": 0.8
         },
         "missing_rate": 0.02,
         "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
       },
       {
-        "name": "customer_engagement_score",
-        "description": "Composite engagement score based on website activity and interactions",
-        "data_type": "float",
+        "name": "support_tickets_count",
+        "description": "Total number of customer support tickets",
+        "data_type": "int",
         "distribution": {
-          "type": "normal",
-          "mean": 65.0,
-          "std": 20.0,
-          "min_clip": 0.0,
-          "max_clip": 100.0
+          "type": "weibull",
+          "shape": 0.8,
+          "scale": 2.5,
+          "location": 0.0
         },
         "missing_rate": 0.02,
         "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
-      },
-      {
-        "name": "seasonal_purchase_ratio",
-        "description": "Ratio of purchases during peak seasons vs off-peak",
-        "data_type": "float",
-        "distribution": {
-          "type": "normal",
-          "mean": 1.3,
-          "std": 0.4,
-          "min_clip": 0.5,
-          "max_clip": 3.0
-        },
-        "missing_rate": 0.02,
-        "outlier_rate": 0.01,
-        "outlier_method": "extreme_both"
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
       }
     ],
     "target": {
       "name": "customer_lifetime_value",
-      "description": "Predict total revenue from a customer over their relationship with company",
+      "description": "Total revenue from customer over their relationship with company",
       "data_type": "float",
-      "expression": "500 + 180*purchase_frequency + 12*avg_transaction_value + 25*tenure_months + 45*premium_product_purchases + 15*product_category_diversity + 3.2*customer_engagement_score + 85*seasonal_purchase_ratio",
+      "expression": "purchase_frequency_monthly * avg_transaction_value * tenure_months + 15 * total_products_purchased + 25 * premium_category_purchases - 50 * discount_usage_rate * avg_transaction_value - 10 * support_tickets_count",
       "noise_percent": 2.5,
       "missing_rate": 0.02,
       "outlier_rate": 0.01,
-      "outlier_method": "extreme_both"
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
     }
   }
 }

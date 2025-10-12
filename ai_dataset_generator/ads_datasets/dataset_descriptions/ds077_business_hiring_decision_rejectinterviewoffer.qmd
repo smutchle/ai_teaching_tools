@@ -1,0 +1,91 @@
+---
+title: "Dataset 77: HR Talent Pipeline - Predicting Candidate Progression in Recruitment"
+format: html
+---
+
+# Overview
+
+This dataset simulates the hiring decision process at a mid-sized technology company, capturing the journey of job candidates from initial application screening to final hiring decisions. The dataset contains information about candidate qualifications, experience, and application materials, with the goal of predicting whether candidates will be rejected, invited for interviews, or receive job offers. This represents a critical business intelligence challenge in human resources management and talent acquisition.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds077_business_hiring_decision_rejectinterviewoffer.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds077_business_hiring_decision_rejectinterviewoffer_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+TechFlow Solutions, a growing software development company, processes over 2,000 job applications annually across various technical and business roles. Their HR department currently relies on manual screening processes that are time-consuming and potentially inconsistent across different recruiters. The company wants to develop a data-driven approach to standardize their initial candidate screening process while ensuring they don't miss qualified candidates.
+
+The HR analytics team has collected historical data from the past two years of hiring decisions, including detailed information about candidate resumes, qualifications, and the ultimate decisions made by hiring managers. This data represents candidates applying for software engineering, data science, product management, and business analyst positions.
+
+The company aims to use this data to build a predictive model that can assist recruiters in making more consistent and efficient screening decisions, while also identifying the key factors that contribute to successful candidate progression through their hiring pipeline.
+
+# Problem Statement
+
+The challenge is to predict the hiring decision outcome for job candidates based on their application materials and qualifications. This is a multi-class classification problem where we need to categorize candidates into three distinct progression stages in the hiring funnel. Accurate predictions can help HR teams optimize their screening processes, reduce time-to-hire, and improve the candidate experience by providing faster feedback.
+
+# Target Variable
+
+**Hiring Decision (Reject/Interview/Offer)**: This categorical variable represents the final decision made during the initial screening phase of the recruitment process. 
+
+- **Reject**: Candidates who did not meet the minimum qualifications or whose profiles didn't align with the role requirements (approximately 60% of applications)
+- **Interview**: Candidates who passed initial screening and were invited for technical or behavioral interviews (approximately 30% of applications)  
+- **Offer**: Exceptional candidates who received direct job offers or fast-tracked through the interview process (approximately 10% of applications)
+
+This variable is crucial for business operations as it directly impacts hiring efficiency, cost-per-hire, and the quality of talent acquisition. Predicting these outcomes can help HR teams allocate their time more effectively and ensure consistent evaluation standards.
+
+# Predictor Variables
+
+- **Resume Keywords**: Numerical score (0-100) representing the density and relevance of industry-specific keywords found in the candidate's resume, calculated using natural language processing techniques
+- **Experience Years**: Total years of relevant professional experience in the field, ranging from 0 to 20+ years
+- **Education Level**: Categorical variable indicating highest educational attainment (High School, Bachelor's, Master's, PhD)
+- **Skills Match**: Percentage score (0-100) indicating how well the candidate's listed technical and soft skills align with the job requirements
+- **References**: Number of professional references provided by the candidate (0-5), indicating their professional network and willingness to provide verification
+
+These variables were selected based on their proven correlation with job performance and their availability during the initial screening phase, ensuring the model can be applied in real-time during candidate evaluation.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds077_business_hiring_decision_rejectinterviewoffer.csv`): Ideal for initial model development and learning. Contains complete data with no missing values or data quality issues.
+- **Dirty Version** (`ds077_business_hiring_decision_rejectinterviewoffer_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues such as incomplete applications, data entry errors, and unusual candidate profiles.
+
+# Suggested Approaches
+
+- **Random Forest Classifier**: Excellent for handling mixed data types and providing feature importance insights to understand which factors most influence hiring decisions
+- **Gradient Boosting (XGBoost/LightGBM)**: Well-suited for imbalanced classification problems and can capture complex non-linear relationships between candidate qualifications
+- **Logistic Regression with Ordinal Encoding**: Interpretable approach that can provide clear insights into how each qualification factor influences the probability of advancing through hiring stages
+
+Additional considerations include addressing class imbalance through SMOTE or cost-sensitive learning, and using cross-validation strategies that account for potential temporal patterns in hiring decisions.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 77 |
+| Domain | Business |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 3 (Reject/Interview/Offer) |
+| Clean Version | `csv/ds077_business_hiring_decision_rejectinterviewoffer.csv` |
+| Dirty Version | `csv/ds077_business_hiring_decision_rejectinterviewoffer_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to be realistic and pedagogically useful while maintaining interpretability. The dataset reflects common patterns found in real hiring processes, including the natural imbalance in hiring outcomes and the complex interplay between different qualification factors. Students can use this dataset to practice handling imbalanced classification problems, feature engineering for mixed data types, and interpreting model results in a business context.

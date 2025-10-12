@@ -1,0 +1,107 @@
+---
+title: "Dataset 97: Antimicrobial Resistance Prediction in Clinical Pathogens"
+format: html
+---
+
+# Overview
+
+This dataset contains microbiological and genetic characteristics of bacterial isolates collected from hospital patients, designed to predict antimicrobial resistance patterns. With the growing threat of antibiotic-resistant bacteria in healthcare settings, this dataset provides an excellent opportunity to apply machine learning techniques to a critical public health challenge.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds097_biology_antimicrobial_resistance_susceptibleresistant.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds097_biology_antimicrobial_resistance_susceptibleresistant_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Antimicrobial resistance (AMR) represents one of the most pressing challenges in modern medicine. Hospital-acquired infections caused by resistant bacteria result in prolonged hospital stays, increased healthcare costs, and higher mortality rates. The World Health Organization has identified AMR as one of the top 10 global public health threats facing humanity.
+
+In this scenario, you are working as a data scientist for a large metropolitan hospital system that has been collecting detailed microbiological data on bacterial isolates from patient samples over the past five years. The hospital's infectious disease team wants to develop a predictive model that can rapidly identify whether a bacterial pathogen is likely to be resistant to standard antibiotic treatments based on readily available laboratory and clinical information.
+
+Currently, antimicrobial susceptibility testing takes 24-48 hours to complete, during which time patients may receive suboptimal empirical antibiotic therapy. A predictive model could help clinicians make more informed initial treatment decisions, potentially improving patient outcomes and reducing the development of further resistance through inappropriate antibiotic use.
+
+# Problem Statement
+
+The goal is to predict whether a bacterial isolate will be **Susceptible** or **Resistant** to standard antimicrobial therapy based on the pathogen's characteristics, genetic profile, and the patient's antibiotic exposure history. This binary classification problem aims to support rapid clinical decision-making in antibiotic selection.
+
+# Target Variable
+
+**Antimicrobial Resistance (Susceptible/Resistant)**: This binary variable indicates whether a bacterial isolate demonstrates resistance to first-line antibiotic treatments based on standardized laboratory susceptibility testing. 
+
+- **Susceptible**: The bacteria can be effectively treated with standard antibiotic concentrations
+- **Resistant**: The bacteria require alternative or higher-dose antibiotics, often with increased toxicity and cost
+
+Accurate prediction of this variable is crucial for:
+- Optimizing initial antibiotic therapy selection
+- Reducing treatment delays and improving patient outcomes
+- Minimizing unnecessary broad-spectrum antibiotic use
+- Supporting antimicrobial stewardship programs
+
+# Predictor Variables
+
+- **Antibiotic Exposure**: Patient's history of antibiotic use in the past 90 days, measured as the number of different antibiotic classes received. Previous antibiotic exposure is a strong risk factor for developing resistant infections through selective pressure.
+
+- **Genetic Mutations**: Number of known resistance-associated genetic mutations detected in the bacterial isolate through molecular testing. These mutations often confer specific resistance mechanisms such as altered drug targets or enhanced efflux pumps.
+
+- **Plasmids**: Count of resistance-carrying plasmids (mobile genetic elements) identified in the bacterial isolate. Plasmids can rapidly transfer resistance genes between bacteria and often carry multiple resistance determinants.
+
+- **Bacterial Species**: The taxonomic classification of the pathogen. Different species have varying intrinsic resistance patterns and propensities for acquiring additional resistance mechanisms. Common species include *Escherichia coli*, *Staphylococcus aureus*, *Pseudomonas aeruginosa*, and *Klebsiella pneumoniae*.
+
+# Dataset Versions
+
+This dataset is provided in two versions to support different learning objectives:
+
+- **Clean Version** (`ds097_biology_antimicrobial_resistance_susceptibleresistant.csv`): Perfect for initial exploration and model development. Contains complete data with no missing values or outliers, allowing students to focus on understanding the biological relationships and core machine learning concepts.
+
+- **Dirty Version** (`ds097_biology_antimicrobial_resistance_susceptibleresistant_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world laboratory data quality issues such as failed genetic sequencing, incomplete patient histories, or data entry errors. Ideal for practicing data cleaning and robust modeling techniques.
+
+# Suggested Approaches
+
+- **Logistic Regression**: Excellent starting point for interpretability, allowing clinicians to understand the contribution of each risk factor to resistance probability.
+
+- **Random Forest**: Handles mixed data types well and can capture complex interactions between genetic and clinical factors while providing feature importance rankings.
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Often achieves high performance on tabular biomedical data and can model non-linear relationships between bacterial characteristics and resistance patterns.
+
+- **Support Vector Machines**: Effective for this type of classification problem, especially when dealing with high-dimensional genetic data.
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 97 |
+| Domain | Biology |
+| Problem Type | Binary Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 4 |
+| Clean Version | `csv/ds097_biology_antimicrobial_resistance_susceptibleresistant.csv` |
+| Dirty Version | `csv/ds097_biology_antimicrobial_resistance_susceptibleresistant_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+| Target Balance | ~60% Susceptible, ~40% Resistant |
+
+# Learning Objectives
+
+This dataset is ideal for practicing:
+- Binary classification techniques
+- Feature engineering with mixed data types (categorical and numerical)
+- Handling imbalanced classes in medical contexts
+- Model interpretability for clinical decision support
+- Data quality assessment and cleaning
+- Evaluation metrics appropriate for medical screening (sensitivity, specificity, PPV, NPV)
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. While the data is artificial, the relationships between variables have been carefully designed to reflect real-world antimicrobial resistance patterns observed in clinical microbiology. The dataset structure and variable relationships are based on established microbiological principles and epidemiological evidence from the antimicrobial resistance literature.

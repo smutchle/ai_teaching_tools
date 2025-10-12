@@ -1,0 +1,157 @@
+{
+  "dataset_config": {
+    "name": "ds090_sociology_housing_tenure_ownrentother_dirty",
+    "description": "Determine residential ownership status",
+    "random_seed": 90,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "annual_income",
+          "employment_stability_score"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_income",
+          "age"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "family_size",
+          "housing_cost_burden"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age",
+          "employment_stability_score"
+        ],
+        "correlation": 0.42,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "annual_income",
+        "description": "Annual household income in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 65,
+          "location": 25
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "age",
+        "description": "Age of household head",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 42,
+          "std": 15,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "family_size",
+        "description": "Number of people in household",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.2,
+          "scale": 2.8,
+          "location": 1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "location_desirability_index",
+        "description": "Location desirability score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 20,
+          "min_clip": 10,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "employment_stability_score",
+        "description": "Employment stability score (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 2.2,
+          "min_clip": 0,
+          "max_clip": 10
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "housing_cost_burden",
+        "description": "Housing costs as percentage of income",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 28,
+          "location": 15
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "housing_tenure_ownrentother",
+      "description": "Housing tenure status",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(\u22122.5 + 0.03*annual_income + 0.02*age - 0.15*family_size + 0.01*location_desirability_index + 0.4*employment_stability_score - 0.05*housing_cost_burden)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Other",
+        "Rent",
+        "Rent",
+        "Rent",
+        "Rent",
+        "Rent",
+        "Own",
+        "Own",
+        "Own",
+        "Own"
+      ]
+    }
+  }
+}

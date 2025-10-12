@@ -1,0 +1,198 @@
+{
+  "dataset_config": {
+    "name": "ds040_sociology_technology_adoption_earlylatenon_adopter_dirty",
+    "description": "Classify innovation diffusion groups based on technology adoption patterns",
+    "random_seed": 40,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "education_years",
+          "income_k"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "education_years",
+          "tech_literacy_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "income_k",
+          "tech_literacy_score"
+        ],
+        "correlation": 0.4,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "peer_influence_score",
+          "social_network_size"
+        ],
+        "correlation": 0.6,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "age",
+          "tech_literacy_score"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Age in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 15,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "education_years",
+        "description": "Years of formal education",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 14,
+          "std": 3,
+          "min_clip": 8,
+          "max_clip": 22
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "income_k",
+        "description": "Annual income in thousands",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 55,
+          "location": 25
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "tech_literacy_score",
+        "description": "Technology literacy assessment score (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 65,
+          "std": 20,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "peer_influence_score",
+        "description": "Peer influence on technology adoption (1-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.0,
+          "std": 2.0,
+          "min_clip": 1.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "social_network_size",
+        "description": "Size of personal social network",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 150,
+          "location": 20
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "media_exposure_hours",
+        "description": "Weekly hours of technology media exposure",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12,
+          "std": 6,
+          "min_clip": 0,
+          "max_clip": 40
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "risk_tolerance",
+        "description": "Risk tolerance score for new technologies (1-7 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 4.2,
+          "std": 1.5,
+          "min_clip": 1.0,
+          "max_clip": 7.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "technology_adoption_earlylatenon_adopter",
+      "description": "Technology adoption category based on innovation diffusion theory",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-5 + 0.03*tech_literacy_score + 0.8*peer_influence_score + 0.02*income_k + 0.3*education_years - 0.04*age + 0.01*social_network_size + 0.1*media_exposure_hours + 0.6*risk_tolerance)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "categories": [
+        "Non-adopter",
+        "Non-adopter",
+        "Late Adopter",
+        "Late Adopter",
+        "Late Adopter",
+        "Late Adopter",
+        "Early Adopter",
+        "Early Adopter",
+        "Early Adopter",
+        "Early Adopter"
+      ]
+    }
+  }
+}

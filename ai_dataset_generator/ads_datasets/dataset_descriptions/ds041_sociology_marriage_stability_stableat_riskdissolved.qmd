@@ -1,0 +1,103 @@
+---
+title: "Dataset 41: Marriage Stability Prediction - A Sociological Classification Challenge"
+format: html
+---
+
+# Overview
+
+This dataset presents a compelling sociological classification problem focused on predicting marriage stability outcomes. Designed for data science education, it combines real-world relevance with clear pedagogical value, allowing students to explore how demographic, economic, and behavioral factors influence relationship longevity and stability patterns.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds041_sociology_marriage_stability_stableat_riskdissolved.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds041_sociology_marriage_stability_stableat_riskdissolved_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Family counseling centers and social service organizations increasingly rely on data-driven approaches to identify couples at risk of relationship dissolution and allocate limited counseling resources effectively. The Metropolitan Family Services Center, a hypothetical organization serving over 10,000 families annually, has been collecting comprehensive data on couples seeking various services over the past decade.
+
+The center's research team has identified a critical need to develop predictive models that can help counselors prioritize interventions and tailor support programs based on risk factors. By analyzing patterns in relationship duration, demographic characteristics, economic stability, family structure, and conflict patterns, they aim to create an early warning system that can identify couples who would benefit most from intensive counseling services.
+
+This predictive capability would enable the center to proactively reach out to at-risk couples, optimize resource allocation, and potentially prevent relationship dissolution through targeted interventions. The model could also inform policy recommendations for community-wide relationship support programs.
+
+# Problem Statement
+
+The challenge is to develop a classification model that can accurately predict marriage stability outcomes based on observable relationship and demographic characteristics. This multi-class classification problem requires distinguishing between three distinct relationship states, each requiring different intervention strategies.
+
+# Target Variable
+
+**Marriage Stability (Stable/At-risk/Dissolved)**: This categorical variable represents the current state of the marital relationship and serves as a critical indicator for intervention planning:
+
+- **Stable**: Relationships showing strong foundations with low conflict levels and mutual satisfaction
+- **At-risk**: Relationships experiencing significant challenges but still intact, representing the primary target for preventive interventions
+- **Dissolved**: Relationships that have ended in separation or divorce
+
+Predicting this outcome is valuable because it enables early identification of couples who could benefit from counseling services, helps optimize resource allocation in social service organizations, and provides insights into the complex factors that influence relationship longevity in contemporary society.
+
+# Predictor Variables
+
+- **Duration**: Length of the relationship in years, capturing how relationship dynamics evolve over time and providing insight into critical periods where relationships may become vulnerable
+
+- **Age at Marriage**: The age when partners married, reflecting maturity levels, life experience, and readiness for long-term commitment, which research shows significantly impacts relationship success
+
+- **Income**: Combined household income in thousands of dollars, representing economic stability and potential stress factors that can influence relationship dynamics and access to resources
+
+- **Children**: Number of children in the household, indicating family complexity, shared responsibilities, and additional stressors or bonding factors that affect relationship stability
+
+- **Conflict Frequency**: Average number of significant disagreements or conflicts per month, serving as a direct behavioral indicator of relationship health and communication effectiveness
+
+# Dataset Versions
+
+This dataset is provided in two versions to support different learning objectives:
+
+- **Clean Version** (`ds041_sociology_marriage_stability_stableat_riskdissolved.csv`): Contains complete, consistent data with no missing values or outliers. Ideal for initial model development, algorithm comparison, and foundational machine learning concepts.
+
+- **Dirty Version** (`ds041_sociology_marriage_stability_stableat_riskdissolved_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality challenges. Perfect for teaching data preprocessing, missing value imputation, and outlier detection techniques.
+
+# Suggested Approaches
+
+- **Random Forest Classification**: Excellent for handling mixed data types and providing feature importance insights, particularly valuable for understanding which factors most strongly predict relationship outcomes
+
+- **Logistic Regression (Multinomial)**: Offers interpretable coefficients and probability estimates, making it ideal for understanding the relative impact of each predictor variable on different stability outcomes
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Powerful ensemble methods that can capture complex non-linear relationships between predictors, potentially revealing subtle interaction effects between demographic and behavioral factors
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 41 |
+| Domain | Sociology |
+| Problem Type | Multi-class Classification |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Target Classes | 3 (Stable, At-risk, Dissolved) |
+| Clean Version | `csv/ds041_sociology_marriage_stability_stableat_riskdissolved.csv` |
+| Dirty Version | `csv/ds041_sociology_marriage_stability_stableat_riskdissolved_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+Students working with this dataset will gain experience in:
+- Multi-class classification problems with sociological implications
+- Handling categorical target variables with meaningful real-world interpretations
+- Feature engineering with demographic and behavioral variables
+- Addressing class imbalance issues common in social science data
+- Interpreting model results in the context of social policy and intervention planning
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. While the data is artificially created, the relationships between variables have been carefully designed to reflect realistic patterns observed in sociological research on marriage and relationship stability. The dataset provides an excellent foundation for exploring classification techniques while engaging with meaningful social science questions.

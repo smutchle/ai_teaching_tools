@@ -1,0 +1,84 @@
+---
+title: "Dataset 70: Geothermal Gradient Prediction - Subsurface Temperature Modeling"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting geothermal gradients across different geological locations, a critical parameter for understanding Earth's subsurface temperature distribution. The geothermal gradient represents how rapidly temperature increases with depth below the Earth's surface, typically measured in degrees Celsius per kilometer. This regression problem combines multiple geological and geophysical factors to model thermal behavior in the Earth's crust, making it an excellent case study for environmental data science and geophysical modeling.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds070_geoscience_geothermal_gradient.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds070_geoscience_geothermal_gradient_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+A multinational geothermal energy company is expanding operations into new regions and needs to rapidly assess the geothermal potential of prospective sites before committing to expensive exploratory drilling. Traditional methods of determining geothermal gradients require deep boreholes that can cost millions of dollars and take months to complete. The company has collected geological and geophysical data from hundreds of existing sites where geothermal gradients have been measured through actual drilling operations.
+
+The exploration team needs a predictive model that can estimate geothermal gradients using readily available geological surveys and remote sensing data. This would allow them to prioritize drilling locations, optimize resource allocation, and make informed decisions about site development potential. The model would be particularly valuable in remote or challenging terrains where preliminary site assessment is crucial for project feasibility.
+
+Additionally, this dataset serves broader scientific purposes in understanding regional heat flow patterns, assessing geothermal energy potential for sustainable development, and supporting climate research initiatives that examine subsurface thermal dynamics.
+
+# Problem Statement
+
+Given geological and geophysical characteristics of a location, predict the geothermal gradient (temperature increase per kilometer of depth). This regression problem requires modeling the complex relationships between crustal properties, geological structure, and thermal conductivity to accurately estimate subsurface temperature profiles.
+
+# Target Variable
+
+**Geothermal Gradient**: Measured in degrees Celsius per kilometer (°C/km), this represents the rate at which temperature increases with depth below the Earth's surface. Normal geothermal gradients range from 20-30°C/km, but can vary dramatically based on geological conditions. Areas with high geothermal gradients (>40°C/km) are particularly valuable for geothermal energy production, as they indicate accessible high-temperature resources at relatively shallow depths. Understanding and predicting geothermal gradients is essential for geothermal energy exploration, oil and gas drilling operations, underground construction projects, and climate modeling studies.
+
+# Predictor Variables
+
+- **Depth** (meters): The measurement depth at which the geothermal gradient was calculated. Deeper measurements often provide more stable and representative gradient values, as they're less affected by surface temperature variations and seasonal fluctuations.
+
+- **Crustal Thickness** (kilometers): The thickness of the Earth's crust at the measurement location. Thinner crust typically allows more heat from the mantle to reach the surface, resulting in higher geothermal gradients. This variable is crucial for understanding regional thermal patterns.
+
+- **Volcanic Proximity** (kilometers): Distance to the nearest active or recently active volcanic system. Volcanic areas often exhibit elevated geothermal gradients due to magmatic heat sources and associated hydrothermal systems. Closer proximity generally correlates with higher thermal activity.
+
+- **Rock Conductivity** (W/m·K): The thermal conductivity of the predominant rock types in the area. Higher conductivity rocks transfer heat more efficiently, affecting local temperature distributions. This parameter varies significantly between rock types (e.g., granite vs. sedimentary rocks).
+
+- **Heat Flow** (mW/m²): The rate of heat energy transfer from the Earth's interior to the surface, measured in milliwatts per square meter. This is a direct indicator of thermal activity and strongly influences geothermal gradients. Regional heat flow patterns reflect deep geological processes and crustal composition.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds070_geoscience_geothermal_gradient.csv`): Ideal for initial model development and learning fundamental regression techniques without data quality complications
+- **Dirty Version** (`ds070_geoscience_geothermal_gradient_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world data quality issues commonly encountered in geophysical datasets where equipment failures, measurement errors, and extreme geological conditions can affect data collection
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships between geological variables and handling potential interactions between crustal properties, volcanic activity, and thermal conductivity
+- **Gradient Boosting (XGBoost/LightGBM)**: Well-suited for this problem due to its ability to model complex geological relationships and provide feature importance rankings to understand which factors most strongly influence geothermal gradients
+- **Support Vector Regression**: Effective for modeling the potentially non-linear relationships in geophysical data, particularly when combined with RBF kernels to capture complex thermal patterns
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 70 |
+| Domain | Geoscience |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Number of Features | 5 |
+| Clean Version | `csv/ds070_geoscience_geothermal_gradient.csv` |
+| Dirty Version | `csv/ds070_geoscience_geothermal_gradient_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic geophysical principles and correlations observed in actual geothermal studies. The dataset maintains scientific plausibility while providing clear learning opportunities for regression modeling, feature engineering, and geoscientific data analysis techniques.

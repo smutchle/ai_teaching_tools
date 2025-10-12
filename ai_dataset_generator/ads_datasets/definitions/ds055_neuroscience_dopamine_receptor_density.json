@@ -1,0 +1,162 @@
+{
+  "dataset_config": {
+    "name": "ds055_neuroscience_dopamine_receptor_density",
+    "description": "Measure dopamine receptor availability in neural tissue across different brain regions with genetic and clinical factors",
+    "random_seed": 55,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "age",
+          "brain_atrophy_score"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "substance_use_years",
+          "baseline_dopamine_level"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "genetic_risk_score",
+          "dopamine_transporter_density"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "medication_duration_months",
+          "brain_atrophy_score"
+        ],
+        "correlation": 0.3,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Age of participant in years",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 45,
+          "std": 18,
+          "min_clip": 18,
+          "max_clip": 85
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "genetic_risk_score",
+        "description": "Polygenic risk score for dopaminergic dysfunction (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50,
+          "std": 15,
+          "min_clip": 0,
+          "max_clip": 100
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "substance_use_years",
+        "description": "Years of substance use history",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 8,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "medication_duration_months",
+        "description": "Duration of dopaminergic medication use in months",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 24,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "brain_region_volume",
+        "description": "Brain region volume in cubic millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1250,
+          "std": 200,
+          "min_clip": 800,
+          "max_clip": 1800
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "baseline_dopamine_level",
+        "description": "Baseline dopamine concentration (ng/mL)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 0.8,
+          "min_clip": 0.5,
+          "max_clip": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "brain_atrophy_score",
+        "description": "Brain atrophy severity score (0-10)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 3.0,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "dopamine_transporter_density",
+        "description": "Dopamine transporter density (binding potential)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 1.8,
+          "std": 0.4,
+          "min_clip": 0.5,
+          "max_clip": 3.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "dopamine_receptor_density",
+      "description": "Dopamine receptor density measured as binding potential",
+      "data_type": "float",
+      "expression": "2.8 - 0.015*age + 0.008*genetic_risk_score - 0.12*substance_use_years - 0.005*medication_duration_months + 0.0008*brain_region_volume + 0.35*baseline_dopamine_level - 0.08*brain_atrophy_score + 0.25*dopamine_transporter_density",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0
+    }
+  }
+}

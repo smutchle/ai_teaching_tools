@@ -1,0 +1,172 @@
+{
+  "dataset_config": {
+    "name": "ds055_neuroscience_dopamine_receptor_density_dirty",
+    "description": "Measure dopamine receptor availability in neural tissue across different brain regions with genetic and lifestyle factors",
+    "random_seed": 55,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "age",
+          "dopamine_transporter_density"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "genetic_variant_score",
+          "baseline_dopamine_synthesis"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "substance_use_years",
+          "age"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "medication_dosage_mg",
+          "age"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "brain_region_volume_mm3",
+          "dopamine_transporter_density"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "age",
+        "description": "Subject age in years",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 45.0,
+          "std": 18.0,
+          "min_clip": 18.0,
+          "max_clip": 85.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "genetic_variant_score",
+        "description": "Polygenic risk score for dopaminergic variants (0-100)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 50.0,
+          "std": 20.0,
+          "min_clip": 0.0,
+          "max_clip": 100.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "substance_use_years",
+        "description": "Years of substance use history",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 8.0,
+          "location": 0.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "medication_dosage_mg",
+        "description": "Daily medication dosage affecting dopamine system (mg)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 200.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "brain_region_volume_mm3",
+        "description": "Volume of sampled brain region in cubic millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 2500.0,
+          "std": 400.0,
+          "min_clip": 1200.0,
+          "max_clip": 4000.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "dopamine_transporter_density",
+        "description": "Dopamine transporter density (nmol/g tissue)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 15.0,
+          "std": 3.5,
+          "min_clip": 5.0,
+          "max_clip": 25.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "baseline_dopamine_synthesis",
+        "description": "Baseline dopamine synthesis rate (pmol/min/mg)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 2.0,
+          "min_clip": 3.0,
+          "max_clip": 15.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "dopamine_receptor_density",
+      "description": "Dopamine receptor density in neural tissue (fmol/mg protein)",
+      "data_type": "float",
+      "expression": "125.0 - 0.8*age + 0.6*genetic_variant_score - 2.1*substance_use_years - 0.15*medication_dosage_mg + 0.012*brain_region_volume_mm3 + 3.2*dopamine_transporter_density + 4.8*baseline_dopamine_synthesis",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

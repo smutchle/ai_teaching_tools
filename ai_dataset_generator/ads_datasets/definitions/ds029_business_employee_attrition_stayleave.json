@@ -1,0 +1,159 @@
+{
+  "dataset_config": {
+    "name": "ds029_business_employee_attrition_stayleave",
+    "description": "Employee retention prediction dataset with salary, commute, satisfaction, and career factors",
+    "random_seed": 29,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "annual_salary_k",
+          "job_satisfaction_score"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "years_at_company",
+          "total_promotions"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "annual_salary_k",
+          "total_promotions"
+        ],
+        "correlation": 0.55,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "commute_time_minutes",
+          "job_satisfaction_score"
+        ],
+        "correlation": -0.35,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "annual_salary_k",
+        "description": "Annual salary in thousands of dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 75,
+          "std": 25,
+          "min_clip": 35,
+          "max_clip": 180
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "commute_time_minutes",
+        "description": "Daily commute time in minutes",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 35,
+          "location": 5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "job_satisfaction_score",
+        "description": "Job satisfaction rating from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.5,
+          "std": 1.8,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "years_at_company",
+        "description": "Number of years employed at the company",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.5,
+          "scale": 5.2,
+          "location": 0.5
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "total_promotions",
+        "description": "Total number of promotions received",
+        "data_type": "int",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 1.5,
+          "location": 0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "work_life_balance_score",
+        "description": "Work-life balance rating from 1-10",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 6.2,
+          "std": 1.9,
+          "min_clip": 1,
+          "max_clip": 10
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "training_hours_annual",
+        "description": "Annual training hours provided",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 32,
+          "std": 15,
+          "min_clip": 0,
+          "max_clip": 80
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "employee_attrition_stayleave",
+      "description": "Employee retention prediction - Stay or Leave",
+      "data_type": "categorical",
+      "expression": "1 / (1 + np.exp(-(-2.5 + 0.02*annual_salary_k + 0.8*job_satisfaction_score - 0.015*commute_time_minutes + 0.25*years_at_company + 0.3*total_promotions + 0.4*work_life_balance_score + 0.01*training_hours_annual)))",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "categories": [
+        "Leave",
+        "Leave",
+        "Leave",
+        "Leave",
+        "Stay",
+        "Stay",
+        "Stay",
+        "Stay",
+        "Stay",
+        "Stay"
+      ]
+    }
+  }
+}

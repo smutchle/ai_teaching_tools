@@ -1,0 +1,184 @@
+{
+  "dataset_config": {
+    "name": "ds025_business_inventory_turnover_days_dirty",
+    "description": "Estimate days to sell through current stock based on product category, seasonality, price point, storage costs, and demand variability",
+    "random_seed": 25,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "price_point",
+          "storage_cost_per_unit"
+        ],
+        "correlation": 0.65,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "demand_variability",
+          "seasonal_index"
+        ],
+        "correlation": 0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "product_value_tier",
+          "price_point"
+        ],
+        "correlation": 0.72,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "storage_cost_per_unit",
+          "inventory_turnover_days"
+        ],
+        "correlation": 0.38,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "product_value_tier",
+        "description": "Product category tier from low to high value",
+        "data_type": "categorical",
+        "distribution": {
+          "type": "normal",
+          "mean": 0.5,
+          "std": 0.2
+        },
+        "categories": [
+          "Budget",
+          "Budget",
+          "Economy",
+          "Economy",
+          "Standard",
+          "Standard",
+          "Premium",
+          "Premium",
+          "Luxury",
+          "Luxury"
+        ],
+        "missing_rate": 0.02
+      },
+      {
+        "name": "seasonal_index",
+        "description": "Seasonal demand multiplier (0.5 = low season, 2.0 = peak season)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 2.0,
+          "scale": 1.2,
+          "location": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "price_point",
+        "description": "Product price in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 125.0,
+          "std": 85.0,
+          "min_clip": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "storage_cost_per_unit",
+        "description": "Monthly storage cost per unit in dollars",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 8.5,
+          "std": 4.2,
+          "min_clip": 0.5
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "demand_variability",
+        "description": "Coefficient of variation in demand (higher = more variable)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 0.4,
+          "location": 0.1
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "supplier_lead_time",
+        "description": "Average supplier lead time in days",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 14,
+          "std": 8,
+          "min_clip": 1,
+          "max_clip": 60
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "market_competition_index",
+        "description": "Market competition level (1 = low competition, 5 = high competition)",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 1.0,
+          "max": 5.0
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      },
+      {
+        "name": "promotion_frequency",
+        "description": "Number of promotions per quarter",
+        "data_type": "int",
+        "distribution": {
+          "type": "normal",
+          "mean": 2.5,
+          "std": 1.8,
+          "min_clip": 0,
+          "max_clip": 12
+        },
+        "missing_rate": 0.02,
+        "outlier_rate": 0.01,
+        "outlier_method": "extreme_both",
+        "outlier_multiplier": 3.0
+      }
+    ],
+    "target": {
+      "name": "inventory_turnover_days",
+      "description": "Days to sell through current stock",
+      "data_type": "float",
+      "expression": "45 + 15*demand_variability + 0.08*price_point + 2.5*storage_cost_per_unit + 0.8*supplier_lead_time + 3*market_competition_index - 25/seasonal_index - 2*promotion_frequency",
+      "noise_percent": 2.5,
+      "missing_rate": 0.02,
+      "outlier_rate": 0.01,
+      "outlier_method": "extreme_both",
+      "outlier_multiplier": 3.0
+    }
+  }
+}

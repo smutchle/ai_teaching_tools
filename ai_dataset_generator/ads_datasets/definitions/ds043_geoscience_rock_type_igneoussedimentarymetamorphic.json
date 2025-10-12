@@ -1,0 +1,180 @@
+{
+  "dataset_config": {
+    "name": "ds043_geoscience_rock_type_igneoussedimentarymetamorphic",
+    "description": "Geological rock classification dataset for identifying igneous, sedimentary, and metamorphic rock types based on mineral composition, texture, structure, formation depth, and age",
+    "random_seed": 43,
+    "n_rows": 500000,
+    "correlations": [
+      {
+        "variables": [
+          "quartz_content",
+          "feldspar_content"
+        ],
+        "correlation": -0.45,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "formation_depth_km",
+          "metamorphic_grade"
+        ],
+        "correlation": 0.62,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "grain_size_mm",
+          "porosity_percent"
+        ],
+        "correlation": -0.38,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "formation_depth_km",
+          "rock_age_ma"
+        ],
+        "correlation": 0.35,
+        "method": "cholesky"
+      },
+      {
+        "variables": [
+          "mafic_mineral_percent",
+          "formation_depth_km"
+        ],
+        "correlation": 0.41,
+        "method": "cholesky"
+      }
+    ],
+    "features": [
+      {
+        "name": "quartz_content",
+        "description": "Percentage of quartz minerals in rock sample",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 35.0,
+          "std": 20.0,
+          "min_clip": 0.0,
+          "max_clip": 80.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "feldspar_content",
+        "description": "Percentage of feldspar minerals in rock sample",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 25.0,
+          "std": 15.0,
+          "min_clip": 0.0,
+          "max_clip": 60.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "mafic_mineral_percent",
+        "description": "Percentage of mafic minerals (olivine, pyroxene, amphibole)",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.8,
+          "scale": 20.0,
+          "location": 5.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "grain_size_mm",
+        "description": "Average grain size in millimeters",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 1.2,
+          "scale": 2.5,
+          "location": 0.1
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "porosity_percent",
+        "description": "Porosity percentage of rock sample",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 12.0,
+          "std": 8.0,
+          "min_clip": 0.1,
+          "max_clip": 35.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "formation_depth_km",
+        "description": "Estimated formation depth in kilometers",
+        "data_type": "float",
+        "distribution": {
+          "type": "uniform",
+          "min": 0.0,
+          "max": 40.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "rock_age_ma",
+        "description": "Estimated rock age in million years",
+        "data_type": "float",
+        "distribution": {
+          "type": "weibull",
+          "shape": 0.8,
+          "scale": 500.0,
+          "location": 1.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      },
+      {
+        "name": "metamorphic_grade",
+        "description": "Metamorphic grade index (0-10 scale)",
+        "data_type": "float",
+        "distribution": {
+          "type": "normal",
+          "mean": 3.5,
+          "std": 2.5,
+          "min_clip": 0.0,
+          "max_clip": 10.0
+        },
+        "missing_rate": 0.0,
+        "outlier_rate": 0.0
+      }
+    ],
+    "target": {
+      "name": "rock_type_igneoussedimentarymetamorphic",
+      "description": "Classification of rock type into igneous, sedimentary, or metamorphic categories",
+      "data_type": "categorical",
+      "expression": "2.5*mafic_mineral_percent - 1.8*porosity_percent + 0.8*formation_depth_km + 1.2*metamorphic_grade - 0.5*quartz_content + 0.3*feldspar_content - 0.2*grain_size_mm + 0.01*rock_age_ma",
+      "noise_percent": 2.5,
+      "missing_rate": 0.0,
+      "outlier_rate": 0.0,
+      "categories": [
+        "Sedimentary",
+        "Sedimentary",
+        "Sedimentary",
+        "Sedimentary",
+        "Igneous",
+        "Igneous",
+        "Igneous",
+        "Metamorphic",
+        "Metamorphic",
+        "Metamorphic"
+      ]
+    }
+  }
+}

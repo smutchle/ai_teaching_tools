@@ -1,0 +1,93 @@
+---
+title: "Dataset 22: Protein Expression Level Prediction in Cellular Biology"
+format: html
+---
+
+# Overview
+
+This dataset focuses on predicting protein expression levels in mammalian cells under various experimental conditions. It captures the complex relationship between genetic regulatory elements, cellular environment, and temporal dynamics that influence protein production. This regression problem is fundamental to understanding gene regulation and has direct applications in biotechnology, drug development, and synthetic biology research.
+
+::: {.callout-note icon=false}
+## Download Dataset
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds022_biology_protein_expression_level.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version
+  </a>
+  <a href="../csv/ds022_biology_protein_expression_level_dirty.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version
+  </a>
+</div>
+
+**Clean Version**: Complete data with no missing values or outliers
+**Dirty Version**: Contains missing values and outliers for data cleaning practice
+:::
+
+
+# Background and Use Case
+
+Dr. Sarah Chen's laboratory at the Institute for Molecular Biology is developing a new gene therapy approach for treating muscular dystrophy. The therapy involves introducing therapeutic genes into patient muscle cells, but the success of the treatment depends critically on achieving optimal protein expression levels. Too little protein expression results in ineffective treatment, while excessive expression can be toxic to cells.
+
+The research team has been conducting extensive experiments to understand how different factors influence the expression of their therapeutic protein. They've systematically varied gene promoter strengths (weak, moderate, strong), tested different cell types (muscle cells, fibroblasts, stem cells), applied various cellular stressors (oxidative stress, heat shock, nutrient depletion), and measured protein levels at different time points after gene induction.
+
+The laboratory needs a predictive model to optimize experimental conditions before conducting expensive and time-consuming cell culture experiments. By accurately predicting protein expression levels based on experimental parameters, they can design more efficient experiments, reduce costs, and accelerate the development of their gene therapy approach.
+
+# Problem Statement
+
+Given experimental conditions including gene promoter strength, cell type, applied stressors, and time since induction, predict the resulting protein expression level in cells. This prediction enables researchers to optimize experimental design and understand the complex interactions between genetic and environmental factors that control protein production.
+
+# Target Variable
+
+**Protein Expression Level**: Measured in relative fluorescence units (RFU) using flow cytometry, this continuous variable represents the abundance of the target protein within cells. Values typically range from 100 to 10,000 RFU, where higher values indicate greater protein production. This measurement is crucial because protein expression level directly correlates with therapeutic efficacy in gene therapy applications. Understanding and predicting these levels helps researchers optimize treatment protocols and avoid both under-dosing (ineffective treatment) and over-dosing (potential toxicity).
+
+# Predictor Variables
+
+- **Gene Promoter Strength**: Categorical variable (weak, moderate, strong) representing the transcriptional activity of the DNA sequence that initiates gene expression. Stronger promoters typically drive higher protein production but may also be more susceptible to cellular regulation.
+
+- **Cell Type**: Categorical variable indicating the specific cell line used (muscle cells, fibroblasts, stem cells). Different cell types have distinct transcriptional machinery, metabolic states, and protein synthesis capabilities, significantly affecting expression outcomes.
+
+- **Stressors**: Categorical variable describing environmental stress conditions applied to cells (none, oxidative stress, heat shock, nutrient depletion). Cellular stress can either enhance or suppress protein expression through various regulatory pathways.
+
+- **Time Since Induction**: Continuous variable measured in hours (0-72 hours) representing the elapsed time after gene expression was initiated. Protein levels typically increase over time but may plateau or decline due to protein degradation or cellular adaptation.
+
+# Dataset Versions
+
+This dataset is provided in two versions:
+
+- **Clean Version** (`ds022_biology_protein_expression_level.csv`): Ideal for initial model development and learning core concepts without data quality complications
+- **Dirty Version** (`ds022_biology_protein_expression_level_dirty.csv`): Contains 2% missing values and 1% outliers, simulating real-world experimental data where measurements may fail or equipment malfunctions can produce erroneous readings
+
+# Suggested Approaches
+
+- **Random Forest Regression**: Excellent for capturing non-linear relationships and interactions between categorical and continuous variables, while providing feature importance insights valuable for biological interpretation
+
+- **Gradient Boosting (XGBoost/LightGBM)**: Highly effective for mixed data types and can model complex temporal dynamics and interaction effects between promoter strength and cellular conditions
+
+- **Multiple Linear Regression with Interaction Terms**: Provides interpretable coefficients and hypothesis testing capabilities, essential for understanding biological mechanisms and publishing scientific results
+
+# Dataset Details
+
+| Property | Value |
+|----------|-------|
+| Dataset ID | 22 |
+| Domain | Biology |
+| Problem Type | Regression |
+| Number of Rows | 500,000 |
+| Clean Version | `csv/ds022_biology_protein_expression_level.csv` |
+| Dirty Version | `csv/ds022_biology_protein_expression_level_dirty.csv` |
+| Missing Values (Dirty) | 2% |
+| Outliers (Dirty) | 1% |
+
+# Learning Objectives
+
+Working with this dataset will help students:
+
+- Practice regression modeling with mixed categorical and continuous variables
+- Understand the importance of temporal dynamics in biological systems
+- Learn to handle missing data and outliers in experimental datasets
+- Develop skills in feature engineering for biological data
+- Gain experience with model interpretation in scientific contexts
+
+# Notes
+
+This is a synthetic dataset generated for educational purposes. The relationships between variables have been designed to reflect realistic biological phenomena, including non-linear dose-response relationships, temporal dynamics of protein expression, and cell-type-specific effects. While synthetic, the data structure and patterns mirror those commonly encountered in molecular biology research, making it an excellent training ground for aspiring data scientists in the life sciences.
