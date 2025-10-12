@@ -3,52 +3,48 @@ title: "📚 ADS Datasets - Synthetic Datasets for Data Science Education"
 format: html
 ---
 
-# Welcome 👋
+## Welcome 👋
 
-This collection contains 100 synthetic datasets designed for teaching and learning data science concepts. Each dataset is provided in two versions:
+This collection contains 101 synthetic datasets designed for teaching and learning data science concepts. Each dataset is provided in two versions:
 
 - **✨ Clean Version**: No missing values or outliers - ideal for initial model development
 - **🔧 Dirty Version**: Contains 2% missing values and 1% outliers - simulates real-world data challenges
 
 All datasets are synthetic and generated for educational purposes.
 
-# Domains Covered 🌍
+## Domains Covered 🌍
 
 - **🧬 Biology**: 16 datasets (8 regression, 8 classification)
 - **💼 Business**: 20 datasets (10 regression, 10 classification)
 - **🌿 Ecology**: 16 datasets (8 regression, 8 classification)
 - **🌋 Geoscience**: 16 datasets (8 regression, 8 classification)
-- **🧠 Neuroscience**: 16 datasets (8 regression, 8 classification)
+- **🧠 Neuroscience**: 17 datasets (8 regression, 9 classification)
 - **👥 Sociology**: 16 datasets (8 regression, 8 classification)
 
-# Dataset Statistics 📈
+Each dataset is **500,000 rows** to begin.  You can downsize to whatever size you want.
 
-| Metric | Count |
-|--------|-------|
-| Total Datasets | 100 |
-| Regression Problems | 50 |
-| Classification Problems | 50 |
-| Domains | 6 |
-| Rows per Dataset | 500,000 |
+## Downsizing the CSV to N-Rows (e.g. N=5000)
 
-# Downsizing the CSV to N-Rows (e.g. N=5000)
+::: {.panel-tabset}
 
-## Windows (PowerShell)
+### Windows (PowerShell)
 ```powershell
 Get-Content my_dataset.csv -Head 5000 | Set-Content my_dataset_small.csv
 ```
 
-## Linux
+### Linux
 ```bash
 head -n 5000 my_dataset.csv > my_dataset_small.csv
 ```
 
-## macOS
+### macOS
 ```bash
 head -n 5000 my_dataset.csv > my_dataset_small.csv
 ```
 
-# Using These Datasets 🚀
+:::
+
+## Using These Datasets 🚀
 
 1. **🔍 Choose a Dataset**: Browse by domain or problem type
 2. **📥 Download CSV Files**: Access from `csv/` directory
@@ -56,9 +52,9 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 4. **🔧 Practice with Dirty**: Test data cleaning and outlier detection on dirty version
 5. **📊 Compare Results**: See how data quality affects model performance
 
-# Dataset Catalog
+## Dataset Catalog
 
-## Biology
+### Biology
 
 - 📊 [021: Plant Growth Rate](dataset_descriptions/ds021_biology_plant_growth_rate.qmd)
 - 📊 [022: Protein Expression Level](dataset_descriptions/ds022_biology_protein_expression_level.qmd)
@@ -77,7 +73,7 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 - 🏷️ [098: Developmental Stage (5 life phases)](dataset_descriptions/ds098_biology_developmental_stage_5_life_phases.qmd)
 - 🏷️ [099: Nutritional Status (Deficient/Adequate/Excess)](dataset_descriptions/ds099_biology_nutritional_status_deficientadequateexcess.qmd)
 
-## Business
+### Business
 
 - 📊 [001: Customer Lifetime Value](dataset_descriptions/ds001_business_customer_lifetime_value.qmd)
 - 📊 [002: Employee Productivity Score](dataset_descriptions/ds002_business_employee_productivity_score.qmd)
@@ -100,7 +96,7 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 - 🏷️ [079: Ad Click (Yes/No)](dataset_descriptions/ds079_business_ad_click_yesno.qmd)
 - 🏷️ [100: Delivery Success (On-time/Delayed/Failed)](dataset_descriptions/ds100_business_delivery_success_on_timedelayedfailed.qmd)
 
-## Ecology
+### Ecology
 
 - 📊 [009: Species Abundance](dataset_descriptions/ds009_ecology_species_abundance.qmd)
 - 📊 [010: Forest Biomass](dataset_descriptions/ds010_ecology_forest_biomass.qmd)
@@ -119,7 +115,7 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 - 🏷️ [086: Pest Outbreak (None/Minor/Major)](dataset_descriptions/ds086_ecology_pest_outbreak_noneminormajor.qmd)
 - 🏷️ [087: Vegetation Type (6 biome classes)](dataset_descriptions/ds087_ecology_vegetation_type_6_biome_classes.qmd)
 
-## Geoscience
+### Geoscience
 
 - 📊 [017: Soil Erosion Rate](dataset_descriptions/ds017_geoscience_soil_erosion_rate.qmd)
 - 📊 [018: Groundwater Depth](dataset_descriptions/ds018_geoscience_groundwater_depth.qmd)
@@ -138,7 +134,7 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 - 🏷️ [094: Flood Risk Zone (Low/Medium/High/Extreme)](dataset_descriptions/ds094_geoscience_flood_risk_zone_lowmediumhighextreme.qmd)
 - 🏷️ [095: Mineral Deposit Type (5 ore classes)](dataset_descriptions/ds095_geoscience_mineral_deposit_type_5_ore_classes.qmd)
 
-## Neuroscience
+### Neuroscience
 
 - 📊 [000: Cytokine Depression Study](dataset_descriptions/ds000_depression_cytokine_study.qmd)
 - 📊 [005: Cognitive Test Score](dataset_descriptions/ds005_neuroscience_cognitive_test_score.qmd)
@@ -158,7 +154,7 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 - 🏷️ [082: Handedness (Left/Right/Ambidextrous)](dataset_descriptions/ds082_neuroscience_handedness_leftrightambidextrous.qmd)
 - 🏷️ [083: Addiction Risk (Low/Medium/High)](dataset_descriptions/ds083_neuroscience_addiction_risk_lowmediumhigh.qmd)
 
-## Sociology
+### Sociology
 
 - 📊 [013: Social Mobility Score](dataset_descriptions/ds013_sociology_social_mobility_score.qmd)
 - 📊 [014: Community Trust Index](dataset_descriptions/ds014_sociology_community_trust_index.qmd)
@@ -178,7 +174,7 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 - 🏷️ [091: Media Consumption Type (4 platforms)](dataset_descriptions/ds091_sociology_media_consumption_type_4_platforms.qmd)
 
 
-# About
+## About
 
 These datasets were generated using the AI Dataset Generator tool, which creates realistic synthetic data for educational purposes. Each dataset includes:
 

@@ -4,97 +4,67 @@
     "href": "index.html",
     "title": "ADS Datasets",
     "section": "",
-    "text": "Welcome 👋\nThis collection contains 100 synthetic datasets designed for teaching and learning data science concepts. Each dataset is provided in two versions:\nAll datasets are synthetic and generated for educational purposes.",
+    "text": "Welcome 👋\nThis collection contains 101 synthetic datasets designed for teaching and learning data science concepts. Each dataset is provided in two versions:\nAll datasets are synthetic and generated for educational purposes.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]
   },
   {
-    "objectID": "index.html#windows-powershell",
-    "href": "index.html#windows-powershell",
+    "objectID": "index.html#welcome",
+    "href": "index.html#welcome",
     "title": "ADS Datasets",
-    "section": "Windows (PowerShell)",
-    "text": "Windows (PowerShell)\nGet-Content my_dataset.csv -Head 5000 | Set-Content my_dataset_small.csv",
+    "section": "",
+    "text": "✨ Clean Version: No missing values or outliers - ideal for initial model development\n🔧 Dirty Version: Contains 2% missing values and 1% outliers - simulates real-world data challenges",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]
   },
   {
-    "objectID": "index.html#linux",
-    "href": "index.html#linux",
+    "objectID": "index.html#domains-covered",
+    "href": "index.html#domains-covered",
     "title": "ADS Datasets",
-    "section": "Linux",
-    "text": "Linux\nhead -n 5000 my_dataset.csv &gt; my_dataset_small.csv",
+    "section": "Domains Covered 🌍",
+    "text": "Domains Covered 🌍\n\n🧬 Biology: 16 datasets (8 regression, 8 classification)\n💼 Business: 20 datasets (10 regression, 10 classification)\n🌿 Ecology: 16 datasets (8 regression, 8 classification)\n🌋 Geoscience: 16 datasets (8 regression, 8 classification)\n🧠 Neuroscience: 17 datasets (8 regression, 9 classification)\n👥 Sociology: 16 datasets (8 regression, 8 classification)\n\nEach dataset is 500,000 rows to begin. You can downsize to whatever size you want.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]
   },
   {
-    "objectID": "index.html#macos",
-    "href": "index.html#macos",
+    "objectID": "index.html#downsizing-the-csv-to-n-rows-e.g.-n5000",
+    "href": "index.html#downsizing-the-csv-to-n-rows-e.g.-n5000",
     "title": "ADS Datasets",
-    "section": "macOS",
-    "text": "macOS\nhead -n 5000 my_dataset.csv &gt; my_dataset_small.csv",
+    "section": "Downsizing the CSV to N-Rows (e.g. N=5000)",
+    "text": "Downsizing the CSV to N-Rows (e.g. N=5000)\n\nWindows (PowerShell)LinuxmacOS\n\n\nGet-Content my_dataset.csv -Head 5000 | Set-Content my_dataset_small.csv\n\n\nhead -n 5000 my_dataset.csv &gt; my_dataset_small.csv\n\n\nhead -n 5000 my_dataset.csv &gt; my_dataset_small.csv",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]
   },
   {
-    "objectID": "index.html#biology",
-    "href": "index.html#biology",
+    "objectID": "index.html#using-these-datasets",
+    "href": "index.html#using-these-datasets",
     "title": "ADS Datasets",
-    "section": "Biology",
-    "text": "Biology\n\n📊 021: Plant Growth Rate\n📊 022: Protein Expression Level\n📊 023: Enzyme Activity\n📊 024: Organism Lifespan\n🏷️ 046: Disease Status (Healthy/Infected/Resistant)\n🏷️ 047: Cell Type (6 tissue classes)\n🏷️ 048: Treatment Response (Responder/Non-responder)\n🏷️ 049: Organism Sex (Male/Female/Hermaphrodite)\n📊 071: Metabolic Rate\n📊 072: Photosynthesis Efficiency\n📊 073: Antibody Titer\n📊 074: Root Depth\n🏷️ 096: Pollination Syndrome (Wind/Insect/Bird/Bat)\n🏷️ 097: Antimicrobial Resistance (Susceptible/Resistant)\n🏷️ 098: Developmental Stage (5 life phases)\n🏷️ 099: Nutritional Status (Deficient/Adequate/Excess)",
+    "section": "Using These Datasets 🚀",
+    "text": "Using These Datasets 🚀\n\n🔍 Choose a Dataset: Browse by domain or problem type\n📥 Download CSV Files: Access from csv/ directory\n✨ Start with Clean: Use clean version for initial exploration\n🔧 Practice with Dirty: Test data cleaning and outlier detection on dirty version\n📊 Compare Results: See how data quality affects model performance",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]
   },
   {
-    "objectID": "index.html#business",
-    "href": "index.html#business",
+    "objectID": "index.html#dataset-catalog",
+    "href": "index.html#dataset-catalog",
     "title": "ADS Datasets",
-    "section": "Business",
-    "text": "Business\n\n📊 001: Customer Lifetime Value\n📊 002: Employee Productivity Score\n📊 003: Marketing Campaign ROI\n📊 004: Real Estate Price\n📊 025: Inventory Turnover Days\n🏷️ 026: Customer Churn (Yes/No)\n🏷️ 027: Loan Default Risk (Low/Med/High)\n🏷️ 028: Product Purchase (Yes/No)\n🏷️ 029: Employee Attrition (Stay/Leave)\n🏷️ 050: Market Segment (4 customer types)\n📊 051: Website Conversion Rate\n📊 052: Supply Chain Lead Time\n📊 053: Brand Sentiment Score\n📊 054: Sales Commission Amount\n📊 075: Customer Satisfaction Score\n🏷️ 076: Fraud Detection (Genuine/Fraudulent)\n🏷️ 077: Hiring Decision (Reject/Interview/Offer)\n🏷️ 078: Warehouse Location Suitability (3 levels)\n🏷️ 079: Ad Click (Yes/No)\n🏷️ 100: Delivery Success (On-time/Delayed/Failed)",
+    "section": "Dataset Catalog",
+    "text": "Dataset Catalog\n\nBiology\n\n📊 021: Plant Growth Rate\n📊 022: Protein Expression Level\n📊 023: Enzyme Activity\n📊 024: Organism Lifespan\n🏷️ 046: Disease Status (Healthy/Infected/Resistant)\n🏷️ 047: Cell Type (6 tissue classes)\n🏷️ 048: Treatment Response (Responder/Non-responder)\n🏷️ 049: Organism Sex (Male/Female/Hermaphrodite)\n📊 071: Metabolic Rate\n📊 072: Photosynthesis Efficiency\n📊 073: Antibody Titer\n📊 074: Root Depth\n🏷️ 096: Pollination Syndrome (Wind/Insect/Bird/Bat)\n🏷️ 097: Antimicrobial Resistance (Susceptible/Resistant)\n🏷️ 098: Developmental Stage (5 life phases)\n🏷️ 099: Nutritional Status (Deficient/Adequate/Excess)\n\n\n\nBusiness\n\n📊 001: Customer Lifetime Value\n📊 002: Employee Productivity Score\n📊 003: Marketing Campaign ROI\n📊 004: Real Estate Price\n📊 025: Inventory Turnover Days\n🏷️ 026: Customer Churn (Yes/No)\n🏷️ 027: Loan Default Risk (Low/Med/High)\n🏷️ 028: Product Purchase (Yes/No)\n🏷️ 029: Employee Attrition (Stay/Leave)\n🏷️ 050: Market Segment (4 customer types)\n📊 051: Website Conversion Rate\n📊 052: Supply Chain Lead Time\n📊 053: Brand Sentiment Score\n📊 054: Sales Commission Amount\n📊 075: Customer Satisfaction Score\n🏷️ 076: Fraud Detection (Genuine/Fraudulent)\n🏷️ 077: Hiring Decision (Reject/Interview/Offer)\n🏷️ 078: Warehouse Location Suitability (3 levels)\n🏷️ 079: Ad Click (Yes/No)\n🏷️ 100: Delivery Success (On-time/Delayed/Failed)\n\n\n\nEcology\n\n📊 009: Species Abundance\n📊 010: Forest Biomass\n📊 011: Water Quality Index\n📊 012: Pollinator Visitation Rate\n🏷️ 034: Habitat Quality (Poor/Fair/Good/Excellent)\n🏷️ 035: Invasive Species Presence (Yes/No)\n🏷️ 036: Conservation Priority (Low/Med/High/Critical)\n🏷️ 037: Migration Status (Resident/Migratory)\n📊 059: Carbon Sequestration Rate\n📊 060: Stream Flow Rate\n📊 061: Seed Dispersal Distance\n📊 062: Algae Bloom Intensity\n🏷️ 084: Wetland Type (Marsh/Swamp/Bog/Fen)\n🏷️ 085: Coral Reef Health (Healthy/Stressed/Bleached/Dead)\n🏷️ 086: Pest Outbreak (None/Minor/Major)\n🏷️ 087: Vegetation Type (6 biome classes)\n\n\n\nGeoscience\n\n📊 017: Soil Erosion Rate\n📊 018: Groundwater Depth\n📊 019: Earthquake Magnitude\n📊 020: Mineral Concentration\n🏷️ 042: Landslide Risk (Low/Moderate/High)\n🏷️ 043: Rock Type (Igneous/Sedimentary/Metamorphic)\n🏷️ 044: Drought Severity (5 levels)\n🏷️ 045: Volcanic Activity Level (Dormant/Active/Erupting)\n📊 067: Glacier Retreat Rate\n📊 068: Soil pH Level\n📊 069: Coastal Erosion Rate\n📊 070: Geothermal Gradient\n🏷️ 092: Aquifer Vulnerability (Low/Moderate/High)\n🏷️ 093: Soil Texture Class (Sand/Silt/Clay/Loam)\n🏷️ 094: Flood Risk Zone (Low/Medium/High/Extreme)\n🏷️ 095: Mineral Deposit Type (5 ore classes)\n\n\n\nNeuroscience\n\n📊 000: Cytokine Depression Study\n📊 005: Cognitive Test Score\n📊 006: Brain Region Volume\n📊 007: Reaction Time\n📊 008: Memory Recall Accuracy\n🏷️ 030: Cognitive Impairment (Normal/MCI/Dementia)\n🏷️ 031: Seizure Occurrence (Yes/No)\n🏷️ 032: Brain Tumor Type (4 classes)\n🏷️ 033: Mental Health Diagnosis (5 categories)\n📊 055: Dopamine Receptor Density\n📊 056: Neural Firing Rate\n📊 057: Learning Curve Slope\n📊 058: White Matter Integrity\n🏷️ 080: Sleep Stage (Wake/REM/Light/Deep)\n🏷️ 081: Pain Perception Level (None/Mild/Moderate/Severe)\n🏷️ 082: Handedness (Left/Right/Ambidextrous)\n🏷️ 083: Addiction Risk (Low/Medium/High)\n\n\n\nSociology\n\n📊 013: Social Mobility Score\n📊 014: Community Trust Index\n📊 015: Education Attainment Years\n📊 016: Volunteer Hours per Year\n🏷️ 038: Voting Behavior (5 party choices)\n🏷️ 039: Social Class (Working/Middle/Upper)\n🏷️ 040: Technology Adoption (Early/Late/Non-adopter)\n🏷️ 041: Marriage Stability (Stable/At-risk/Dissolved)\n📊 063: Crime Rate per Capita\n📊 064: Social Network Size\n📊 065: Income Inequality Index\n📊 066: Voter Turnout Percentage\n🏷️ 088: Work-Life Balance (Poor/Fair/Good)\n🏷️ 089: Religious Affiliation (6 categories)\n🏷️ 090: Housing Tenure (Own/Rent/Other)\n🏷️ 091: Media Consumption Type (4 platforms)",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]
   },
   {
-    "objectID": "index.html#ecology",
-    "href": "index.html#ecology",
+    "objectID": "index.html#about",
+    "href": "index.html#about",
     "title": "ADS Datasets",
-    "section": "Ecology",
-    "text": "Ecology\n\n📊 009: Species Abundance\n📊 010: Forest Biomass\n📊 011: Water Quality Index\n📊 012: Pollinator Visitation Rate\n🏷️ 034: Habitat Quality (Poor/Fair/Good/Excellent)\n🏷️ 035: Invasive Species Presence (Yes/No)\n🏷️ 036: Conservation Priority (Low/Med/High/Critical)\n🏷️ 037: Migration Status (Resident/Migratory)\n📊 059: Carbon Sequestration Rate\n📊 060: Stream Flow Rate\n📊 061: Seed Dispersal Distance\n📊 062: Algae Bloom Intensity\n🏷️ 084: Wetland Type (Marsh/Swamp/Bog/Fen)\n🏷️ 085: Coral Reef Health (Healthy/Stressed/Bleached/Dead)\n🏷️ 086: Pest Outbreak (None/Minor/Major)\n🏷️ 087: Vegetation Type (6 biome classes)",
-    "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
-    ]
-  },
-  {
-    "objectID": "index.html#geoscience",
-    "href": "index.html#geoscience",
-    "title": "ADS Datasets",
-    "section": "Geoscience",
-    "text": "Geoscience\n\n📊 017: Soil Erosion Rate\n📊 018: Groundwater Depth\n📊 019: Earthquake Magnitude\n📊 020: Mineral Concentration\n🏷️ 042: Landslide Risk (Low/Moderate/High)\n🏷️ 043: Rock Type (Igneous/Sedimentary/Metamorphic)\n🏷️ 044: Drought Severity (5 levels)\n🏷️ 045: Volcanic Activity Level (Dormant/Active/Erupting)\n📊 067: Glacier Retreat Rate\n📊 068: Soil pH Level\n📊 069: Coastal Erosion Rate\n📊 070: Geothermal Gradient\n🏷️ 092: Aquifer Vulnerability (Low/Moderate/High)\n🏷️ 093: Soil Texture Class (Sand/Silt/Clay/Loam)\n🏷️ 094: Flood Risk Zone (Low/Medium/High/Extreme)\n🏷️ 095: Mineral Deposit Type (5 ore classes)",
-    "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
-    ]
-  },
-  {
-    "objectID": "index.html#neuroscience",
-    "href": "index.html#neuroscience",
-    "title": "ADS Datasets",
-    "section": "Neuroscience",
-    "text": "Neuroscience\n\n📊 000: Cytokine Depression Study\n📊 005: Cognitive Test Score\n📊 006: Brain Region Volume\n📊 007: Reaction Time\n📊 008: Memory Recall Accuracy\n🏷️ 030: Cognitive Impairment (Normal/MCI/Dementia)\n🏷️ 031: Seizure Occurrence (Yes/No)\n🏷️ 032: Brain Tumor Type (4 classes)\n🏷️ 033: Mental Health Diagnosis (5 categories)\n📊 055: Dopamine Receptor Density\n📊 056: Neural Firing Rate\n📊 057: Learning Curve Slope\n📊 058: White Matter Integrity\n🏷️ 080: Sleep Stage (Wake/REM/Light/Deep)\n🏷️ 081: Pain Perception Level (None/Mild/Moderate/Severe)\n🏷️ 082: Handedness (Left/Right/Ambidextrous)\n🏷️ 083: Addiction Risk (Low/Medium/High)",
-    "crumbs": [
-      "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
-    ]
-  },
-  {
-    "objectID": "index.html#sociology",
-    "href": "index.html#sociology",
-    "title": "ADS Datasets",
-    "section": "Sociology",
-    "text": "Sociology\n\n📊 013: Social Mobility Score\n📊 014: Community Trust Index\n📊 015: Education Attainment Years\n📊 016: Volunteer Hours per Year\n🏷️ 038: Voting Behavior (5 party choices)\n🏷️ 039: Social Class (Working/Middle/Upper)\n🏷️ 040: Technology Adoption (Early/Late/Non-adopter)\n🏷️ 041: Marriage Stability (Stable/At-risk/Dissolved)\n📊 063: Crime Rate per Capita\n📊 064: Social Network Size\n📊 065: Income Inequality Index\n📊 066: Voter Turnout Percentage\n🏷️ 088: Work-Life Balance (Poor/Fair/Good)\n🏷️ 089: Religious Affiliation (6 categories)\n🏷️ 090: Housing Tenure (Own/Rent/Other)\n🏷️ 091: Media Consumption Type (4 platforms)",
+    "section": "About",
+    "text": "About\nThese datasets were generated using the AI Dataset Generator tool, which creates realistic synthetic data for educational purposes. Each dataset includes:\n\nRealistic feature distributions\nMeaningful correlations between variables\nInterpretable target relationships\nAppropriate levels of noise and complexity\n\nFor questions or feedback, please see the project repository.",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]

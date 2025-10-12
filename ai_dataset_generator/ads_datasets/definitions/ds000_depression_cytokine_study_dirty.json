@@ -1,6 +1,6 @@
 {
   "dataset_config": {
-    "name": "depression_cytokine_study",
+    "name": "depression_cytokine_study_dirty",
     "description": "Depression diagnosis based on cytokine biomarker readings",
     "random_seed": 42,
     "n_rows": 500000,
