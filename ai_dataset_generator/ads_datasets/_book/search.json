@@ -44,7 +44,7 @@
     "href": "index.html#using-these-datasets",
     "title": "ADS Datasets",
     "section": "Using These Datasets 🚀",
-    "text": "Using These Datasets 🚀\n\n🔍 Choose a Dataset: Browse by domain or problem type\n📥 Download CSV Files: Access from csv/ directory\n✨ Start with Clean: Use clean version for initial exploration\n🔧 Practice with Dirty: Test data cleaning and outlier detection on dirty version\n📊 Compare Results: See how data quality affects model performance",
+    "text": "Using These Datasets 🚀\n\n🔍 Choose a Dataset: Browse by domain or problem type\n📥 Download CSV Files: Access from csv/ directory\n✨ Start with Clean: Use clean version for initial exploration\n🔧 Practice with Dirty: Test data cleaning and outlier detection on dirty version\n📊 Compare Results: See how data quality affects model performance\n\n\n🎲 Pick a Random Dataset",
     "crumbs": [
       "<span class='chapter-number'>1</span>  <span class='chapter-title'>📚 ADS Datasets - Synthetic Datasets for Data Science Education</span>"
     ]

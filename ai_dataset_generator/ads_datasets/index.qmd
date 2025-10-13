@@ -52,6 +52,12 @@ head -n 5000 my_dataset.csv > my_dataset_small.csv
 4. **🔧 Practice with Dirty**: Test data cleaning and outlier detection on dirty version
 5. **📊 Compare Results**: See how data quality affects model performance
 
+<button id="randomDatasetBtn" style="background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; margin: 10px 0;">
+🎲 Pick a Random Dataset
+</button>
+<div id="randomDatasetResult" style="margin: 10px 0; padding: 10px; background-color: #f0f0f0; border-radius: 5px; display: none;">
+</div>
+
 ## Dataset Catalog
 
 ### Biology
@@ -184,3 +190,126 @@ These datasets were generated using the AI Dataset Generator tool, which creates
 - Appropriate levels of noise and complexity
 
 For questions or feedback, please see the project repository.
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const datasets = [
+    {name: "Plant Growth Rate", url: "dataset_descriptions/ds021_biology_plant_growth_rate.html", domain: "Biology"},
+    {name: "Protein Expression Level", url: "dataset_descriptions/ds022_biology_protein_expression_level.html", domain: "Biology"},
+    {name: "Enzyme Activity", url: "dataset_descriptions/ds023_biology_enzyme_activity.html", domain: "Biology"},
+    {name: "Organism Lifespan", url: "dataset_descriptions/ds024_biology_organism_lifespan.html", domain: "Biology"},
+    {name: "Disease Status (Healthy/Infected/Resistant)", url: "dataset_descriptions/ds046_biology_disease_status_healthyinfectedresistant.html", domain: "Biology"},
+    {name: "Cell Type (6 tissue classes)", url: "dataset_descriptions/ds047_biology_cell_type_6_tissue_classes.html", domain: "Biology"},
+    {name: "Treatment Response (Responder/Non-responder)", url: "dataset_descriptions/ds048_biology_treatment_response_respondernon_responder.html", domain: "Biology"},
+    {name: "Organism Sex (Male/Female/Hermaphrodite)", url: "dataset_descriptions/ds049_biology_organism_sex_malefemalehermaphrodite.html", domain: "Biology"},
+    {name: "Metabolic Rate", url: "dataset_descriptions/ds071_biology_metabolic_rate.html", domain: "Biology"},
+    {name: "Photosynthesis Efficiency", url: "dataset_descriptions/ds072_biology_photosynthesis_efficiency.html", domain: "Biology"},
+    {name: "Antibody Titer", url: "dataset_descriptions/ds073_biology_antibody_titer.html", domain: "Biology"},
+    {name: "Root Depth", url: "dataset_descriptions/ds074_biology_root_depth.html", domain: "Biology"},
+    {name: "Pollination Syndrome (Wind/Insect/Bird/Bat)", url: "dataset_descriptions/ds096_biology_pollination_syndrome_windinsectbirdbat.html", domain: "Biology"},
+    {name: "Antimicrobial Resistance (Susceptible/Resistant)", url: "dataset_descriptions/ds097_biology_antimicrobial_resistance_susceptibleresistant.html", domain: "Biology"},
+    {name: "Developmental Stage (5 life phases)", url: "dataset_descriptions/ds098_biology_developmental_stage_5_life_phases.html", domain: "Biology"},
+    {name: "Nutritional Status (Deficient/Adequate/Excess)", url: "dataset_descriptions/ds099_biology_nutritional_status_deficientadequateexcess.html", domain: "Biology"},
+    {name: "Customer Lifetime Value", url: "dataset_descriptions/ds001_business_customer_lifetime_value.html", domain: "Business"},
+    {name: "Employee Productivity Score", url: "dataset_descriptions/ds002_business_employee_productivity_score.html", domain: "Business"},
+    {name: "Marketing Campaign ROI", url: "dataset_descriptions/ds003_business_marketing_campaign_roi.html", domain: "Business"},
+    {name: "Real Estate Price", url: "dataset_descriptions/ds004_business_real_estate_price.html", domain: "Business"},
+    {name: "Inventory Turnover Days", url: "dataset_descriptions/ds025_business_inventory_turnover_days.html", domain: "Business"},
+    {name: "Customer Churn (Yes/No)", url: "dataset_descriptions/ds026_business_customer_churn_yesno.html", domain: "Business"},
+    {name: "Loan Default Risk (Low/Med/High)", url: "dataset_descriptions/ds027_business_loan_default_risk_lowmedhigh.html", domain: "Business"},
+    {name: "Product Purchase (Yes/No)", url: "dataset_descriptions/ds028_business_product_purchase_yesno.html", domain: "Business"},
+    {name: "Employee Attrition (Stay/Leave)", url: "dataset_descriptions/ds029_business_employee_attrition_stayleave.html", domain: "Business"},
+    {name: "Market Segment (4 customer types)", url: "dataset_descriptions/ds050_business_market_segment_4_customer_types.html", domain: "Business"},
+    {name: "Website Conversion Rate", url: "dataset_descriptions/ds051_business_website_conversion_rate.html", domain: "Business"},
+    {name: "Supply Chain Lead Time", url: "dataset_descriptions/ds052_business_supply_chain_lead_time.html", domain: "Business"},
+    {name: "Brand Sentiment Score", url: "dataset_descriptions/ds053_business_brand_sentiment_score.html", domain: "Business"},
+    {name: "Sales Commission Amount", url: "dataset_descriptions/ds054_business_sales_commission_amount.html", domain: "Business"},
+    {name: "Customer Satisfaction Score", url: "dataset_descriptions/ds075_business_customer_satisfaction_score.html", domain: "Business"},
+    {name: "Fraud Detection (Genuine/Fraudulent)", url: "dataset_descriptions/ds076_business_fraud_detection_genuinefraudulent.html", domain: "Business"},
+    {name: "Hiring Decision (Reject/Interview/Offer)", url: "dataset_descriptions/ds077_business_hiring_decision_rejectinterviewoffer.html", domain: "Business"},
+    {name: "Warehouse Location Suitability (3 levels)", url: "dataset_descriptions/ds078_business_warehouse_location_suitability_3_levels.html", domain: "Business"},
+    {name: "Ad Click (Yes/No)", url: "dataset_descriptions/ds079_business_ad_click_yesno.html", domain: "Business"},
+    {name: "Delivery Success (On-time/Delayed/Failed)", url: "dataset_descriptions/ds100_business_delivery_success_on_timedelayedfailed.html", domain: "Business"},
+    {name: "Species Abundance", url: "dataset_descriptions/ds009_ecology_species_abundance.html", domain: "Ecology"},
+    {name: "Forest Biomass", url: "dataset_descriptions/ds010_ecology_forest_biomass.html", domain: "Ecology"},
+    {name: "Water Quality Index", url: "dataset_descriptions/ds011_ecology_water_quality_index.html", domain: "Ecology"},
+    {name: "Pollinator Visitation Rate", url: "dataset_descriptions/ds012_ecology_pollinator_visitation_rate.html", domain: "Ecology"},
+    {name: "Habitat Quality (Poor/Fair/Good/Excellent)", url: "dataset_descriptions/ds034_ecology_habitat_quality_poorfairgoodexcellent.html", domain: "Ecology"},
+    {name: "Invasive Species Presence (Yes/No)", url: "dataset_descriptions/ds035_ecology_invasive_species_presence_yesno.html", domain: "Ecology"},
+    {name: "Conservation Priority (Low/Med/High/Critical)", url: "dataset_descriptions/ds036_ecology_conservation_priority_lowmedhighcritical.html", domain: "Ecology"},
+    {name: "Migration Status (Resident/Migratory)", url: "dataset_descriptions/ds037_ecology_migration_status_residentmigratory.html", domain: "Ecology"},
+    {name: "Carbon Sequestration Rate", url: "dataset_descriptions/ds059_ecology_carbon_sequestration_rate.html", domain: "Ecology"},
+    {name: "Stream Flow Rate", url: "dataset_descriptions/ds060_ecology_stream_flow_rate.html", domain: "Ecology"},
+    {name: "Seed Dispersal Distance", url: "dataset_descriptions/ds061_ecology_seed_dispersal_distance.html", domain: "Ecology"},
+    {name: "Algae Bloom Intensity", url: "dataset_descriptions/ds062_ecology_algae_bloom_intensity.html", domain: "Ecology"},
+    {name: "Wetland Type (Marsh/Swamp/Bog/Fen)", url: "dataset_descriptions/ds084_ecology_wetland_type_marshswampbogfen.html", domain: "Ecology"},
+    {name: "Coral Reef Health (Healthy/Stressed/Bleached/Dead)", url: "dataset_descriptions/ds085_ecology_coral_reef_health_healthystressedbleacheddead.html", domain: "Ecology"},
+    {name: "Pest Outbreak (None/Minor/Major)", url: "dataset_descriptions/ds086_ecology_pest_outbreak_noneminormajor.html", domain: "Ecology"},
+    {name: "Vegetation Type (6 biome classes)", url: "dataset_descriptions/ds087_ecology_vegetation_type_6_biome_classes.html", domain: "Ecology"},
+    {name: "Soil Erosion Rate", url: "dataset_descriptions/ds017_geoscience_soil_erosion_rate.html", domain: "Geoscience"},
+    {name: "Groundwater Depth", url: "dataset_descriptions/ds018_geoscience_groundwater_depth.html", domain: "Geoscience"},
+    {name: "Earthquake Magnitude", url: "dataset_descriptions/ds019_geoscience_earthquake_magnitude.html", domain: "Geoscience"},
+    {name: "Mineral Concentration", url: "dataset_descriptions/ds020_geoscience_mineral_concentration.html", domain: "Geoscience"},
+    {name: "Landslide Risk (Low/Moderate/High)", url: "dataset_descriptions/ds042_geoscience_landslide_risk_lowmoderatehigh.html", domain: "Geoscience"},
+    {name: "Rock Type (Igneous/Sedimentary/Metamorphic)", url: "dataset_descriptions/ds043_geoscience_rock_type_igneoussedimentarymetamorphic.html", domain: "Geoscience"},
+    {name: "Drought Severity (5 levels)", url: "dataset_descriptions/ds044_geoscience_drought_severity_5_levels.html", domain: "Geoscience"},
+    {name: "Volcanic Activity Level (Dormant/Active/Erupting)", url: "dataset_descriptions/ds045_geoscience_volcanic_activity_level_dormantactiveerupting.html", domain: "Geoscience"},
+    {name: "Glacier Retreat Rate", url: "dataset_descriptions/ds067_geoscience_glacier_retreat_rate.html", domain: "Geoscience"},
+    {name: "Soil pH Level", url: "dataset_descriptions/ds068_geoscience_soil_ph_level.html", domain: "Geoscience"},
+    {name: "Coastal Erosion Rate", url: "dataset_descriptions/ds069_geoscience_coastal_erosion_rate.html", domain: "Geoscience"},
+    {name: "Geothermal Gradient", url: "dataset_descriptions/ds070_geoscience_geothermal_gradient.html", domain: "Geoscience"},
+    {name: "Aquifer Vulnerability (Low/Moderate/High)", url: "dataset_descriptions/ds092_geoscience_aquifer_vulnerability_lowmoderatehigh.html", domain: "Geoscience"},
+    {name: "Soil Texture Class (Sand/Silt/Clay/Loam)", url: "dataset_descriptions/ds093_geoscience_soil_texture_class_sandsiltclayloam.html", domain: "Geoscience"},
+    {name: "Flood Risk Zone (Low/Medium/High/Extreme)", url: "dataset_descriptions/ds094_geoscience_flood_risk_zone_lowmediumhighextreme.html", domain: "Geoscience"},
+    {name: "Mineral Deposit Type (5 ore classes)", url: "dataset_descriptions/ds095_geoscience_mineral_deposit_type_5_ore_classes.html", domain: "Geoscience"},
+    {name: "Cytokine Depression Study", url: "dataset_descriptions/ds000_depression_cytokine_study.html", domain: "Neuroscience"},
+    {name: "Cognitive Test Score", url: "dataset_descriptions/ds005_neuroscience_cognitive_test_score.html", domain: "Neuroscience"},
+    {name: "Brain Region Volume", url: "dataset_descriptions/ds006_neuroscience_brain_region_volume.html", domain: "Neuroscience"},
+    {name: "Reaction Time", url: "dataset_descriptions/ds007_neuroscience_reaction_time.html", domain: "Neuroscience"},
+    {name: "Memory Recall Accuracy", url: "dataset_descriptions/ds008_neuroscience_memory_recall_accuracy.html", domain: "Neuroscience"},
+    {name: "Cognitive Impairment (Normal/MCI/Dementia)", url: "dataset_descriptions/ds030_neuroscience_cognitive_impairment_normalmcidementia.html", domain: "Neuroscience"},
+    {name: "Seizure Occurrence (Yes/No)", url: "dataset_descriptions/ds031_neuroscience_seizure_occurrence_yesno.html", domain: "Neuroscience"},
+    {name: "Brain Tumor Type (4 classes)", url: "dataset_descriptions/ds032_neuroscience_brain_tumor_type_4_classes.html", domain: "Neuroscience"},
+    {name: "Mental Health Diagnosis (5 categories)", url: "dataset_descriptions/ds033_neuroscience_mental_health_diagnosis_5_categories.html", domain: "Neuroscience"},
+    {name: "Dopamine Receptor Density", url: "dataset_descriptions/ds055_neuroscience_dopamine_receptor_density.html", domain: "Neuroscience"},
+    {name: "Neural Firing Rate", url: "dataset_descriptions/ds056_neuroscience_neural_firing_rate.html", domain: "Neuroscience"},
+    {name: "Learning Curve Slope", url: "dataset_descriptions/ds057_neuroscience_learning_curve_slope.html", domain: "Neuroscience"},
+    {name: "White Matter Integrity", url: "dataset_descriptions/ds058_neuroscience_white_matter_integrity.html", domain: "Neuroscience"},
+    {name: "Sleep Stage (Wake/REM/Light/Deep)", url: "dataset_descriptions/ds080_neuroscience_sleep_stage_wakeremlightdeep.html", domain: "Neuroscience"},
+    {name: "Pain Perception Level (None/Mild/Moderate/Severe)", url: "dataset_descriptions/ds081_neuroscience_pain_perception_level_nonemildmoderatesevere.html", domain: "Neuroscience"},
+    {name: "Handedness (Left/Right/Ambidextrous)", url: "dataset_descriptions/ds082_neuroscience_handedness_leftrightambidextrous.html", domain: "Neuroscience"},
+    {name: "Addiction Risk (Low/Medium/High)", url: "dataset_descriptions/ds083_neuroscience_addiction_risk_lowmediumhigh.html", domain: "Neuroscience"},
+    {name: "Social Mobility Score", url: "dataset_descriptions/ds013_sociology_social_mobility_score.html", domain: "Sociology"},
+    {name: "Community Trust Index", url: "dataset_descriptions/ds014_sociology_community_trust_index.html", domain: "Sociology"},
+    {name: "Education Attainment Years", url: "dataset_descriptions/ds015_sociology_education_attainment_years.html", domain: "Sociology"},
+    {name: "Volunteer Hours per Year", url: "dataset_descriptions/ds016_sociology_volunteer_hours_per_year.html", domain: "Sociology"},
+    {name: "Voting Behavior (5 party choices)", url: "dataset_descriptions/ds038_sociology_voting_behavior_5_party_choices.html", domain: "Sociology"},
+    {name: "Social Class (Working/Middle/Upper)", url: "dataset_descriptions/ds039_sociology_social_class_workingmiddleupper.html", domain: "Sociology"},
+    {name: "Technology Adoption (Early/Late/Non-adopter)", url: "dataset_descriptions/ds040_sociology_technology_adoption_earlylatenon_adopter.html", domain: "Sociology"},
+    {name: "Marriage Stability (Stable/At-risk/Dissolved)", url: "dataset_descriptions/ds041_sociology_marriage_stability_stableat_riskdissolved.html", domain: "Sociology"},
+    {name: "Crime Rate per Capita", url: "dataset_descriptions/ds063_sociology_crime_rate_per_capita.html", domain: "Sociology"},
+    {name: "Social Network Size", url: "dataset_descriptions/ds064_sociology_social_network_size.html", domain: "Sociology"},
+    {name: "Income Inequality Index", url: "dataset_descriptions/ds065_sociology_income_inequality_index.html", domain: "Sociology"},
+    {name: "Voter Turnout Percentage", url: "dataset_descriptions/ds066_sociology_voter_turnout_percentage.html", domain: "Sociology"},
+    {name: "Work-Life Balance (Poor/Fair/Good)", url: "dataset_descriptions/ds088_sociology_work_life_balance_poorfairgood.html", domain: "Sociology"},
+    {name: "Religious Affiliation (6 categories)", url: "dataset_descriptions/ds089_sociology_religious_affiliation_6_categories.html", domain: "Sociology"},
+    {name: "Housing Tenure (Own/Rent/Other)", url: "dataset_descriptions/ds090_sociology_housing_tenure_ownrentother.html", domain: "Sociology"},
+    {name: "Media Consumption Type (4 platforms)", url: "dataset_descriptions/ds091_sociology_media_consumption_type_4_platforms.html", domain: "Sociology"}
+  ];
+
+  const btn = document.getElementById('randomDatasetBtn');
+  const resultDiv = document.getElementById('randomDatasetResult');
+
+  btn.addEventListener('click', function() {
+    const randomDataset = datasets[Math.floor(Math.random() * datasets.length)];
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+      <strong>Random Dataset Selected:</strong><br>
+      <strong>Domain:</strong> ${randomDataset.domain}<br>
+      <strong>Name:</strong> ${randomDataset.name}<br>
+      <a href="${randomDataset.url}" style="color: #4CAF50; font-weight: bold; text-decoration: none;">→ View Dataset Details</a>
+    `;
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+});
+</script>
