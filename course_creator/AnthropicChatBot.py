@@ -14,7 +14,7 @@ class AnthropicChatBot:
         use_chat_history=False,
         temperature=0.7,
         num_retries=10,
-        max_tokens=8192*2
+        max_tokens=64000
     ):
         self.client = anthropic.Client(api_key=api_key)
         self.use_chat_history = use_chat_history
