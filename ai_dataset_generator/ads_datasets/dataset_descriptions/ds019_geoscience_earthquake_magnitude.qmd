@@ -19,6 +19,15 @@ This dataset contains seismic measurements and geological parameters for predict
   </a>
 </div>
 
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <a href="../csv/ds019_geoscience_earthquake_magnitude_small.csv" download class="btn btn-primary" style="text-decoration: none; padding: 10px 20px; background-color: #0d6efd; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Clean Version (5K rows)
+  </a>
+  <a href="../csv/ds019_geoscience_earthquake_magnitude_dirty_small.csv" download class="btn btn-secondary" style="text-decoration: none; padding: 10px 20px; background-color: #6c757d; color: white; border-radius: 5px; font-weight: bold;">
+    📥 Download Dirty Version (5K rows)
+  </a>
+</div>
+
 **Clean Version**: Complete data with no missing values or outliers
 **Dirty Version**: Contains missing values and outliers for data cleaning practice
 :::
