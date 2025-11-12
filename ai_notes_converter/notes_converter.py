@@ -151,33 +151,99 @@ def render_quarto(qmd_path, output_format, work_dir):
         result = subprocess.run(cmd, cwd=work_dir, capture_output=True, text=True)
 
         if result.returncode != 0:
-            st.error(f"Quarto rendering error: {result.stderr}")
+            st.error(f"Quarto rendering error (exit code {result.returncode}):")
+            st.error(f"STDERR: {result.stderr}")
+            if result.stdout:
+                st.error(f"STDOUT: {result.stdout}")
             return None
 
-        # Find the output file
+        # Find the output file - Quarto may sanitize the filename
+        # So we need to search for the actual output file instead of guessing
         qmd_stem = Path(qmd_path).stem
-        if output_format == "pdf":
-            output_file = Path(work_dir) / f"{qmd_stem}.pdf"
-        elif output_format == "docx":
-            output_file = Path(work_dir) / f"{qmd_stem}.docx"
-        elif output_format == "latex":
-            output_file = Path(work_dir) / f"{qmd_stem}.tex"
+        work_dir_path = Path(work_dir)
 
+        # Determine expected extension
+        if output_format == "pdf":
+            extension = ".pdf"
+        elif output_format == "docx":
+            extension = ".docx"
+        elif output_format == "latex":
+            extension = ".tex"
+        else:
+            return None
+
+        # First try the expected filename
+        output_file = work_dir_path / f"{qmd_stem}{extension}"
         if output_file.exists():
+            # For PDF format, check if this is actually the original uploaded file
+            if output_format == "pdf":
+                # Check file size - rendered PDFs are typically smaller
+                file_size = output_file.stat().st_size
+                # If it's larger than 50KB, it's probably the original scan
+                if file_size > 50000:
+                    # Continue searching for the rendered version
+                    pass
+                else:
+                    return output_file
+            else:
+                return output_file
+
+        # If not found, search for any file with the right extension that was created after the qmd file
+        qmd_mtime = Path(qmd_path).stat().st_mtime
+        original_uploaded_pdf = work_dir_path / f"{qmd_stem}.pdf"  # The original uploaded PDF
+
+        candidates = []
+        all_matching_files = list(work_dir_path.glob(f"*{extension}"))
+
+        for file in all_matching_files:
+            file_mtime = file.stat().st_mtime
+            # Must be created/modified after the qmd file (which means it's newly rendered)
+            if file_mtime >= qmd_mtime:
+                # For PDF, skip the original uploaded file
+                if output_format == "pdf":
+                    if file != original_uploaded_pdf:
+                        candidates.append(file)
+                else:
+                    candidates.append(file)
+
+        if candidates:
+            # Return the most recently modified file
+            output_file = max(candidates, key=lambda f: f.stat().st_mtime)
             return output_file
         else:
-            st.error(f"Output file not found: {output_file}")
+            st.error(f"Output file not found in {work_dir_path}")
+            st.error(f"Looking for files with extension: {extension}")
+            all_files = list(work_dir_path.glob("*"))
+            st.error(f"Files in directory: {[f.name for f in all_files]}")
             return None
 
     except Exception as e:
         st.error(f"Error rendering Quarto document: {str(e)}")
         return None
 
+def check_quarto_installation():
+    """Check if Quarto is installed and working."""
+    try:
+        result = subprocess.run(["quarto", "--version"], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            return True, result.stdout.strip()
+        return False, "Quarto command failed"
+    except FileNotFoundError:
+        return False, "Quarto not found in PATH"
+    except Exception as e:
+        return False, str(e)
+
 def main():
     st.set_page_config(page_title="Note Converter", page_icon="📝", layout="wide")
 
     st.title("📝 Note Converter")
     st.markdown("Upload your handwritten PDF notes to convert them to Quarto, LaTeX, Word and PDF documents with accessibility features for screen readers.")
+
+    # Check Quarto installation (silently - only warn if missing)
+    quarto_ok, quarto_info = check_quarto_installation()
+    if not quarto_ok:
+        st.error(f"❌ Quarto issue: {quarto_info}")
+        st.warning("PDF/Word/LaTeX downloads may not work without Quarto installed.")
 
     # Sidebar options
     with st.sidebar:
@@ -201,6 +267,19 @@ def main():
     if uploaded_file is not None:
         # Extract original filename without extension
         original_filename = Path(uploaded_file.name).stem
+
+        # Clean up old session data if switching to a new file
+        if st.session_state.get('original_filename') != original_filename:
+            # Clear previous file's data
+            for key in ['qmd_content', 'qmd_path', 'temp_dir_path', 'pdf_data', 'docx_data', 'tex_data', 'conversion_complete']:
+                if key in st.session_state:
+                    del st.session_state[key]
+            # Clean up old temp directory
+            if 'temp_dir_path' in st.session_state:
+                try:
+                    shutil.rmtree(st.session_state.temp_dir_path, ignore_errors=True)
+                except Exception:
+                    pass
 
         # Create session-specific temporary directory for processing
         session_temp_dir = tempfile.mkdtemp(prefix=f"noteconv_{st.session_state.session_id[:8]}_")
@@ -278,6 +357,8 @@ def main():
                             if pdf_output:
                                 with open(pdf_output, "rb") as f:
                                     st.session_state.pdf_data = f.read()
+                            else:
+                                st.error("❌ Failed to render PDF from Quarto")
 
                     if 'pdf_data' in st.session_state:
                         st.download_button(
@@ -287,6 +368,8 @@ def main():
                             mime="application/pdf",
                             key="download_pdf"
                         )
+                    else:
+                        st.warning("PDF rendering failed - check Quarto installation")
 
                 # Render and download Word
                 with col3:
@@ -324,12 +407,13 @@ def main():
                             key="download_tex"
                         )
 
-        finally:
-            # Cleanup temporary directory
+        except Exception as e:
+            st.error(f"An error occurred: {str(e)}")
+            # Cleanup on error
             try:
                 shutil.rmtree(session_temp_dir, ignore_errors=True)
             except Exception:
-                pass  # Ignore cleanup errors
+                pass
 
 if __name__ == "__main__":
     main()
