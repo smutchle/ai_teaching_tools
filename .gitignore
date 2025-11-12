@@ -4,3 +4,6 @@
 .env
 __pycache__
 output/
+
+# Large CSV datasets - too big for git
+ai_dataset_generator/ads_datasets/_book/csv/
