@@ -10,7 +10,7 @@ There are currently 3 tools in the AI Teaching tools platform.
 
 There are a couple of APIs that you can sign up for if you want commercial level LLMs (and also for Google Searching for Web Researcher (required)).
 
-- [Recommended: Setup and Possibly Fund Google Gemini API Key](https://ai.google.dev/gemini-api/docs/api-key)
+- [Optional: Setup and Possibly Fund Google Gemini API Key](https://ai.google.dev/gemini-api/docs/api-key)
   - Record the API key
 - [Optional: Setup and Fund an Anthropic Account](https://console.anthropic.com/login?returnTo=%2F%3F)
   - Record the API key
@@ -21,7 +21,7 @@ There are a couple of APIs that you can sign up for if you want commercial level
 
 0. [Install git version control software](https://git-scm.com/downloads)
 1. [Install anaconda for virtual python environments](https://www.anaconda.com/download)
-2. Download (or clone) the repository.
+2. Download (or clone) the repository:
 
 ```bash
 md ai_tools
