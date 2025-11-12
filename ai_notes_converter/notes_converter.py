@@ -34,8 +34,18 @@ def image_to_base64(image):
     image.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode()
 
-def extract_text_from_page(image, page_num):
-    """Use Claude vision API to extract handwritten text from a page image."""
+def extract_text_from_page(image, page_num, temp_dir):
+    """Use Claude vision API to extract handwritten text from a page image.
+
+    Args:
+        image: PIL Image object
+        page_num: Page number
+        temp_dir: Temporary directory to save image files
+
+    Returns:
+        Tuple of (extracted_text, image_references)
+        where image_references is a list of (image_filename, description) tuples
+    """
     image_b64 = image_to_base64(image)
 
     prompt = f"""You are analyzing page {page_num} of handwritten notes. Please extract ALL text, equations, and content from this page.
@@ -45,7 +55,8 @@ IMPORTANT INSTRUCTIONS:
 - Convert ALL mathematical expressions and equations to LaTeX format (use $...$ for inline math and $$...$$ for display math)
 - Identify and preserve any headings, lists, or structured content
 - Be thorough and capture all visible text and formulas
-- If there are diagrams or figures, describe them briefly in [brackets]
+- If there are diagrams, drawings, graphs, or figures, mark their location with {{{{FIGURE: brief description}}}} and I will preserve them as images
+- Do NOT attempt to describe complex diagrams in detail - just note their presence and general purpose
 
 Please provide the extracted content in a clean, readable format."""
 
@@ -73,11 +84,28 @@ Please provide the extracted content in a clean, readable format."""
         ],
     )
 
-    return message.content[0].text
+    extracted_text = message.content[0].text
+
+    # Check if there are any figure markers indicating we should preserve the image
+    has_figures = "{{FIGURE:" in extracted_text or "[FIGURE:" in extracted_text or "diagram" in extracted_text.lower() or "drawing" in extracted_text.lower()
+
+    image_references = []
+    if has_figures:
+        # Save the page image for inclusion in the document
+        image_filename = f"page_{page_num}.png"
+        image_path = Path(temp_dir) / image_filename
+        image.save(image_path, format="PNG")
+        image_references.append((image_filename, f"Page {page_num} containing diagrams/drawings"))
+
+    return extracted_text, image_references
 
 def create_quarto_document(pages_content, make_accessible=False):
-    """Create a Quarto .qmd document from extracted pages."""
+    """Create a Quarto .qmd document from extracted pages.
 
+    Args:
+        pages_content: List of tuples (text_content, image_references)
+        make_accessible: Whether to add accessibility features
+    """
     # YAML frontmatter with accessibility options
     yaml_header = """---
 title: "Converted Handwritten Notes"
@@ -120,7 +148,7 @@ format:
     # Build document body
     document = yaml_header
 
-    for i, content in enumerate(pages_content, 1):
+    for i, (content, image_refs) in enumerate(pages_content, 1):
         # Add page break between pages (but not before the first page)
         if i > 1 and make_accessible:
             document += f"{{{{< pagebreak >}}}}\n\n"
@@ -129,6 +157,12 @@ format:
             # Add accessibility markers
             document += f"::: {{.page-content aria-label=\"Content from page {i}\"}}\n\n"
 
+        # Add embedded images first if there are any
+        if image_refs:
+            for img_filename, img_description in image_refs:
+                document += f"![{img_description}]({img_filename}){{width=100%}}\n\n"
+
+        # Add the text content
         document += content + "\n\n"
 
         if make_accessible:
@@ -257,8 +291,9 @@ def main():
         st.markdown("""
         This app uses Claude Sonnet's vision capabilities to:
         - Extract handwritten text from PDF pages
-        - Convert to Quarto format with LaTeX math
-        - Generate multiple output formats
+        - Convert mathematical notation to LaTeX format
+        - Preserve diagrams and drawings as embedded images
+        - Generate multiple output formats (PDF, Word, LaTeX)
         """)
 
     # File upload
@@ -305,8 +340,8 @@ def main():
 
                 for i, image in enumerate(images):
                     with st.spinner(f"Extracting text from page {i+1}/{len(images)}..."):
-                        content = extract_text_from_page(image, i+1)
-                        pages_content.append(content)
+                        text_content, image_refs = extract_text_from_page(image, i+1, temp_dir_path)
+                        pages_content.append((text_content, image_refs))
                         progress_bar.progress((i + 1) / len(images))
 
                 st.success(f"✓ Extracted text from {len(images)} pages!")
