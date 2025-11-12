@@ -1,0 +1,37 @@
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+
+# Streamlit
+.streamlit/
+streamlit.log
+.streamlit.pid
+
+# Test outputs
+test_output*
+
+# Quarto outputs
+*.html
+*.pdf
+*.docx
+*.tex
+*.log
+*_files/
+/.quarto/
+
+# Temporary files
+*.tmp
+.DS_Store
+Thumbs.db
+
+/.claude/
