@@ -4,7 +4,8 @@ There are currently 3 tools in the AI Teaching tools platform.
 
 1. **Viz Builder** - Allows you (or your students) to build live, interactive visualizations using LLM prompting.
 2. **Course Creator** - A robust tool for generating complete online curriculums using a LLM.
-3. **App Monitor** - A tool to monitor your streamlit apps (e.g. Viz Builder and Course Creator, etc.)
+3. **AI Handwritten Notes to LaTeX/Word/Quarto/PDF Converter** - Converts AI handwritten notes into LaTeX, Word, Quarto, or LaTeX format.
+4. **App Monitor** - A tool to monitor your streamlit apps (e.g. Viz Builder and Course Creator, etc.)
 
 ### Preconfiguration
 
@@ -50,7 +51,10 @@ Linux/Mac:
 
 ```bash
 cd course_creator
+# run interactively
 ./run.sh
+# run in background (as server process)
+./run_in_background.sh
 ```
 
 Windows:
