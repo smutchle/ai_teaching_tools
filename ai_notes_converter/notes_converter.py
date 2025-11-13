@@ -257,7 +257,7 @@ def check_quarto_installation():
         return False, str(e)
 
 def main():
-    st.set_page_config(page_title="Note Converter", page_icon="📝", layout="wide")
+    st.set_page_config(page_title="Notes Converter", page_icon="📝", layout="wide")
 
     st.title("📝 Note Converter")
     st.markdown("Upload your handwritten PDF notes to convert them to Quarto, LaTeX, Word and PDF documents with accessibility features for screen readers.")
