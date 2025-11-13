@@ -160,6 +160,8 @@ format:
         # Add embedded images first if there are any
         if image_refs:
             for img_filename, img_description in image_refs:
+                # Use relative path - images are in same directory as .qmd file
+                # LaTeX/xelatex doesn't handle absolute Unix paths well
                 document += f"![{img_description}]({img_filename}){{width=100%}}\n\n"
 
         # Add the text content
@@ -206,39 +208,26 @@ def render_quarto(qmd_path, output_format, work_dir):
         else:
             return None
 
-        # First try the expected filename
+        # Find the output file by checking modification time
+        # Quarto creates/overwrites files after the .qmd file
+        qmd_mtime = Path(qmd_path).stat().st_mtime
         output_file = work_dir_path / f"{qmd_stem}{extension}"
+
         if output_file.exists():
-            # For PDF format, check if this is actually the original uploaded file
-            if output_format == "pdf":
-                # Check file size - rendered PDFs are typically smaller
-                file_size = output_file.stat().st_size
-                # If it's larger than 50KB, it's probably the original scan
-                if file_size > 50000:
-                    # Continue searching for the rendered version
-                    pass
-                else:
-                    return output_file
-            else:
+            file_mtime = output_file.stat().st_mtime
+            # If the output file was modified after (or at the same time as) the qmd file, it's the rendered version
+            if file_mtime >= qmd_mtime:
                 return output_file
 
-        # If not found, search for any file with the right extension that was created after the qmd file
-        qmd_mtime = Path(qmd_path).stat().st_mtime
-        original_uploaded_pdf = work_dir_path / f"{qmd_stem}.pdf"  # The original uploaded PDF
-
+        # If not found with expected name, search for any file with the right extension
         candidates = []
         all_matching_files = list(work_dir_path.glob(f"*{extension}"))
 
         for file in all_matching_files:
             file_mtime = file.stat().st_mtime
-            # Must be created/modified after the qmd file (which means it's newly rendered)
+            # Must be modified after the qmd file (which means it's newly rendered)
             if file_mtime >= qmd_mtime:
-                # For PDF, skip the original uploaded file
-                if output_format == "pdf":
-                    if file != original_uploaded_pdf:
-                        candidates.append(file)
-                else:
-                    candidates.append(file)
+                candidates.append(file)
 
         if candidates:
             # Return the most recently modified file
