@@ -1,0 +1,1487 @@
+---
+title: "Remote Sensing Imagery and Applications"
+subtitle: "Environmental Science - Lecture 2: Data Types and Sources in Environmental Science"
+bibliography: remote_sensing_imagery.bib
+---
+
+## Topic Overview 🛰️
+
+Remote sensing represents one of the most transformative technologies in environmental science, enabling us to observe and monitor our planet from space and airborne platforms. At its core, remote sensing is the science of acquiring information about Earth's surface without making physical contact with it. Instead, sensors detect and measure electromagnetic radiation reflected or emitted from objects, translating these signals into meaningful data about vegetation health, land cover types, water quality, atmospheric conditions, and countless other environmental parameters.
+
+Imagine trying to monitor deforestation across the entire Amazon rainforest using ground-based surveys alone—it would take decades and enormous resources. Remote sensing makes this task not only feasible but allows us to do it continuously, providing near-real-time updates on environmental changes across vast spatial scales. From tracking the retreat of glaciers in Antarctica to monitoring crop health in agricultural regions, remote sensing provides the "eyes in the sky" that have revolutionized our understanding of Earth systems.
+
+This topic explores the fundamental types of remote sensing data, including multispectral imagery (capturing data in several discrete wavelength bands), hyperspectral imagery (capturing hundreds of narrow, contiguous bands), and radar imagery (using microwave radiation that can penetrate clouds). We'll examine the critical characteristics that define the utility of remote sensing data: spatial resolution (how much detail we can see), temporal resolution (how frequently we can observe the same location), and spectral resolution (how finely we can distinguish different wavelengths of light).
+
+**Relevance and Importance:**
+
+Within the broader context of Environmental Science and this lecture on Data Types and Sources, remote sensing serves as a cornerstone data source that complements ground-based sensors (Topic 2.2), provides contemporary measurements to contextualize historical climate records (Topic 2.3), and offers critical information for biodiversity monitoring (Topic 2.4). Understanding remote sensing is essential because:
+
+- It provides **synoptic coverage** of large areas, enabling global-scale environmental monitoring
+- It offers **consistent, repeatable measurements** over time, crucial for detecting environmental changes
+- It accesses **otherwise unreachable locations**, from remote wilderness areas to conflict zones
+- It generates **multi-dimensional data** (spatial, temporal, spectral) that reveals patterns invisible to human observation
+- It forms the foundation for many **operational environmental monitoring systems** used by governments and organizations worldwide
+
+As we progress through this course, the remote sensing concepts introduced here will reappear in discussions of climate modeling, biodiversity assessment, and big data analytics, making this topic a critical foundation for environmental data science.
+
+## Background & Theory 📚
+
+### Historical Development of Remote Sensing
+
+The history of remote sensing parallels the evolution of flight and space exploration. The earliest form of remote sensing was aerial photography, with the first photograph taken from a balloon by Gaspard-Félix Tournachon in 1858 over Paris. However, the field truly accelerated during World War I and II, when military reconnaissance drove innovations in aerial photography and interpretation techniques [@campbell2011introduction].
+
+The space age brought revolutionary changes. The launch of Sputnik 1 in 1957 opened the door to satellite-based Earth observation. Early meteorological satellites like TIROS-1 (1960) demonstrated the value of space-based monitoring. The Landsat program, beginning with Landsat 1 in 1972, marked the first civilian Earth observation mission specifically designed for land surface monitoring. This program continues today with Landsat 9, providing the longest continuous record of Earth's surface from space—an invaluable resource for environmental change detection [@wulder2019current].
+
+The 1990s and 2000s saw an explosion in remote sensing capabilities. The European Space Agency's Sentinel missions, NASA's Terra and Aqua satellites, and numerous commercial satellites have created a rich ecosystem of Earth observation platforms. Modern developments include hyperspectral sensors, synthetic aperture radar (SAR) systems, and LiDAR (Light Detection and Ranging) technology, each offering unique capabilities for environmental monitoring.
+
+### Fundamental Principles of Remote Sensing
+
+Remote sensing relies on the interaction between electromagnetic radiation and matter. The electromagnetic spectrum spans from gamma rays (wavelengths < 0.01 nm) to radio waves (wavelengths > 1 m), but most remote sensing operates in specific regions:
+
+- **Visible light** (0.4-0.7 μm): What human eyes can see
+- **Near-infrared (NIR)** (0.7-1.3 μm): Strongly reflected by healthy vegetation
+- **Shortwave infrared (SWIR)** (1.3-3.0 μm): Sensitive to water content and soil moisture
+- **Thermal infrared** (3-14 μm): Measures heat emission
+- **Microwave** (1 mm - 1 m): Used in radar systems, penetrates clouds
+
+#### The Remote Sensing Process
+
+```{mermaid}
+flowchart TD
+    A[Energy Source - Sun or Sensor] --> B[Atmosphere - Scattering & Absorption]
+    B --> C[Target Surface Interaction]
+    C --> D[Reflection/Emission]
+    D --> E[Atmosphere - Return Path]
+    E --> F[Sensor Detection]
+    F --> G[Data Transmission]
+    G --> H[Ground Station Reception]
+    H --> I[Image Processing]
+    I --> J[Analysis & Interpretation]
+    J --> K[Environmental Information]
+```
+
+Each object on Earth's surface has a unique **spectral signature**—a characteristic pattern of how it reflects or emits electromagnetic radiation across different wavelengths. Healthy vegetation, for example, strongly absorbs red light (for photosynthesis) while strongly reflecting near-infrared radiation (due to leaf cellular structure). This distinctive pattern allows us to identify and monitor vegetation from space.
+
+### Active vs. Passive Remote Sensing
+
+**Passive remote sensing** systems detect natural radiation reflected or emitted from Earth's surface. Most passive sensors rely on solar illumination:
+
+- **Advantages**: No power required for illumination, can cover large areas efficiently
+- **Limitations**: Requires daylight (for visible/NIR), affected by cloud cover and atmospheric conditions
+- **Examples**: Landsat, Sentinel-2, MODIS (Moderate Resolution Imaging Spectroradiometer)
+
+**Active remote sensing** systems provide their own energy source and measure the returned signal:
+
+- **Advantages**: Can operate day or night, penetrates clouds (for radar), provides 3D information
+- **Limitations**: More complex and expensive, requires significant power
+- **Examples**: Synthetic Aperture Radar (SAR) like Sentinel-1, LiDAR systems
+
+### Multispectral Imagery
+
+Multispectral sensors capture data in several discrete spectral bands, typically ranging from 3 to 15 bands. Each band is sensitive to a specific wavelength range, chosen to highlight particular surface features or processes.
+
+**Common Band Configurations:**
+
+Most multispectral systems include:
+
+1. **Blue band** (~0.45-0.52 μm): Penetrates water, useful for bathymetry and atmospheric correction
+2. **Green band** (~0.52-0.60 μm): Corresponds to green reflectance peak in vegetation
+3. **Red band** (~0.63-0.69 μm): Chlorophyll absorption band, critical for vegetation indices
+4. **Near-infrared (NIR)** (~0.76-0.90 μm): High vegetation reflectance, water absorption
+5. **Shortwave infrared (SWIR)** bands (~1.55-1.75 μm, 2.08-2.35 μm): Sensitive to moisture content
+
+**Spectral Indices:**
+
+By combining different bands mathematically, we can enhance specific features. The most famous is the Normalized Difference Vegetation Index (NDVI):
+
+$$
+NDVI = \frac{NIR - Red}{NIR + Red}
+$$
+
+where NIR is the near-infrared reflectance and Red is the red band reflectance. NDVI values range from -1 to +1, with healthy vegetation typically showing values between 0.3 and 0.8. The principle behind NDVI is elegant: healthy vegetation strongly reflects NIR (due to leaf structure) and strongly absorbs red light (for photosynthesis), creating a large positive difference [@tucker1979red].
+
+Other important indices include:
+
+**Enhanced Vegetation Index (EVI):**
+
+$$
+EVI = G \times \frac{NIR - Red}{NIR + C_1 \times Red - C_2 \times Blue + L}
+$$
+
+where $G = 2.5$ (gain factor), $C_1 = 6$, $C_2 = 7.5$ (atmospheric correction coefficients), and $L = 1$ (soil adjustment factor). EVI is more sensitive to vegetation variations and less affected by atmospheric conditions than NDVI [@huete2002overview].
+
+**Normalized Difference Water Index (NDWI):**
+
+$$
+NDWI = \frac{Green - NIR}{Green + NIR}
+$$
+
+This index highlights water bodies and is useful for monitoring water extent and quality.
+
+### Hyperspectral Imagery
+
+While multispectral sensors capture data in several discrete bands, hyperspectral sensors collect data in hundreds of narrow, contiguous spectral bands (typically 5-10 nm wide), creating an almost continuous spectrum for each pixel. This is sometimes called "imaging spectroscopy."
+
+**Advantages of Hyperspectral Data:**
+
+- **Detailed spectral signatures**: Can distinguish subtle differences between materials
+- **Species-level identification**: Can differentiate plant species or mineral types
+- **Chemical composition**: Can estimate biochemical properties (chlorophyll, nitrogen content)
+
+**Challenges:**
+
+- **Data volume**: A single hyperspectral image can be gigabytes in size
+- **Processing complexity**: Requires sophisticated algorithms and significant computational resources
+- **Cost**: Hyperspectral sensors are expensive to build and operate
+
+**Applications:**
+
+Hyperspectral remote sensing excels in:
+
+- Mineral exploration and geological mapping
+- Precision agriculture (crop stress detection, nutrient deficiency)
+- Water quality monitoring (algal bloom detection, suspended sediment)
+- Invasive species detection
+- Urban material mapping
+
+### Radar Imagery
+
+Radar (Radio Detection and Ranging) systems are active sensors that transmit microwave pulses and measure the backscattered energy. Synthetic Aperture Radar (SAR) is the most common type used in Earth observation.
+
+**Key Characteristics:**
+
+1. **All-weather capability**: Microwave radiation penetrates clouds and operates day or night
+2. **Surface roughness sensitivity**: Smooth surfaces (water) appear dark; rough surfaces (vegetation, urban areas) appear bright
+3. **Polarization**: Can transmit and receive in different polarizations (HH, VV, HV, VH), providing information about surface structure
+
+**Radar Backscatter Equation:**
+
+The radar backscatter coefficient $\sigma^0$ (sigma-naught) describes how much energy is scattered back to the sensor:
+
+$$
+\sigma^0 = \frac{4\pi R^2 P_r}{A_t P_t G^2 \lambda^2}
+$$
+
+where $R$ is the range to target, $P_r$ is received power, $P_t$ is transmitted power, $A_t$ is target area, $G$ is antenna gain, and $\lambda$ is wavelength. This coefficient depends on surface roughness, dielectric properties (moisture content), and viewing geometry.
+
+**Interferometric SAR (InSAR):**
+
+By comparing the phase difference between two SAR images of the same area taken at different times, InSAR can detect millimeter-scale surface deformation. This technique is invaluable for:
+
+- Earthquake and volcano monitoring
+- Subsidence detection (groundwater extraction, mining)
+- Glacier flow measurement
+- Infrastructure monitoring
+
+### Resolution Characteristics
+
+Understanding resolution is critical for selecting appropriate remote sensing data for specific applications. There are four types of resolution:
+
+#### 1. Spatial Resolution
+
+Spatial resolution refers to the smallest object that can be distinguished in an image, typically expressed as the pixel size. This is often the most intuitive resolution concept.
+
+**Categories:**
+
+- **Very high resolution**: < 1 m (commercial satellites like WorldView, Pleiades)
+- **High resolution**: 1-10 m (Sentinel-2: 10 m, Landsat: 30 m)
+- **Medium resolution**: 10-100 m (Landsat thermal: 100 m)
+- **Low resolution**: > 100 m (MODIS: 250-1000 m, AVHRR: 1 km)
+
+**Trade-offs:**
+
+Higher spatial resolution means:
+
+- Smaller coverage area (swath width)
+- Lower temporal resolution (longer revisit times)
+- Larger data volumes
+- Higher costs
+
+For example, Landsat-8 has 30 m resolution with a 16-day revisit time and 185 km swath width, while MODIS has 250-1000 m resolution but images the entire Earth every 1-2 days with a 2330 km swath width.
+
+#### 2. Temporal Resolution
+
+Temporal resolution is the revisit frequency—how often the sensor can observe the same location on Earth.
+
+**Factors affecting temporal resolution:**
+
+- **Orbital characteristics**: Altitude and inclination determine ground track
+- **Swath width**: Wider swaths enable more frequent coverage
+- **Pointing capability**: Some satellites can tilt to view off-nadir
+- **Constellation size**: Multiple satellites (e.g., Planet Labs' Dove constellation) dramatically improve temporal resolution
+
+**Applications requiring different temporal resolutions:**
+
+- **Daily or sub-daily**: Disaster response, flood monitoring, weather forecasting
+- **Weekly to monthly**: Crop monitoring, seasonal vegetation changes
+- **Annual to decadal**: Land cover change, urban growth, glacier retreat
+
+#### 3. Spectral Resolution
+
+Spectral resolution refers to the number and width of spectral bands. Narrow bands provide more detailed spectral information but typically require trade-offs with spatial or temporal resolution due to signal-to-noise constraints.
+
+**Spectral resolution categories:**
+
+- **Panchromatic**: Single broad band (e.g., 0.4-0.9 μm)
+- **Multispectral**: 3-15 bands, typically 50-200 nm wide
+- **Hyperspectral**: 100-500+ bands, typically 5-10 nm wide
+
+#### 4. Radiometric Resolution
+
+Radiometric resolution describes the sensor's ability to discriminate slight differences in energy, expressed as the number of bits used to store the data.
+
+- **8-bit**: 256 levels (0-255), common in older systems
+- **12-bit**: 4096 levels, typical for modern multispectral sensors
+- **16-bit**: 65,536 levels, used in high-quality scientific instruments
+
+Higher radiometric resolution allows detection of subtle differences in surface properties but increases data volume and processing requirements.
+
+### Common Environmental Applications
+
+#### Land Cover and Land Use Mapping
+
+Remote sensing is the primary tool for creating land cover maps at regional to global scales. Classification approaches include:
+
+**Supervised Classification:**
+
+1. Select training samples of known land cover types
+2. Extract spectral signatures from training areas
+3. Apply classification algorithm (e.g., Maximum Likelihood, Random Forest, Support Vector Machine)
+4. Classify entire image based on spectral similarity to training data
+5. Assess accuracy using independent validation samples
+
+**Unsupervised Classification:**
+
+1. Algorithm automatically groups pixels with similar spectral properties
+2. Analyst interprets and labels the resulting clusters
+3. Useful when prior knowledge is limited
+
+**Accuracy Assessment:**
+
+Classification accuracy is typically reported using a confusion matrix, from which we calculate:
+
+$$
+Overall\,Accuracy = \frac{\sum_{i=1}^{n} x_{ii}}{N}
+$$
+
+$$
+Kappa\,Coefficient = \frac{N\sum_{i=1}^{n} x_{ii} - \sum_{i=1}^{n}(x_{i+} \times x_{+i})}{N^2 - \sum_{i=1}^{n}(x_{i+} \times x_{+i})}
+$$
+
+where $x_{ii}$ are diagonal elements (correct classifications), $x_{i+}$ are row totals, $x_{+i}$ are column totals, $n$ is number of classes, and $N$ is total number of samples [@congalton2008assessing].
+
+#### Vegetation Monitoring
+
+Remote sensing provides unprecedented capabilities for monitoring vegetation across scales:
+
+**Phenology Tracking:**
+
+Time series of vegetation indices reveal seasonal patterns:
+
+- Green-up timing in spring
+- Peak greenness in summer
+- Senescence in autumn
+- Dormancy duration in winter
+
+These phenological metrics are sensitive indicators of climate change impacts on ecosystems.
+
+**Biomass Estimation:**
+
+Vegetation indices correlate with aboveground biomass, enabling estimation of carbon stocks. For forests, LiDAR and SAR data provide more accurate estimates by measuring canopy height and structure.
+
+**Stress Detection:**
+
+Changes in spectral reflectance can indicate plant stress before visible symptoms appear:
+
+- Water stress: Increased thermal emission, decreased NDVI
+- Nutrient deficiency: Altered visible and NIR reflectance
+- Disease or pest infestation: Localized changes in spectral signature
+
+#### Environmental Change Detection
+
+Detecting and quantifying environmental changes is perhaps the most important application of remote sensing:
+
+**Change Detection Methods:**
+
+1. **Post-classification comparison**: Classify images from different dates, compare classifications
+2. **Image differencing**: Subtract pixel values between dates
+3. **Vegetation index differencing**: Compare NDVI or other indices over time
+4. **Change Vector analysis**: Examine magnitude and direction of spectral change
+5. **Time series analysis**: Model temporal patterns and detect anomalies
+
+**Applications:**
+
+- **Deforestation monitoring**: Track forest loss in near-real-time
+- **Urban expansion**: Map growth of cities and infrastructure
+- **Wetland dynamics**: Monitor water extent and vegetation changes
+- **Glacier retreat**: Measure ice loss and lake formation
+- **Disaster assessment**: Quantify damage from fires, floods, earthquakes
+
+### Data Access and Processing Considerations
+
+Modern remote sensing data is increasingly accessible through cloud platforms and open data policies. However, working with this data requires understanding:
+
+**Atmospheric Correction:**
+
+Raw satellite data (digital numbers) must be converted to surface reflectance by correcting for atmospheric effects:
+
+$$
+L_{sensor} = L_{surface} \times \tau + L_{path}
+$$
+
+where $L_{sensor}$ is the radiance measured by the satellite, $L_{surface}$ is the actual surface radiance, $\tau$ is atmospheric transmittance, and $L_{path}$ is the path radiance (scattered light). Atmospheric correction algorithms (e.g., FLAASH, Sen2Cor) remove these effects [@vermote2016preliminary].
+
+**Geometric Correction:**
+
+Images must be georeferenced to match ground coordinates, accounting for:
+
+- Earth's curvature and rotation
+- Sensor viewing geometry
+- Terrain relief (orthorectification)
+
+**Cloud Masking:**
+
+Clouds obscure surface features and must be identified and masked. Modern algorithms use multiple bands and machine learning to detect clouds, shadows, and haze with high accuracy.
+
+### Future Directions
+
+The field of remote sensing continues to evolve rapidly:
+
+- **Miniaturization**: CubeSats and small satellites are democratizing space-based observation
+- **Artificial Intelligence**: Deep learning is revolutionizing image classification and feature extraction
+- **Data fusion**: Combining multiple sensors (optical, radar, LiDAR) provides richer information
+- **Near-real-time monitoring**: Improved processing pipelines enable rapid response to environmental events
+- **Commercial applications**: Private sector investment is driving innovation in sensor technology and data analytics
+
+Understanding these fundamentals provides the foundation for leveraging remote sensing in environmental research and management, enabling us to monitor and understand our changing planet with unprecedented detail and frequency.
+
+## Practical Example / Code Implementation 💻
+
+In this section, we'll demonstrate practical remote sensing analysis using Python. We'll work with Landsat 8 data to calculate vegetation indices and perform basic change detection. We'll use synthetic data that mimics real Landsat 8 spectral characteristics to ensure the example runs without requiring large data downloads.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Install Required Libraries"
+
+# Install required packages
+%pip install -q numpy matplotlib rasterio scikit-learn pandas seaborn
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Import Libraries and Set Up Environment"
+
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import confusion_matrix, classification_report
+import pandas as pd
+from typing import Tuple, Dict
+import warnings
+warnings.filterwarnings('ignore')
+
+# Set random seed for reproducibility
+np.random.seed(42)
+
+# Configure plotting style
+plt.style.use('seaborn-v0_8-darkgrid')
+sns.set_palette("husl")
+```
+
+### Generate Synthetic Multispectral Data
+
+We'll create synthetic multispectral imagery that mimics Landsat 8 characteristics with different land cover types.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Generate Synthetic Multispectral Imagery"
+
+def generate_landcover_patch(
+    rows: int, 
+    cols: int, 
+    landcover_type: str
+) -> Dict[str, np.ndarray]:
+    """
+    Generate synthetic spectral reflectance for different land cover types.
+    
+    Args:
+        rows: Number of rows in the patch
+        cols: Number of columns in the patch
+        landcover_type: Type of land cover ('water', 'vegetation', 'urban', 'soil', 'forest')
+    
+    Returns:
+        Dictionary containing reflectance values for different bands
+    """
+    # Define typical reflectance values for each land cover type
+    # Values are approximate percentages (0-100)
+    reflectance_profiles = {
+        'water': {
+            'blue': (8, 2),    # Mean, std
+            'green': (12, 2),
+            'red': (6, 1.5),
+            'nir': (4, 1),
+            'swir1': (2, 0.5),
+            'swir2': (1, 0.3)
+        },
+        'vegetation': {
+            'blue': (6, 1),
+            'green': (10, 1.5),
+            'red': (5, 1),
+            'nir': (45, 3),
+            'swir1': (25, 2),
+            'swir2': (15, 2)
+        },
+        'forest': {
+            'blue': (4, 0.8),
+            'green': (8, 1.2),
+            'red': (4, 0.8),
+            'nir': (50, 3),
+            'swir1': (20, 2),
+            'swir2': (10, 1.5)
+        },
+        'urban': {
+            'blue': (18, 2),
+            'green': (22, 2.5),
+            'red': (25, 3),
+            'nir': (30, 3),
+            'swir1': (35, 3),
+            'swir2': (32, 3)
+        },
+        'soil': {
+            'blue': (15, 2),
+            'green': (20, 2.5),
+            'red': (25, 3),
+            'nir': (35, 3),
+            'swir1': (40, 3),
+            'swir2': (38, 3)
+        }
+    }
+    
+    profile = reflectance_profiles[landcover_type]
+    bands = {}
+    
+    for band_name, (mean, std) in profile.items():
+        # Generate reflectance with some spatial correlation
+        base = np.random.randn(rows, cols)
+        # Apply smoothing to create spatial patterns
+        from scipy.ndimage import gaussian_filter
+        smoothed = gaussian_filter(base, sigma=2)
+        # Scale to desired mean and std
+        bands[band_name] = mean + smoothed * std
+        # Clip to valid reflectance range
+        bands[band_name] = np.clip(bands[band_name], 0, 100)
+    
+    return bands
+
+# Create a synthetic scene with multiple land cover types
+scene_size = 200
+scene_bands = {
+    'blue': np.zeros((scene_size, scene_size)),
+    'green': np.zeros((scene_size, scene_size)),
+    'red': np.zeros((scene_size, scene_size)),
+    'nir': np.zeros((scene_size, scene_size)),
+    'swir1': np.zeros((scene_size, scene_size)),
+    'swir2': np.zeros((scene_size, scene_size))
+}
+
+# Create land cover map for reference
+landcover_map = np.zeros((scene_size, scene_size), dtype=int)
+
+# Define regions for different land cover types
+regions = {
+    'water': (0, 50, 0, 80),      # rows, cols
+    'forest': (0, 80, 80, 200),
+    'vegetation': (50, 120, 0, 80),
+    'urban': (80, 150, 80, 150),
+    'soil': (120, 200, 0, 80),
+    'vegetation2': (150, 200, 80, 200)
+}
+
+landcover_codes = {
+    'water': 1,
+    'forest': 2,
+    'vegetation': 3,
+    'urban': 4,
+    'soil': 5
+}
+
+# Populate the scene
+for landcover, (r1, r2, c1, c2) in regions.items():
+    lc_type = landcover.rstrip('0123456789')  # Remove numbers from names
+    patch = generate_landcover_patch(r2-r1, c2-c1, lc_type)
+    
+    for band_name in scene_bands.keys():
+        scene_bands[band_name][r1:r2, c1:c2] = patch[band_name]
+    
+    landcover_map[r1:r2, c1:c2] = landcover_codes.get(lc_type, landcover_codes[lc_type])
+
+print("✅ Synthetic multispectral scene generated")
+print(f"Scene dimensions: {scene_size} x {scene_size} pixels")
+print(f"Spectral bands: {list(scene_bands.keys())}")
+```
+
+### Visualize the Synthetic Scene
+
+```{python}
+#| code-fold: true
+#| code-summary: "Visualize RGB Composite and Individual Bands"
+
+def create_rgb_composite(
+    red: np.ndarray, 
+    green: np.ndarray, 
+    blue: np.ndarray
+) -> np.ndarray:
+    """
+    Create an RGB composite image with histogram stretching.
+    
+    Args:
+        red: Red band array
+        green: Green band array
+        blue: Blue band array
+    
+    Returns:
+        RGB composite as uint8 array
+    """
+    # Stack bands
+    rgb = np.dstack([red, green, blue])
+    
+    # Normalize to 0-1 range using 2-98 percentile stretch
+    for i in range(3):
+        band = rgb[:, :, i]
+        p2, p98 = np.percentile(band, (2, 98))
+        rgb[:, :, i] = np.clip((band - p2) / (p98 - p2), 0, 1)
+    
+    return (rgb * 255).astype(np.uint8)
+
+# Create visualizations
+fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+
+# RGB composite (true color)
+rgb_composite = create_rgb_composite(
+    scene_bands['red'], 
+    scene_bands['green'], 
+    scene_bands['blue']
+)
+axes[0, 0].imshow(rgb_composite)
+axes[0, 0].set_title('True Color Composite (RGB)', fontsize=12, fontweight='bold')
+axes[0, 0].axis('off')
+
+# False color composite (NIR-Red-Green)
+false_color = create_rgb_composite(
+    scene_bands['nir'], 
+    scene_bands['red'], 
+    scene_bands['green']
+)
+axes[0, 1].imshow(false_color)
+axes[0, 1].set_title('False Color Composite (NIR-R-G)', fontsize=12, fontweight='bold')
+axes[0, 1].axis('off')
+
+# Land cover reference map
+landcover_colors = {1: 'blue', 2: 'darkgreen', 3: 'lightgreen', 
+                   4: 'red', 5: 'brown'}
+axes[0, 2].imshow(landcover_map, cmap='tab10')
+axes[0, 2].set_title('Reference Land Cover Map', fontsize=12, fontweight='bold')
+axes[0, 2].axis('off')
+
+# Individual bands
+band_names = ['NIR', 'Red', 'SWIR1']
+band_keys = ['nir', 'red', 'swir1']
+for idx, (name, key) in enumerate(zip(band_names, band_keys)):
+    im = axes[1, idx].imshow(scene_bands[key], cmap='gray')
+    axes[1, idx].set_title(f'{name} Band', fontsize=12, fontweight='bold')
+    axes[1, idx].axis('off')
+    plt.colorbar(im, ax=axes[1, idx], fraction=0.046, pad=0.04, label='Reflectance (%)')
+
+plt.tight_layout()
+plt.savefig('multispectral_scene.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+print("🎨 Visualization complete")
+```
+
+### Calculate Vegetation Indices
+
+```{python}
+#| code-fold: true
+#| code-summary: "Calculate NDVI and EVI"
+
+def calculate_ndvi(nir: np.ndarray, red: np.ndarray) -> np.ndarray:
+    """
+    Calculate Normalized Difference Vegetation Index.
+    
+    Args:
+        nir: Near-infrared band reflectance
+        red: Red band reflectance
+    
+    Returns:
+        NDVI array
+    """
+    # Avoid division by zero
+    denominator = nir + red
+    denominator = np.where(denominator == 0, 0.0001, denominator)
+    
+    ndvi = (nir - red) / denominator
+    return ndvi
+
+def calculate_evi(
+    nir: np.ndarray, 
+    red: np.ndarray, 
+    blue: np.ndarray,
+    G: float = 2.5,
+    C1: float = 6.0,
+    C2: float = 7.5,
+    L: float = 1.0
+) -> np.ndarray:
+    """
+    Calculate Enhanced Vegetation Index.
+    
+    Args:
+        nir: Near-infrared band reflectance
+        red: Red band reflectance
+        blue: Blue band reflectance
+        G: Gain factor
+        C1, C2: Atmospheric correction coefficients
+        L: Soil adjustment factor
+    
+    Returns:
+        EVI array
+    """
+    numerator = nir - red
+    denominator = nir + C1 * red - C2 * blue + L
+    denominator = np.where(denominator == 0, 0.0001, denominator)
+    
+    evi = G * (numerator / denominator)
+    return evi
+
+def calculate_ndwi(green: np.ndarray, nir: np.ndarray) -> np.ndarray:
+    """
+    Calculate Normalized Difference Water Index.
+    
+    Args:
+        green: Green band reflectance
+        nir: Near-infrared band reflectance
+    
+    Returns:
+        NDWI array
+    """
+    denominator = green + nir
+    denominator = np.where(denominator == 0, 0.0001, denominator)
+    
+    ndwi = (green - nir) / denominator
+    return ndwi
+
+# Calculate indices
+ndvi = calculate_ndvi(scene_bands['nir'], scene_bands['red'])
+evi = calculate_evi(scene_bands['nir'], scene_bands['red'], scene_bands['blue'])
+ndwi = calculate_ndwi(scene_bands['green'], scene_bands['nir'])
+
+# Visualize indices
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+indices = [
+    (ndvi, 'NDVI', 'RdYlGn', (-1, 1)),
+    (evi, 'EVI', 'RdYlGn', (-1, 1)),
+    (ndwi, 'NDWI', 'Blues', (-1, 1))
+]
+
+for idx, (data, title, cmap, vrange) in enumerate(indices):
+    im = axes[idx].imshow(data, cmap=cmap, vmin=vrange[0], vmax=vrange[1])
+    axes[idx].set_title(title, fontsize=14, fontweight='bold')
+    axes[idx].axis('off')
+    cbar = plt.colorbar(im, ax=axes[idx], fraction=0.046, pad=0.04)
+    cbar.set_label('Index Value', rotation=270, labelpad=15)
+
+plt.tight_layout()
+plt.savefig('vegetation_indices.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+print("📊 Vegetation indices calculated:")
+print(f"  NDVI range: {ndvi.min():.3f} to {ndvi.max():.3f}")
+print(f"  EVI range: {evi.min():.3f} to {evi.max():.3f}")
+print(f"  NDWI range: {ndwi.min():.3f} to {ndwi.max():.3f}")
+```
+
+### Land Cover Classification
+
+```{python}
+#| code-fold: true
+#| code-summary: "Perform Supervised Classification"
+
+def prepare_training_data(
+    bands: Dict[str, np.ndarray], 
+    landcover_map: np.ndarray,
+    sample_fraction: float = 0.3
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Prepare training and testing data for classification.
+    
+    Args:
+        bands: Dictionary of spectral bands
+        landcover_map: Reference land cover map
+        sample_fraction: Fraction of pixels to use for training
+    
+    Returns:
+        X_train, X_test, y_train, y_test arrays
+    """
+    # Stack all bands into a single array
+    band_stack = np.dstack([bands[b] for b in ['blue', 'green', 'red', 'nir', 'swir1', 'swir2']])
+    
+    # Reshape to (n_pixels, n_bands)
+    n_rows, n_cols, n_bands = band_stack.shape
+    X = band_stack.reshape(-1, n_bands)
+    y = landcover_map.ravel()
+    
+    # Remove unlabeled pixels (if any)
+    mask = y > 0
+    X = X[mask]
+    y = y[mask]
+    
+    # Split into training and testing
+    n_samples = len(y)
+    n_train = int(n_samples * sample_fraction)
+    
+    indices = np.random.permutation(n_samples)
+    train_idx = indices[:n_train]
+    test_idx = indices[n_train:]
+    
+    return X[train_idx], X[test_idx], y[train_idx], y[test_idx]
+
+# Prepare data
+X_train, X_test, y_train, y_test = prepare_training_data(scene_bands, landcover_map)
+
+print(f"Training samples: {len(X_train)}")
+print(f"Testing samples: {len(X_test)}")
+
+# Train Random Forest classifier
+rf_classifier = RandomForestClassifier(
+    n_estimators=100,
+    max_depth=10,
+    random_state=42,
+    n_jobs=-1
+)
+
+print("\n🌲 Training Random Forest classifier...")
+rf_classifier.fit(X_train, y_train)
+
+# Predict on test set
+y_pred = rf_classifier.predict(X_test)
+
+# Calculate accuracy
+accuracy = np.mean(y_pred == y_test)
+print(f"✅ Classification accuracy: {accuracy*100:.2f}%")
+
+# Classification report
+class_names = ['Water', 'Forest', 'Vegetation', 'Urban', 'Soil']
+print("\n📋 Classification Report:")
+print(classification_report(y_test, y_pred, target_names=class_names))
+
+# Confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis]
+
+# Visualize confusion matrix
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(cm_normalized, annot=True, fmt='.2f', cmap='Blues', 
+            xticklabels=class_names, yticklabels=class_names, ax=ax)
+ax.set_xlabel('Predicted Label', fontsize=12, fontweight='bold')
+ax.set_ylabel('True Label', fontsize=12, fontweight='bold')
+ax.set_title('Confusion Matrix (Normalized)', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.savefig('confusion_matrix.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+# Create full classification map
+band_stack = np.dstack([scene_bands[b] for b in ['blue', 'green', 'red', 'nir', 'swir1', 'swir2']])
+X_full = band_stack.reshape(-1, 6)
+y_classified = rf_classifier.predict(X_full)
+classified_map = y_classified.reshape(scene_size, scene_size)
+
+# Visualize classification result
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+axes[0].imshow(landcover_map, cmap='tab10', vmin=1, vmax=5)
+axes[0].set_title('Reference Land Cover', fontsize=12, fontweight='bold')
+axes[0].axis('off')
+
+im = axes[1].imshow(classified_map, cmap='tab10', vmin=1, vmax=5)
+axes[1].set_title('Classified Land Cover', fontsize=12, fontweight='bold')
+axes[1].axis('off')
+
+# Add legend
+from matplotlib.patches import Patch
+legend_elements = [Patch(facecolor=plt.cm.tab10(i/10), label=name) 
+                  for i, name in enumerate(class_names, 1)]
+fig.legend(handles=legend_elements, loc='lower center', ncol=5, 
+          frameon=True, fontsize=10)
+
+plt.tight_layout()
+plt.subplots_adjust(bottom=0.15)
+plt.savefig('classification_result.png', dpi=150, bbox_inches='tight')
+plt.show()
+```
+
+### Change Detection Analysis
+
+```{python}
+#| code-fold: true
+#| code-summary: "Simulate and Detect Environmental Change"
+
+def simulate_change(
+    scene_bands: Dict[str, np.ndarray],
+    change_type: str = 'deforestation'
+) -> Dict[str, np.ndarray]:
+    """
+    Simulate environmental change in the scene.
+    
+    Args:
+        scene_bands: Original scene bands
+        change_type: Type of change to simulate
+    
+    Returns:
+        Modified scene bands
+    """
+    changed_bands = {k: v.copy() for k, v in scene_bands.items()}
+    
+    if change_type == 'deforestation':
+        # Convert part of forest to soil
+        change_region = (20, 60, 120, 160)
+        r1, r2, c1, c2 = change_region
+        
+        # Modify spectral signature to represent cleared land
+        changed_bands['nir'][r1:r2, c1:c2] *= 0.6
+        changed_bands['red'][r1:r2, c1:c2] *= 1.3
+        changed_bands['swir1'][r1:r2, c1:c2] *= 1.2
+    
+    return changed_bands
+
+# Simulate change
+changed_scene = simulate_change(scene_bands, 'deforestation')
+
+# Calculate NDVI for both time periods
+ndvi_t1 = calculate_ndvi(scene_bands['nir'], scene_bands['red'])
+ndvi_t2 = calculate_ndvi(changed_scene['nir'], changed_scene['red'])
+
+# Calculate NDVI difference
+ndvi_change = ndvi_t2 - ndvi_t1
+
+# Identify significant changes (threshold-based)
+change_threshold = 0.15
+significant_change = np.abs(ndvi_change) > change_threshold
+
+# Visualize change detection
+fig, axes = plt.subplots(2, 2, figsize=(14, 12))
+
+# Time 1 NDVI
+im1 = axes[0, 0].imshow(ndvi_t1, cmap='RdYlGn', vmin=-1, vmax=1)
+axes[0, 0].set_title('NDVI - Time 1 (Before)', fontsize=12, fontweight='bold')
+axes[0, 0].axis('off')
+plt.colorbar(im1, ax=axes[0, 0], fraction=0.046, pad=0.04)
+
+# Time 2 NDVI
+im2 = axes[0, 1].imshow(ndvi_t2, cmap='RdYlGn', vmin=-1, vmax=1)
+axes[0, 1].set_title('NDVI - Time 2 (After)', fontsize=12, fontweight='bold')
+axes[0, 1].axis('off')
+plt.colorbar(im2, ax=axes[0, 1], fraction=0.046, pad=0.04)
+
+# NDVI Change
+im3 = axes[1, 0].imshow(ndvi_change, cmap='RdBu_r', vmin=-0.5, vmax=0.5)
+axes[1, 0].set_title('NDVI Change (Time 2 - Time 1)', fontsize=12, fontweight='bold')
+axes[1, 0].axis('off')
+cbar3 = plt.colorbar(im3, ax=axes[1, 0], fraction=0.046, pad=0.04)
+cbar3.set_label('NDVI Difference', rotation=270, labelpad=15)
+
+# Significant change mask
+im4 = axes[1, 1].imshow(significant_change, cmap='Reds', alpha=0.7)
+axes[1, 1].imshow(ndvi_t1, cmap='gray', alpha=0.3)
+axes[1, 1].set_title(f'Significant Change (|ΔNDVI| > {change_threshold})', 
+                     fontsize=12, fontweight='bold')
+axes[1, 1].axis('off')
+
+plt.tight_layout()
+plt.savefig('change_detection.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+# Calculate change statistics
+change_area = np.sum(significant_change)
+total_area = significant_change.size
+change_percentage = (change_area / total_area) * 100
+
+print(f"\n📊 Change Detection Summary:")
+print(f"  Total pixels: {total_area:,}")
+print(f"  Changed pixels: {change_area:,}")
+print(f"  Percentage changed: {change_percentage:.2f}%")
+print(f"  Mean NDVI change: {ndvi_change.mean():.4f}")
+print(f"  Max NDVI decrease: {ndvi_change.min():.4f}")
+print(f"  Max NDVI increase: {ndvi_change.max():.4f}")
+```
+
+### Feature Importance Analysis
+
+```{python}
+#| code-fold: true
+#| code-summary: "Analyze Band Importance for Classification"
+
+# Extract feature importance from Random Forest
+feature_importance = rf_classifier.feature_importances_
+band_names_ordered = ['Blue', 'Green', 'Red', 'NIR', 'SWIR1', 'SWIR2']
+
+# Create DataFrame for visualization
+importance_df = pd.DataFrame({
+    'Band': band_names_ordered,
+    'Importance': feature_importance
+}).sort_values('Importance', ascending=False)
+
+# Visualize feature importance
+fig, ax = plt.subplots(figsize=(10, 6))
+bars = ax.barh(importance_df['Band'], importance_df['Importance'], color='steelblue')
+ax.set_xlabel('Importance Score', fontsize=12, fontweight='bold')
+ax.set_ylabel('Spectral Band', fontsize=12, fontweight='bold')
+ax.set_title('Feature Importance for Land Cover Classification', 
+             fontsize=14, fontweight='bold')
+ax.invert_yaxis()
+
+# Add value labels
+for i, (band, importance) in enumerate(zip(importance_df['Band'], importance_df['Importance'])):
+    ax.text(importance + 0.005, i, f'{importance:.3f}', 
+            va='center', fontsize=10)
+
+plt.tight_layout()
+plt.savefig('feature_importance.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+print("\n🎯 Feature Importance Ranking:")
+for idx, row in importance_df.iterrows():
+    print(f"  {row['Band']}: {row['Importance']:.4f}")
+```
+
+This practical example demonstrates:
+
+1. **Data Generation**: Creating synthetic multispectral imagery that mimics real satellite data
+2. **Visualization**: Creating true color and false color composites
+3. **Index Calculation**: Computing NDVI, EVI, and NDWI for vegetation and water analysis
+4. **Classification**: Using Random Forest for supervised land cover classification
+5. **Change Detection**: Identifying environmental changes using multi-temporal analysis
+6. **Feature Analysis**: Understanding which spectral bands are most important for classification
+
+These techniques form the foundation of operational remote sensing workflows used in environmental monitoring worldwide.
+
+## Student Exercise 📝
+
+### Exercise: Multi-Temporal Forest Health Monitoring
+
+**Objective**: Apply remote sensing techniques to monitor forest health over multiple time periods and identify areas of stress or decline.
+
+**Scenario**: You are an environmental scientist working for a conservation organization. You have been provided with multispectral imagery from three different time periods (early season, mid-season, late season) covering a forested region. Your task is to analyze vegetation health trends and identify areas that may require management intervention.
+
+**Tasks**:
+
+1. **Data Preparation** (15 minutes):
+   - Generate synthetic multispectral scenes for three time periods representing seasonal progression
+   - Simulate gradual vegetation stress in a specific region (e.g., due to drought or pest infestation)
+   - Create realistic seasonal variations in vegetation reflectance
+
+2. **Vegetation Index Analysis** (20 minutes):
+   - Calculate NDVI and EVI for all three time periods
+   - Create time series plots showing the temporal progression of vegetation indices
+   - Identify pixels where vegetation indices show declining trends
+   - Calculate the rate of change in vegetation health
+
+3. **Classification and Change Detection** (15 minutes):
+   - Classify forest health into categories: Healthy, Moderate Stress, Severe Stress
+   - Use threshold-based classification on vegetation indices
+   - Create a change map showing areas that transitioned between health categories
+   - Calculate the total area affected by stress
+
+4. **Reporting** (10 minutes):
+   - Generate a summary report including:
+     - Total area of forest analyzed
+     - Percentage of forest in each health category for each time period
+     - Areas showing most rapid decline
+     - Recommendations for field investigation priorities
+   - Create visualizations showing spatial patterns of forest health change
+
+**Deliverables**:
+
+- Python code implementing the analysis
+- Visualizations showing:
+  - RGB/False color composites for each time period
+  - NDVI time series maps
+  - Forest health classification maps
+  - Change detection results
+- A written summary (200-300 words) interpreting the results and providing management recommendations
+
+**Hints**:
+
+- Consider using a threshold of NDVI < 0.4 for stressed vegetation
+- Look for areas with negative NDVI trends across time periods
+- Think about spatial patterns—are stressed areas clustered or scattered?
+- Consider what field measurements would be needed to validate your remote sensing analysis
+
+**Extension Challenge** (Optional):
+
+- Implement a more sophisticated change detection algorithm (e.g., trajectory-based analysis)
+- Add simulated cloud cover and implement cloud masking
+- Incorporate additional indices like the Normalized Burn Ratio (NBR) or Moisture Stress Index (MSI)
+- Create an automated alert system that flags areas exceeding stress thresholds
+
+## Exercise Solution 💡
+
+```{python}
+#| code-fold: true
+#| code-summary: "Complete Solution: Forest Health Monitoring"
+
+# Solution to Student Exercise
+
+print("=" * 70)
+print("FOREST HEALTH MONITORING ANALYSIS")
+print("=" * 70)
+
+# Task 1: Generate multi-temporal data with simulated stress
+def generate_temporal_scene(
+    scene_size: int,
+    time_period: str,
+    stress_intensity: float = 0.0
+) -> Dict[str, np.ndarray]:
+    """
+    Generate synthetic forest scene with temporal variations and stress.
+    
+    Args:
+        scene_size: Size of the scene (square)
+        time_period: 'early', 'mid', or 'late' season
+        stress_intensity: Degree of vegetation stress (0-1)
+    
+    Returns:
+        Dictionary of spectral bands
+    """
+    # Base forest reflectance values
+    base_reflectance = {
+        'early': {'nir': 45, 'red': 5, 'green': 10},
+        'mid': {'nir': 50, 'red': 4, 'green': 12},
+        'late': {'nir': 42, 'red': 6, 'green': 9}
+    }
+    
+    ref = base_reflectance[time_period]
+    
+    # Generate base scene
+    scene = generate_landcover_patch(scene_size, scene_size, 'forest')
+    
+    # Apply seasonal adjustment
+    scene['nir'] = scene['nir'] * (ref['nir'] / 50)
+    scene['red'] = scene['red'] * (ref['red'] / 4)
+    scene['green'] = scene['green'] * (ref['green'] / 8)
+    
+    # Apply stress to a specific region
+    if stress_intensity > 0:
+        stress_region = (60, 120, 80, 140)
+        r1, r2, c1, c2 = stress_region
+        
+        # Stressed vegetation has lower NIR, higher red
+        scene['nir'][r1:r2, c1:c2] *= (1 - stress_intensity * 0.4)
+        scene['red'][r1:r2, c1:c2] *= (1 + stress_intensity * 0.5)
+        scene['swir1'][r1:r2, c1:c2] *= (1 - stress_intensity * 0.2)
+    
+    return scene
+
+# Generate scenes for three time periods with increasing stress
+scene_size = 200
+scenes = {
+    'early': generate_temporal_scene(scene_size, 'early', stress_intensity=0.1),
+    'mid': generate_temporal_scene(scene_size, 'mid', stress_intensity=0.4),
+    'late': generate_temporal_scene(scene_size, 'late', stress_intensity=0.7)
+}
+
+print("\n✅ Task 1 Complete: Multi-temporal scenes generated")
+print(f"   Scene size: {scene_size}x{scene_size} pixels")
+print(f"   Time periods: {list(scenes.keys())}")
+
+# Task 2: Calculate vegetation indices and analyze trends
+ndvi_series = {}
+evi_series = {}
+
+for period, scene in scenes.items():
+    ndvi_series[period] = calculate_ndvi(scene['nir'], scene['red'])
+    evi_series[period] = calculate_evi(scene['nir'], scene['red'], scene['blue'])
+
+# Visualize temporal progression
+fig, axes = plt.subplots(2, 3, figsize=(15, 10))
+
+periods = ['early', 'mid', 'late']
+for idx, period in enumerate(periods):
+    # NDVI
+    im1 = axes[0, idx].imshow(ndvi_series[period], cmap='RdYlGn', vmin=0, vmax=1)
+    axes[0, idx].set_title(f'NDVI - {period.capitalize()} Season', 
+                           fontsize=11, fontweight='bold')
+    axes[0, idx].axis('off')
+    plt.colorbar(im1, ax=axes[0, idx], fraction=0.046, pad=0.04)
+    
+    # EVI
+    im2 = axes[1, idx].imshow(evi_series[period], cmap='RdYlGn', vmin=0, vmax=1)
+    axes[1, idx].set_title(f'EVI - {period.capitalize()} Season', 
+                           fontsize=11, fontweight='bold')
+    axes[1, idx].axis('off')
+    plt.colorbar(im2, ax=axes[1, idx], fraction=0.046, pad=0.04)
+
+plt.tight_layout()
+plt.savefig('temporal_progression.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+# Calculate temporal trends
+ndvi_change_early_mid = ndvi_series['mid'] - ndvi_series['early']
+ndvi_change_mid_late = ndvi_series['late'] - ndvi_series['mid']
+ndvi_change_total = ndvi_series['late'] - ndvi_series['early']
+
+print("\n✅ Task 2 Complete: Vegetation indices calculated")
+print(f"   Mean NDVI Early: {ndvi_series['early'].mean():.3f}")
+print(f"   Mean NDVI Mid: {ndvi_series['mid'].mean():.3f}")
+print(f"   Mean NDVI Late: {ndvi_series['late'].mean():.3f}")
+print(f"   Overall NDVI change: {ndvi_change_total.mean():.3f}")
+
+# Task 3: Classify forest health
+def classify_forest_health(ndvi: np.ndarray) -> np.ndarray:
+    """
+    Classify forest health based on NDVI thresholds.
+    
+    Categories:
+    1 - Healthy (NDVI > 0.6)
+    2 - Moderate Stress (0.4 < NDVI <= 0.6)
+    3 - Severe Stress (NDVI <= 0.4)
+    """
+    health_map = np.zeros_like(ndvi, dtype=int)
+    health_map[ndvi > 0.6] = 1  # Healthy
+    health_map[(ndvi > 0.4) & (ndvi <= 0.6)] = 2  # Moderate stress
+    health_map[ndvi <= 0.4] = 3  # Severe stress
+    return health_map
+
+# Classify each time period
+health_maps = {
+    period: classify_forest_health(ndvi_series[period])
+    for period in periods
+}
+
+# Visualize health classification
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+colors = ['darkgreen', 'yellow', 'red']
+cmap = plt.matplotlib.colors.ListedColormap(colors)
+
+for idx, period in enumerate(periods):
+    im = axes[idx].imshow(health_maps[period], cmap=cmap, vmin=1, vmax=3)
+    axes[idx].set_title(f'Forest Health - {period.capitalize()}', 
+                        fontsize=12, fontweight='bold')
+    axes[idx].axis('off')
+
+# Add legend
+from matplotlib.patches import Patch
+legend_elements = [
+    Patch(facecolor='darkgreen', label='Healthy'),
+    Patch(facecolor='yellow', label='Moderate Stress'),
+    Patch(facecolor='red', label='Severe Stress')
+]
+fig.legend(handles=legend_elements, loc='lower center', ncol=3, 
+          frameon=True, fontsize=11)
+
+plt.tight_layout()
+plt.subplots_adjust(bottom=0.15)
+plt.savefig('health_classification.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+# Calculate area statistics
+pixel_area = 900  # m² (30m x 30m pixel, typical Landsat resolution)
+area_stats = {}
+
+for period in periods:
+    health_map = health_maps[period]
+    total_pixels = health_map.size
+    
+    healthy = np.sum(health_map == 1)
+    moderate = np.sum(health_map == 2)
+    severe = np.sum(health_map == 3)
+    
+    area_stats[period] = {
+        'healthy_pct': (healthy / total_pixels) * 100,
+        'moderate_pct': (moderate / total_pixels) * 100,
+        'severe_pct': (severe / total_pixels) * 100,
+        'healthy_ha': (healthy * pixel_area) / 10000,
+        'moderate_ha': (moderate * pixel_area) / 10000,
+        'severe_ha': (severe * pixel_area) / 10000
+    }
+
+print("\n✅ Task 3 Complete: Forest health classified")
+
+# Task 4: Generate report
+print("\n" + "=" * 70)
+print("FOREST HEALTH MONITORING REPORT")
+print("=" * 70)
+
+print(f"\nTotal Area Analyzed: {(scene_size**2 * pixel_area) / 10000:.1f} hectares")
+print(f"Pixel Resolution: 30m x 30m")
+print(f"Analysis Period: Early to Late Season")
+
+print("\n--- HEALTH DISTRIBUTION BY TIME PERIOD ---\n")
+
+# Create summary table
+summary_data = []
+for period in periods:
+    stats = area_stats[period]
+    summary_data.append({
+        'Period': period.capitalize(),
+        'Healthy (%)': f"{stats['healthy_pct']:.1f}",
+        'Moderate Stress (%)': f"{stats['moderate_pct']:.1f}",
+        'Severe Stress (%)': f"{stats['severe_pct']:.1f}",
+        'Severe Area (ha)': f"{stats['severe_ha']:.1f}"
+    })
+
+summary_df = pd.DataFrame(summary_data)
+print(summary_df.to_string(index=False))
+
+# Identify rapidly declining areas
+decline_rate = ndvi_change_total / 2  # Change per time period
+rapid_decline = decline_rate < -0.15  # Threshold for rapid decline
+
+rapid_decline_area = np.sum(rapid_decline) * pixel_area / 10000
+print(f"\n--- AREAS OF CONCERN ---")
+print(f"Rapid Decline Area: {rapid_decline_area:.1f} hectares")
+print(f"Percentage of Total: {(np.sum(rapid_decline) / rapid_decline.size) * 100:.1f}%")
+
+# Visualize change and priority areas
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# Total NDVI change
+im1 = axes[0].imshow(ndvi_change_total, cmap='RdYlGn', vmin=-0.5, vmax=0.5)
+axes[0].set_title('Total NDVI Change (Late - Early)', fontsize=12, fontweight='bold')
+axes[0].axis('off')
+cbar1 = plt.colorbar(im1, ax=axes[0], fraction=0.046, pad=0.04)
+cbar1.set_label('NDVI Difference', rotation=270, labelpad=15)
+
+# Priority areas for field investigation
+priority_map = np.zeros_like(rapid_decline, dtype=int)
+priority_map[rapid_decline] = 2  # High priority
+priority_map[(ndvi_change_total < -0.1) & ~rapid_decline] = 1  # Medium priority
+
+im2 = axes[1].imshow(priority_map, cmap='YlOrRd', vmin=0, vmax=2)
+axes[1].set_title('Field Investigation Priorities', fontsize=12, fontweight='bold')
+axes[1].axis('off')
+
+plt.tight_layout()
+plt.savefig('priority_areas.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+print("\n--- MANAGEMENT RECOMMENDATIONS ---\n")
+print("""
+1. IMMEDIATE ACTION REQUIRED:
+   - Conduct field surveys in areas showing rapid NDVI decline (>0.15 decrease)
+   - Focus on the southeastern quadrant where stress is most concentrated
+   - Assess for pest infestation, disease, or drought stress
+
+2. MONITORING PRIORITIES:
+   - Continue monthly satellite monitoring of identified stress areas
+   - Establish ground-based validation plots in moderate stress zones
+   - Track progression of stress boundaries
+
+3. PREVENTIVE MEASURES:
+   - Implement early warning system for adjacent healthy forest areas
+   - Consider thinning or other silvicultural treatments in moderate stress zones
+   - Assess water availability and consider irrigation if feasible
+
+4. DATA COLLECTION:
+   - Collect ground truth data for model validation
+   - Document species composition in stressed vs. healthy areas
+   - Measure soil moisture and meteorological conditions
+
+5. FOLLOW-UP ANALYSIS:
+   - Acquire hyperspectral data if available for detailed stress characterization
+   - Use thermal imagery to assess water stress
+   - Integrate with climate data to understand stress drivers
+""")
+
+print("=" * 70)
+print("✅ Task 4 Complete: Report generated")
+print("=" * 70)
+
+# Create temporal trend plot
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Calculate mean NDVI for different health zones
+healthy_trend = [np.mean(ndvi_series[p][health_maps['early'] == 1]) for p in periods]
+moderate_trend = [np.mean(ndvi_series[p][health_maps['early'] == 2]) for p in periods]
+severe_trend = [np.mean(ndvi_series[p][health_maps['early'] == 3]) for p in periods]
+
+x = np.arange(len(periods))
+ax.plot(x, healthy_trend, 'o-', color='darkgreen', linewidth=2, 
+        markersize=8, label='Initially Healthy')
+ax.plot(x, moderate_trend, 's-', color='orange', linewidth=2, 
+        markersize=8, label='Initially Moderate')
+ax.plot(x, severe_trend, '^-', color='red', linewidth=2, 
+        markersize=8, label='Initially Stressed')
+
+ax.set_xticks(x)
+ax.set_xticklabels([p.capitalize() for p in periods])
+ax.set_xlabel('Time Period', fontsize=12, fontweight='bold')
+ax.set_ylabel('Mean NDVI', fontsize=12, fontweight='bold')
+ax.set_title('Temporal NDVI Trends by Initial Health Status', 
+             fontsize=14, fontweight='bold')
+ax.legend(loc='best', fontsize=10)
+ax.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('temporal_trends.png', dpi=150, bbox_inches='tight')
+plt.show()
+
+print("\n📊 All visualizations saved successfully!")
+```
+
+**Key Points in the Solution**:
+
+1. **Realistic Simulation**: The solution creates temporally coherent data with progressive vegetation stress
+2. **Multiple Indices**: Uses both NDVI and EVI for robust vegetation assessment
+3. **Threshold-Based Classification**: Implements a simple but effective health classification scheme
+4. **Change Detection**: Identifies areas of rapid decline requiring immediate attention
+5. **Comprehensive Reporting**: Provides actionable management recommendations based on the analysis
+6. **Visualization**: Creates clear, publication-quality figures showing spatial and temporal patterns
+
+This solution demonstrates how remote sensing can be operationalized for real-world forest management decisions.
+
+## Quiz 📝
+
+Test your understanding of remote sensing imagery and applications with these questions:
+
+**Question 1**: Which type of electromagnetic radiation is most strongly reflected by healthy vegetation?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**Near-infrared (NIR) radiation**
+
+Healthy vegetation strongly reflects NIR radiation (approximately 40-50% reflectance) due to the cellular structure of leaves, particularly the spongy mesophyll layer. This is in stark contrast to the strong absorption of red light (used for photosynthesis), which is why vegetation appears green to our eyes but bright in NIR imagery.
+:::
+
+**Question 2**: True or False: Hyperspectral sensors capture data in more spectral bands than multispectral sensors.
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**True**
+
+Hyperspectral sensors capture data in hundreds of narrow, contiguous spectral bands (typically 100-500 bands with 5-10 nm bandwidth), while multispectral sensors capture data in fewer discrete bands (typically 3-15 bands with broader bandwidth of 50-200 nm).
+:::
+
+**Question 3**: What does NDVI stand for, and what is its typical range of values?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**Normalized Difference Vegetation Index; range: -1 to +1**
+
+NDVI is calculated as (NIR - Red) / (NIR + Red). Values range from -1 to +1, where:
+
+- Negative values typically indicate water
+- Values near 0 indicate bare soil or rock
+- Values 0.2-0.4 indicate sparse vegetation
+- Values 0.4-0.8 indicate healthy, dense vegetation
+:::
+
+**Question 4**: Which type of remote sensing can penetrate clouds and operate both day and night?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**Active microwave remote sensing (Radar/SAR)**
+
+Radar systems are active sensors that provide their own illumination using microwave radiation, which penetrates clouds and doesn't require sunlight. This makes them invaluable for monitoring tropical regions with persistent cloud cover and for continuous monitoring regardless of time of day.
+:::
+
+**Question 5**: What is spatial resolution in remote sensing?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**The smallest object or area that can be distinguished in an image, typically expressed as pixel size**
+
+Spatial resolution determines the level of detail visible in an image. For example, Landsat has 30m spatial resolution (each pixel represents a 30m × 30m area), while commercial satellites like WorldView can achieve sub-meter resolution. Higher spatial resolution allows detection of smaller features but typically comes with trade-offs in temporal coverage and data volume.
+:::
+
+**Question 6**: True or False: Temporal resolution refers to how frequently a satellite can revisit and image the same location on Earth.
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**True**
+
+Temporal resolution (also called revisit time) is the frequency with which a sensor can observe the same area. It depends on orbital characteristics, swath width, and pointing capability. For example, Landsat has a 16-day revisit time, while MODIS can observe the entire Earth daily or twice daily.
+:::
+
+**Question 7**: Which of the following is NOT one of the four main types of resolution in remote sensing?
+
+A) Spatial resolution  
+B) Temporal resolution  
+C) Atmospheric resolution  
+D) Spectral resolution
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**C) Atmospheric resolution**
+
+The four main types of resolution in remote sensing are:
+
+1. **Spatial resolution** - level of spatial detail
+2. **Temporal resolution** - frequency of observation
+3. **Spectral resolution** - number and width of spectral bands
+4. **Radiometric resolution** - sensitivity to energy differences
+
+Atmospheric resolution is not a standard resolution category, though atmospheric conditions do affect data quality.
+:::
+
+**Question 8**: What is the primary advantage of synthetic aperture radar (SAR) over optical remote sensing?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**All-weather capability and day/night operation**
+
+SAR's microwave radiation penetrates clouds, fog, and operates regardless of solar illumination. This makes it particularly valuable for:
+
+- Monitoring tropical regions with persistent cloud cover
+- Continuous monitoring applications
+- Emergency response (floods, earthquakes) when clouds might obscure optical sensors
+- Applications requiring precise surface deformation measurements (InSAR)
+:::
+
+**Question 9**: True or False: Higher spatial resolution always results in better environmental monitoring capabilities.
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**False**
+
+While higher spatial resolution provides more detail, it's not always better because:
+
+- Smaller coverage area (narrower swath width)
+- Longer revisit times (lower temporal resolution)
+- Much larger data volumes requiring more storage and processing
+- Higher costs for data acquisition and processing
+- Some applications (e.g., global climate monitoring) benefit more from frequent observations at moderate resolution than from infrequent high-resolution images
+
+The optimal resolution depends on the specific application and monitoring objectives.
+:::
+
+**Question 10**: In the NDVI equation (NIR - Red) / (NIR + Red), why does healthy vegetation produce high positive values?
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**Healthy vegetation strongly reflects NIR and strongly absorbs Red light**
+
+The high NDVI values for healthy vegetation result from:
+
+- **High NIR reflectance** (~40-50%): Caused by leaf cellular structure (spongy mesophyll) that scatters NIR radiation
+- **Low Red reflectance** (~5-10%): Chlorophyll strongly absorbs red light for photosynthesis
+
+This creates a large positive difference in the numerator (NIR - Red), resulting in NDVI values typically between 0.3 and 0.8 for healthy vegetation. Stressed vegetation has reduced NIR reflectance and increased red reflectance, lowering the NDVI value.
+:::
+
+## References
+
+::: {#refs}
+:::

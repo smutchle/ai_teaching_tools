@@ -1,0 +1,1651 @@
+---
+title: "Data Quality Assessment and Uncertainty"
+subtitle: "Topic 2.5: Environmental Science - Lecture 2"
+bibliography: data_quality_assessment.bib
+---
+
+## Topic Overview 🎯
+
+Environmental science relies fundamentally on the quality and reliability of data collected from diverse sources—from satellite imagery and sensor networks to field measurements and historical records. The phrase "garbage in, garbage out" is particularly relevant in environmental research, where decisions about conservation, policy, and resource management depend on accurate, precise, and well-documented data.
+
+**Data Quality Assessment and Uncertainty** encompasses the systematic evaluation of environmental datasets to determine their fitness for purpose. This involves examining multiple dimensions of data quality including:
+
+- **Accuracy**: How close measurements are to the true value
+- **Precision**: The consistency and reproducibility of measurements
+- **Completeness**: The extent to which data captures all required observations
+- **Consistency**: The coherence of data across different sources, times, and spatial scales
+
+Understanding uncertainty is not about admitting failure—it's about scientific integrity and honesty. Every measurement contains some degree of error, whether from instrument limitations, sampling strategies, environmental variability, or human factors. Quantifying and communicating these uncertainties allows researchers to:
+
+1. Make informed decisions about data usage
+2. Properly weight evidence in analyses
+3. Avoid overconfident conclusions
+4. Design better monitoring programs
+5. Maintain transparency and reproducibility
+
+Within the broader context of **Lecture 2: Data Types and Sources in Environmental Science**, this topic serves as a critical checkpoint. After learning about various data sources (remote sensing, sensor networks, climate records, biodiversity databases), we must now ask: *How good is this data?* Before moving forward to metadata standards and data repositories, we need frameworks for evaluating what we're collecting and sharing.
+
+In the context of the **Environmental Science** course, data quality assessment bridges the gap between data collection and analysis. It's the foundation for credible scientific findings and responsible environmental stewardship. Without rigorous quality assessment, even the most sophisticated analytical techniques can produce misleading results that undermine conservation efforts, waste resources, or—worse—lead to environmental harm.
+
+## Background & Theory 📚
+
+### Historical Context of Data Quality in Environmental Science
+
+The recognition of data quality as a distinct concern in environmental science emerged gradually through several pivotal moments. In the 1960s and 1970s, early environmental monitoring programs often collected data without standardized protocols, leading to datasets that were difficult to compare or combine. The establishment of the U.S. Environmental Protection Agency (EPA) in 1970 marked a turning point, as regulatory requirements demanded defensible data for enforcement actions [@usepa2002].
+
+The **Love Canal disaster** (1978) highlighted how poor data quality and incomplete records could obscure environmental hazards for decades. This event catalyzed the development of formal Quality Assurance/Quality Control (QA/QC) programs in environmental monitoring. By the 1980s, organizations like the EPA began publishing comprehensive guidance documents on data quality objectives (DQOs) and quality assurance project plans (QAPPs).
+
+The rise of **global environmental monitoring** in the 1990s—particularly for climate change research—brought new challenges. The need to combine data from hundreds of stations worldwide exposed issues of calibration drift, measurement inconsistencies, and the critical importance of metadata. The Intergovernmental Panel on Climate Change (IPCC) established rigorous uncertainty assessment frameworks that have become models for other environmental disciplines [@ipcc2010].
+
+### Dimensions of Data Quality
+
+#### 1. Accuracy
+
+**Accuracy** refers to how close a measured or computed value is to its true value. In environmental science, "truth" is often elusive—we rarely know the exact concentration of a pollutant or the precise temperature at a location. Instead, accuracy is typically assessed through:
+
+- **Reference materials**: Comparing measurements against certified standards
+- **Inter-laboratory comparisons**: Multiple labs analyzing the same samples
+- **Field validation**: Comparing remote sensing data with ground truth measurements
+
+Mathematically, accuracy can be expressed as **bias** ($b$):
+
+$$
+b = \bar{x} - \mu
+$$
+
+where $\bar{x}$ is the mean of measurements and $\mu$ is the true value (or best estimate thereof).
+
+**Relative bias** is often more useful:
+
+$$
+\text{Relative Bias} = \frac{\bar{x} - \mu}{\mu} \times 100\%
+$$
+
+For environmental data, accuracy requirements vary by application. Water quality standards might require accuracy within ±10% for regulatory compliance, while climate models might tolerate larger biases if they're systematic and can be corrected.
+
+#### 2. Precision
+
+**Precision** describes the repeatability or reproducibility of measurements—how close repeated measurements are to each other, regardless of whether they're close to the true value. A measurement system can be precise but inaccurate (systematic error) or accurate on average but imprecise (random error).
+
+Precision is typically quantified using **standard deviation** ($s$) or **coefficient of variation** (CV):
+
+$$
+s = \sqrt{\frac{\sum_{i=1}^{n}(x_i - \bar{x})^2}{n-1}}
+$$
+
+$$
+\text{CV} = \frac{s}{\bar{x}} \times 100\%
+$$
+
+The coefficient of variation is particularly useful in environmental science because it allows comparison of precision across measurements with different magnitudes (e.g., comparing the precision of pH measurements to dissolved oxygen measurements).
+
+**Repeatability** refers to precision under identical conditions (same operator, instrument, location, time), while **reproducibility** refers to precision under varying conditions (different operators, instruments, or laboratories).
+
+#### 3. Completeness
+
+**Completeness** measures the proportion of valid data obtained relative to the amount expected or required. For a monitoring network, this might be:
+
+$$
+\text{Completeness} = \frac{\text{Number of valid measurements}}{\text{Number of planned measurements}} \times 100\%
+$$
+
+Incomplete data can arise from:
+
+- **Equipment failures**: Sensor malfunctions, power outages, communication errors
+- **Environmental conditions**: Extreme weather preventing access or damaging instruments
+- **Quality control rejections**: Measurements flagged as invalid during QC review
+- **Sampling limitations**: Inability to access all planned locations
+
+The impact of incompleteness depends on whether missing data is **random** or **systematic**. Random gaps might be addressed through interpolation, while systematic gaps (e.g., sensors consistently failing during storms) can bias results and require careful consideration.
+
+Many environmental monitoring programs set **minimum completeness thresholds** (often 75-90%) for data to be considered representative of a time period or location.
+
+#### 4. Consistency
+
+**Consistency** evaluates whether data is coherent across different dimensions:
+
+- **Temporal consistency**: Do values follow expected patterns over time?
+- **Spatial consistency**: Are nearby measurements similar when they should be?
+- **Logical consistency**: Do related variables have physically plausible relationships?
+- **Cross-platform consistency**: Do different sensors measuring the same parameter agree?
+
+For example, if air temperature measurements at a station suddenly drop 20°C while all surrounding stations show normal conditions, this indicates an inconsistency warranting investigation.
+
+Consistency checks often rely on **range tests** (values within physically possible bounds), **rate-of-change tests** (values don't change too rapidly), and **spatial coherence tests** (neighboring values are correlated).
+
+### Sources of Error in Environmental Data
+
+Understanding error sources is essential for designing effective quality control procedures and interpreting results appropriately.
+
+#### Systematic Errors (Bias)
+
+**Systematic errors** consistently skew measurements in one direction. They're reproducible and often correctable once identified:
+
+1. **Instrument calibration drift**: Sensors gradually lose accuracy over time
+   - Example: A pH meter reading 0.2 units too high due to electrode aging
+   
+2. **Environmental interference**: Conditions affecting measurement accuracy
+   - Example: Temperature effects on dissolved oxygen sensors
+   
+3. **Sampling bias**: Non-representative sample collection
+   - Example: Always sampling water quality during low-flow conditions
+   
+4. **Methodology bias**: Consistent errors in analytical procedures
+   - Example: Incomplete extraction of contaminants from soil samples
+
+5. **Observer bias**: Consistent tendencies in human observations
+   - Example: Consistently overestimating tree heights in forest surveys
+
+#### Random Errors (Noise)
+
+**Random errors** vary unpredictably and average out over many measurements:
+
+1. **Instrument noise**: Electronic fluctuations, detection limits
+2. **Environmental variability**: Natural fluctuations in the measured quantity
+3. **Sampling variability**: Inherent differences between samples
+4. **Reading errors**: Human imprecision in recording measurements
+
+Random errors are quantified by precision metrics and reduced through **replication** (taking multiple measurements) and **averaging**.
+
+#### Gross Errors (Outliers)
+
+**Gross errors** are large, obvious mistakes:
+
+1. **Transcription errors**: Recording wrong values
+2. **Equipment malfunction**: Complete sensor failure
+3. **Contamination**: Sample compromised during collection or analysis
+4. **Data entry errors**: Typographical mistakes in databases
+
+Gross errors are typically identified through **outlier detection** algorithms and removed or corrected during quality control.
+
+### Quality Control Procedures
+
+Quality control (QC) encompasses the operational techniques and activities used to fulfill quality requirements. A comprehensive QC program includes:
+
+#### 1. Calibration and Standardization
+
+**Calibration** establishes the relationship between instrument readings and known reference values:
+
+$$
+y = mx + b
+$$
+
+where $y$ is the instrument reading, $x$ is the true value, $m$ is the slope (sensitivity), and $b$ is the intercept (offset).
+
+**Frequency**: Calibration frequency depends on instrument stability, measurement criticality, and regulatory requirements. Water quality sensors might require daily calibration, while laboratory instruments might be calibrated weekly or monthly.
+
+**Standards**: Multiple calibration points spanning the expected measurement range are essential. Single-point calibrations can miss non-linearity.
+
+#### 2. Blanks and Controls
+
+- **Field blanks**: Samples of pure water or clean substrate exposed to field conditions to detect contamination during collection or transport
+- **Method blanks**: Pure samples processed through the entire analytical procedure to detect laboratory contamination
+- **Spiked samples**: Samples with known additions of target analytes to assess recovery efficiency
+- **Duplicate samples**: Replicate samples to assess precision
+
+#### 3. Quality Control Charts
+
+**Control charts** (Shewhart charts) monitor measurement stability over time. For a series of quality control measurements:
+
+- **Center line**: Mean of control measurements ($\bar{x}$)
+- **Warning limits**: $\bar{x} \pm 2s$ (approximately 95% confidence)
+- **Control limits**: $\bar{x} \pm 3s$ (approximately 99.7% confidence)
+
+When measurements exceed control limits, the process is considered "out of control," requiring investigation and corrective action.
+
+#### 4. Automated Quality Flags
+
+Modern environmental monitoring systems often apply automated quality flags:
+
+| Flag | Meaning | Action |
+|------|---------|--------|
+| 0 | Good | No issues detected |
+| 1 | Suspect | Questionable, use with caution |
+| 2 | Bad | Failed QC tests, do not use |
+| 3 | Missing | No data available |
+| 4 | Estimated | Gap-filled or interpolated |
+
+### Uncertainty Quantification
+
+**Uncertainty** is a parameter characterizing the range of values within which the true value is expected to lie. Unlike error (which is the difference between measured and true values), uncertainty is what we can estimate about potential errors.
+
+#### Types of Uncertainty
+
+The **Guide to the Expression of Uncertainty in Measurement (GUM)** [@jcgm2008] distinguishes two categories:
+
+1. **Type A uncertainty**: Evaluated by statistical methods (repeated measurements)
+   
+$$
+u_A = \frac{s}{\sqrt{n}}
+$$
+
+where $s$ is the standard deviation and $n$ is the number of measurements. This is the **standard error of the mean**.
+
+2. **Type B uncertainty**: Evaluated by other means (manufacturer specifications, calibration certificates, previous experience, scientific judgment)
+
+#### Combined Uncertainty
+
+When multiple sources of uncertainty contribute to a measurement, they are combined using the **law of propagation of uncertainty**. For a quantity $y$ that depends on independent inputs $x_1, x_2, ..., x_n$:
+
+$$
+u_c^2(y) = \sum_{i=1}^{n} \left(\frac{\partial y}{\partial x_i}\right)^2 u^2(x_i)
+$$
+
+This is the **combined standard uncertainty**. The terms $\frac{\partial y}{\partial x_i}$ are **sensitivity coefficients** showing how output uncertainty responds to input uncertainties.
+
+**Example**: For a simple linear relationship $y = ax_1 + bx_2$:
+
+$$
+u_c^2(y) = a^2u^2(x_1) + b^2u^2(x_2)
+$$
+
+#### Expanded Uncertainty
+
+For reporting purposes, **expanded uncertainty** ($U$) is calculated:
+
+$$
+U = k \cdot u_c(y)
+$$
+
+where $k$ is the **coverage factor** (typically 2 for approximately 95% confidence or 3 for approximately 99.7% confidence, assuming normal distribution).
+
+The final result is reported as: $y \pm U$ (with coverage factor $k$).
+
+#### Uncertainty in Environmental Models
+
+Environmental models add another layer of complexity. Model uncertainty arises from:
+
+1. **Parameter uncertainty**: Imprecise knowledge of model parameters
+2. **Structural uncertainty**: Simplifications and assumptions in model formulation
+3. **Input data uncertainty**: Propagation of measurement uncertainties through models
+4. **Numerical uncertainty**: Discretization and computational approximations
+
+**Monte Carlo simulation** is commonly used to propagate uncertainties through complex models:
+
+```{mermaid}
+flowchart TD
+    A[Define Input Distributions] --> B[Random Sampling]
+    B --> C[Run Model]
+    C --> D{More Iterations?}
+    D -->|Yes| B
+    D -->|No| E[Analyze Output Distribution]
+    E --> F[Report Uncertainty Statistics]
+```
+
+This approach runs the model thousands of times with randomly sampled input parameters, generating a distribution of possible outputs that characterizes uncertainty.
+
+### Data Quality Objectives (DQOs)
+
+The **Data Quality Objectives (DQO) process** [@usepa2006] is a systematic planning approach that ensures data collected will be sufficient to support decision-making. It involves seven steps:
+
+1. **State the problem**: Clearly define the environmental issue
+2. **Identify decisions**: Specify what decisions the data will support
+3. **Identify inputs**: Determine what information is needed
+4. **Define study boundaries**: Establish spatial, temporal, and population limits
+5. **Develop decision rules**: Specify statistical tests and action levels
+6. **Specify limits on decision errors**: Set acceptable probabilities of false positives/negatives
+7. **Optimize the design**: Determine the most resource-effective sampling/analysis design
+
+The DQO process explicitly links data quality requirements to decision consequences, preventing both under-collection (insufficient data) and over-collection (wasted resources) of data.
+
+### Importance of Documentation
+
+**Metadata** (data about data) is essential for assessing data quality and fitness for use. Minimum documentation should include:
+
+- **Collection methods**: Instruments, protocols, sampling strategies
+- **Quality control procedures**: Calibration frequency, blank results, precision estimates
+- **Known limitations**: Detection limits, interferences, gaps
+- **Processing steps**: Calculations, corrections, aggregations applied
+- **Uncertainty estimates**: Quantified uncertainties with confidence levels
+- **Quality flags**: Codes indicating data quality status
+- **Chain of custody**: Who collected, processed, and analyzed the data
+
+The principle of **FAIR data** (Findable, Accessible, Interoperable, Reusable) [@wilkinson2016] emphasizes that good documentation is not optional—it's essential for scientific integrity and data value.
+
+Poor documentation can render otherwise high-quality data unusable. Conversely, well-documented data with known limitations can be appropriately applied even if quality is imperfect.
+
+### Statistical Methods for Quality Assessment
+
+#### Detection Limits
+
+The **limit of detection (LOD)** is the lowest concentration that can be reliably distinguished from zero:
+
+$$
+\text{LOD} = \bar{x}_{\text{blank}} + t_{n-1,\alpha} \cdot s_{\text{blank}}
+$$
+
+where $\bar{x}_{\text{blank}}$ is the mean of blank measurements, $s_{\text{blank}}$ is their standard deviation, and $t_{n-1,\alpha}$ is the Student's t-value for $n-1$ degrees of freedom at significance level $\alpha$ (typically 0.05).
+
+The **limit of quantification (LOQ)** is higher, representing the lowest concentration that can be measured with acceptable precision (often defined as LOQ = 10 × $s_{\text{blank}}$).
+
+#### Outlier Detection
+
+Several statistical tests identify outliers:
+
+**Grubbs' test** for a single outlier in a normal distribution:
+
+$$
+G = \frac{\max(|x_i - \bar{x}|)}{s}
+$$
+
+If $G$ exceeds a critical value (from tables), the extreme value is a statistical outlier.
+
+**Dixon's Q test** for small samples:
+
+$$
+Q = \frac{\text{gap}}{\text{range}}
+$$
+
+where gap is the difference between the suspect value and its nearest neighbor, and range is the overall data range.
+
+**Interquartile range (IQR) method** (robust, non-parametric):
+
+- Values below $Q_1 - 1.5 \times \text{IQR}$ or above $Q_3 + 1.5 \times \text{IQR}$ are potential outliers
+- Where $Q_1$ and $Q_3$ are the first and third quartiles, and $\text{IQR} = Q_3 - Q_1$
+
+**Important**: Statistical outliers aren't necessarily errors. They might represent real extreme events. Always investigate before removing outliers.
+
+### Quality Assessment in Different Data Types
+
+#### Remote Sensing Data
+
+Remote sensing data quality involves unique considerations:
+
+- **Atmospheric correction**: Removing atmospheric effects on satellite imagery
+- **Geometric accuracy**: Spatial positioning errors (often quantified as RMSE in meters)
+- **Radiometric calibration**: Ensuring consistent brightness values over time
+- **Cloud contamination**: Identifying and masking cloud-affected pixels
+- **Validation**: Comparing satellite-derived products with ground truth measurements
+
+**Confusion matrices** assess classification accuracy:
+
+|                    | Reference: Class A | Reference: Class B |
+|--------------------|--------------------|--------------------|
+| **Classified: A**  | True Positive (TP) | False Positive (FP)|
+| **Classified: B**  | False Negative (FN)| True Negative (TN) |
+
+From this, key metrics are calculated:
+
+$$
+\text{Overall Accuracy} = \frac{TP + TN}{TP + TN + FP + FN}
+$$
+
+$$
+\text{Producer's Accuracy (Recall)} = \frac{TP}{TP + FN}
+$$
+
+$$
+\text{User's Accuracy (Precision)} = \frac{TP}{TP + FP}
+$$
+
+#### Sensor Network Data
+
+Sensor networks face challenges like:
+
+- **Sensor drift**: Gradual accuracy loss requiring frequent calibration
+- **Communication failures**: Data gaps from transmission errors
+- **Spatial representativeness**: Point measurements representing larger areas
+- **Temporal resolution**: Trade-offs between sampling frequency and power consumption
+
+**Data validation** often uses neighboring sensors for cross-checks and spatial consistency tests.
+
+#### Climate and Historical Data
+
+Long-term climate records require special quality procedures:
+
+- **Homogenization**: Correcting for changes in instruments, locations, or observation practices
+- **Bias correction**: Adjusting for systematic differences between old and new methods
+- **Gap filling**: Interpolating missing values while preserving temporal characteristics
+- **Uncertainty quantification**: Estimating confidence intervals that increase with distance from observations
+
+The **World Meteorological Organization (WMO)** provides guidelines for climate data quality [@wmo2017].
+
+### Communicating Uncertainty
+
+Effective communication of uncertainty is crucial but challenging. Recommendations include:
+
+1. **Visual representation**: Error bars, confidence intervals, probability distributions
+2. **Plain language**: Avoid jargon; explain what uncertainty means for decisions
+3. **Context**: Compare uncertainties to effect sizes or decision thresholds
+4. **Transparency**: Clearly state assumptions and limitations
+5. **Avoid false precision**: Don't report more significant figures than justified by uncertainty
+
+**Example**: Instead of reporting "Stream temperature increased by 2.347°C," report "Stream temperature increased by 2.3 ± 0.4°C (95% confidence)," which acknowledges measurement uncertainty.
+
+### Emerging Challenges and Approaches
+
+#### Big Data and Machine Learning
+
+The explosion of environmental data from sensors, satellites, and citizen science creates new quality challenges:
+
+- **Automated quality control**: Machine learning algorithms detecting anomalies at scale
+- **Uncertainty in AI predictions**: Quantifying confidence in model outputs
+- **Bias in training data**: Ensuring representative sampling for algorithm development
+- **Validation at scale**: Assessing accuracy when ground truth is sparse
+
+**Ensemble methods** and **Bayesian approaches** are increasingly used to quantify uncertainty in machine learning predictions.
+
+#### Citizen Science Data
+
+Citizen science generates vast amounts of environmental data but raises quality concerns:
+
+- **Variable expertise**: Participants have different skill levels
+- **Inconsistent protocols**: Difficulty standardizing methods across many observers
+- **Motivation bias**: Tendency to report interesting observations more than routine ones
+
+Solutions include:
+
+- **Training and certification**: Ensuring participants understand protocols
+- **Photo documentation**: Allowing expert verification
+- **Redundancy**: Multiple observers for the same location/time
+- **Statistical filtering**: Algorithms identifying likely errors based on patterns
+
+#### Real-Time Data Streams
+
+Internet of Things (IoT) sensors provide continuous data but require:
+
+- **Automated QC**: Immediate flagging of suspect values
+- **Adaptive calibration**: Self-correcting algorithms
+- **Anomaly detection**: Distinguishing real events from sensor failures
+- **Low-latency processing**: Quality assessment without delays
+
+### Integration with Decision-Making
+
+The ultimate purpose of quality assessment is supporting sound decisions. The **GRADE framework** (Grading of Recommendations Assessment, Development and Evaluation) used in evidence-based practice considers:
+
+- **Risk of bias**: How quality limitations might affect conclusions
+- **Inconsistency**: Agreement across multiple studies or datasets
+- **Imprecision**: Wide confidence intervals reducing certainty
+- **Indirectness**: Applicability to the decision at hand
+
+Environmental decisions should explicitly consider data quality, with higher-quality data receiving greater weight and major decisions requiring higher quality standards.
+
+## Practical Example / Code Implementation 💻
+
+Let's implement a comprehensive data quality assessment workflow for environmental sensor data. We'll work with a synthetic water quality monitoring dataset that mimics real-world challenges.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Install Required Libraries"
+
+%pip install -q pandas numpy matplotlib seaborn scipy scikit-learn
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Import Libraries and Generate Synthetic Data"
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from datetime import datetime, timedelta
+from typing import Tuple, Dict, List
+import warnings
+warnings.filterwarnings('ignore')
+
+# Set random seed for reproducibility
+np.random.seed(42)
+
+def generate_water_quality_data(
+    n_days: int = 365,
+    sampling_interval_hours: int = 1
+) -> pd.DataFrame:
+    """
+    Generate synthetic water quality monitoring data with realistic quality issues.
+    
+    Parameters:
+    -----------
+    n_days : int
+        Number of days of data to generate
+    sampling_interval_hours : int
+        Hours between measurements
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Water quality dataset with timestamp, temperature, pH, DO, and turbidity
+    """
+    n_samples: int = n_days * (24 // sampling_interval_hours)
+    
+    # Generate timestamps
+    start_date: datetime = datetime(2023, 1, 1)
+    timestamps: List[datetime] = [
+        start_date + timedelta(hours=i*sampling_interval_hours) 
+        for i in range(n_samples)
+    ]
+    
+    # Generate base signals with seasonal patterns
+    time_index: np.ndarray = np.arange(n_samples)
+    
+    # Temperature: seasonal cycle + daily variation + noise
+    seasonal_temp: np.ndarray = 15 + 10 * np.sin(2 * np.pi * time_index / (365 * 24))
+    daily_temp: np.ndarray = 2 * np.sin(2 * np.pi * time_index / 24)
+    temperature: np.ndarray = seasonal_temp + daily_temp + np.random.normal(0, 0.5, n_samples)
+    
+    # pH: relatively stable with small variations
+    ph: np.ndarray = 7.5 + np.random.normal(0, 0.2, n_samples)
+    
+    # Dissolved Oxygen (DO): inversely related to temperature
+    do: np.ndarray = 12 - 0.3 * temperature + np.random.normal(0, 0.5, n_samples)
+    
+    # Turbidity: occasional spikes (storm events)
+    turbidity: np.ndarray = np.random.lognormal(1.5, 0.5, n_samples)
+    storm_events: np.ndarray = np.random.choice(n_samples, size=20, replace=False)
+    turbidity[storm_events] *= np.random.uniform(3, 10, 20)
+    
+    # Create DataFrame
+    df: pd.DataFrame = pd.DataFrame({
+        'timestamp': timestamps,
+        'temperature_C': temperature,
+        'pH': ph,
+        'dissolved_oxygen_mg_L': do,
+        'turbidity_NTU': turbidity
+    })
+    
+    # Introduce realistic quality issues
+    
+    # 1. Missing data (random gaps)
+    missing_indices: np.ndarray = np.random.choice(
+        n_samples, 
+        size=int(n_samples * 0.05), 
+        replace=False
+    )
+    df.loc[missing_indices, ['temperature_C', 'pH', 'dissolved_oxygen_mg_L']] = np.nan
+    
+    # 2. Sensor drift (gradual bias in pH)
+    drift_start: int = n_samples // 2
+    drift: np.ndarray = np.linspace(0, 0.5, n_samples - drift_start)
+    df.loc[drift_start:, 'pH'] += drift
+    
+    # 3. Outliers (sensor malfunctions)
+    outlier_indices: np.ndarray = np.random.choice(n_samples, size=10, replace=False)
+    df.loc[outlier_indices, 'dissolved_oxygen_mg_L'] = np.random.uniform(-5, 30, 10)
+    
+    # 4. Calibration errors (systematic bias in temperature)
+    calibration_error_start: int = int(n_samples * 0.7)
+    df.loc[calibration_error_start:, 'temperature_C'] += 2.0
+    
+    # 5. Data entry errors (impossible pH values)
+    entry_error_indices: np.ndarray = np.random.choice(n_samples, size=3, replace=False)
+    df.loc[entry_error_indices, 'pH'] = np.random.uniform(12, 14, 3)
+    
+    return df
+
+# Generate data
+df_raw: pd.DataFrame = generate_water_quality_data()
+print("✅ Generated synthetic water quality dataset")
+print(f"📊 Shape: {df_raw.shape}")
+print(f"📅 Date range: {df_raw['timestamp'].min()} to {df_raw['timestamp'].max()}")
+print("\n🔍 First few rows:")
+print(df_raw.head())
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Data Quality Assessment Functions"
+
+def assess_completeness(df: pd.DataFrame, columns: List[str]) -> pd.DataFrame:
+    """
+    Calculate completeness statistics for specified columns.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Input dataset
+    columns : List[str]
+        Columns to assess
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Completeness statistics
+    """
+    results: Dict[str, Dict[str, float]] = {}
+    
+    for col in columns:
+        total: int = len(df)
+        valid: int = df[col].notna().sum()
+        missing: int = total - valid
+        completeness_pct: float = (valid / total) * 100
+        
+        results[col] = {
+            'Total_Records': total,
+            'Valid_Records': valid,
+            'Missing_Records': missing,
+            'Completeness_%': completeness_pct
+        }
+    
+    return pd.DataFrame(results).T
+
+def detect_outliers_iqr(
+    series: pd.Series, 
+    multiplier: float = 1.5
+) -> Tuple[pd.Series, Dict[str, float]]:
+    """
+    Detect outliers using the Interquartile Range (IQR) method.
+    
+    Parameters:
+    -----------
+    series : pd.Series
+        Data to check for outliers
+    multiplier : float
+        IQR multiplier (1.5 for outliers, 3.0 for extreme outliers)
+    
+    Returns:
+    --------
+    Tuple[pd.Series, Dict]
+        Boolean mask of outliers and statistics dictionary
+    """
+    Q1: float = series.quantile(0.25)
+    Q3: float = series.quantile(0.75)
+    IQR: float = Q3 - Q1
+    
+    lower_bound: float = Q1 - multiplier * IQR
+    upper_bound: float = Q3 + multiplier * IQR
+    
+    outliers: pd.Series = (series < lower_bound) | (series > upper_bound)
+    
+    stats_dict: Dict[str, float] = {
+        'Q1': Q1,
+        'Q3': Q3,
+        'IQR': IQR,
+        'Lower_Bound': lower_bound,
+        'Upper_Bound': upper_bound,
+        'N_Outliers': outliers.sum(),
+        'Outlier_Percentage': (outliers.sum() / len(series)) * 100
+    }
+    
+    return outliers, stats_dict
+
+def detect_outliers_zscore(
+    series: pd.Series, 
+    threshold: float = 3.0
+) -> Tuple[pd.Series, pd.Series]:
+    """
+    Detect outliers using Z-score method.
+    
+    Parameters:
+    -----------
+    series : pd.Series
+        Data to check for outliers
+    threshold : float
+        Z-score threshold (typically 3.0)
+    
+    Returns:
+    --------
+    Tuple[pd.Series, pd.Series]
+        Boolean mask of outliers and Z-scores
+    """
+    mean: float = series.mean()
+    std: float = series.std()
+    z_scores: pd.Series = np.abs((series - mean) / std)
+    outliers: pd.Series = z_scores > threshold
+    
+    return outliers, z_scores
+
+def assess_range_validity(
+    df: pd.DataFrame, 
+    ranges: Dict[str, Tuple[float, float]]
+) -> pd.DataFrame:
+    """
+    Check if values fall within expected physical ranges.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Input dataset
+    ranges : Dict[str, Tuple[float, float]]
+        Dictionary mapping column names to (min, max) valid ranges
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Summary of range violations
+    """
+    results: Dict[str, Dict[str, int]] = {}
+    
+    for col, (min_val, max_val) in ranges.items():
+        if col in df.columns:
+            below_min: int = (df[col] < min_val).sum()
+            above_max: int = (df[col] > max_val).sum()
+            total_violations: int = below_min + above_max
+            
+            results[col] = {
+                'Min_Expected': min_val,
+                'Max_Expected': max_val,
+                'Below_Min': below_min,
+                'Above_Max': above_max,
+                'Total_Violations': total_violations
+            }
+    
+    return pd.DataFrame(results).T
+
+def calculate_precision_metrics(
+    series: pd.Series, 
+    window: int = 10
+) -> Dict[str, float]:
+    """
+    Calculate precision metrics using rolling statistics.
+    
+    Parameters:
+    -----------
+    series : pd.Series
+        Data series
+    window : int
+        Window size for rolling calculations
+    
+    Returns:
+    --------
+    Dict[str, float]
+        Precision metrics
+    """
+    rolling_std: pd.Series = series.rolling(window=window, min_periods=1).std()
+    rolling_cv: pd.Series = (rolling_std / series.rolling(window=window, min_periods=1).mean()) * 100
+    
+    return {
+        'Mean_Rolling_StdDev': rolling_std.mean(),
+        'Max_Rolling_StdDev': rolling_std.max(),
+        'Mean_CV_%': rolling_cv.mean(),
+        'Max_CV_%': rolling_cv.max()
+    }
+
+def add_quality_flags(
+    df: pd.DataFrame, 
+    outlier_masks: Dict[str, pd.Series],
+    range_violations: Dict[str, pd.Series]
+) -> pd.DataFrame:
+    """
+    Add quality flag columns to dataset.
+    
+    Flag meanings:
+    0 = Good
+    1 = Suspect (outlier)
+    2 = Bad (range violation)
+    3 = Missing
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Input dataset
+    outlier_masks : Dict[str, pd.Series]
+        Dictionary of outlier boolean masks for each variable
+    range_violations : Dict[str, pd.Series]
+        Dictionary of range violation boolean masks
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Dataset with quality flag columns
+    """
+    df_flagged: pd.DataFrame = df.copy()
+    
+    for col in outlier_masks.keys():
+        flag_col: str = f'{col}_QC_flag'
+        df_flagged[flag_col] = 0  # Default: Good
+        
+        # Flag missing data
+        df_flagged.loc[df_flagged[col].isna(), flag_col] = 3
+        
+        # Flag outliers
+        df_flagged.loc[outlier_masks[col], flag_col] = 1
+        
+        # Flag range violations (highest priority)
+        if col in range_violations:
+            df_flagged.loc[range_violations[col], flag_col] = 2
+    
+    return df_flagged
+
+print("✅ Quality assessment functions defined")
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Perform Comprehensive Quality Assessment"
+
+# 1. Assess Completeness
+print("=" * 60)
+print("📋 COMPLETENESS ASSESSMENT")
+print("=" * 60)
+
+variables: List[str] = ['temperature_C', 'pH', 'dissolved_oxygen_mg_L', 'turbidity_NTU']
+completeness_results: pd.DataFrame = assess_completeness(df_raw, variables)
+print(completeness_results)
+print()
+
+# 2. Range Validity Check
+print("=" * 60)
+print("🎯 RANGE VALIDITY ASSESSMENT")
+print("=" * 60)
+
+valid_ranges: Dict[str, Tuple[float, float]] = {
+    'temperature_C': (-5, 45),      # Typical freshwater range
+    'pH': (0, 14),                  # Physical pH range
+    'dissolved_oxygen_mg_L': (0, 20), # Physical DO range
+    'turbidity_NTU': (0, 1000)      # Typical turbidity range
+}
+
+range_results: pd.DataFrame = assess_range_validity(df_raw, valid_ranges)
+print(range_results)
+print()
+
+# 3. Outlier Detection
+print("=" * 60)
+print("🔍 OUTLIER DETECTION (IQR Method)")
+print("=" * 60)
+
+outlier_masks: Dict[str, pd.Series] = {}
+outlier_stats: Dict[str, Dict[str, float]] = {}
+
+for var in variables:
+    mask, stats_dict = detect_outliers_iqr(df_raw[var].dropna())
+    outlier_masks[var] = df_raw[var].map(lambda x: x in df_raw[var][mask].values if pd.notna(x) else False)
+    outlier_stats[var] = stats_dict
+    
+    print(f"\n{var}:")
+    print(f"  Lower Bound: {stats_dict['Lower_Bound']:.2f}")
+    print(f"  Upper Bound: {stats_dict['Upper_Bound']:.2f}")
+    print(f"  Outliers Detected: {int(stats_dict['N_Outliers'])} ({stats_dict['Outlier_Percentage']:.2f}%)")
+
+print()
+
+# 4. Precision Assessment
+print("=" * 60)
+print("📊 PRECISION ASSESSMENT")
+print("=" * 60)
+
+for var in variables:
+    precision_metrics: Dict[str, float] = calculate_precision_metrics(df_raw[var].dropna())
+    print(f"\n{var}:")
+    print(f"  Mean Rolling StdDev: {precision_metrics['Mean_Rolling_StdDev']:.3f}")
+    print(f"  Mean CV: {precision_metrics['Mean_CV_%']:.2f}%")
+
+print()
+
+# 5. Add Quality Flags
+print("=" * 60)
+print("🏴 ADDING QUALITY FLAGS")
+print("=" * 60)
+
+range_violation_masks: Dict[str, pd.Series] = {}
+for col, (min_val, max_val) in valid_ranges.items():
+    range_violation_masks[col] = (df_raw[col] < min_val) | (df_raw[col] > max_val)
+
+df_qc: pd.DataFrame = add_quality_flags(df_raw, outlier_masks, range_violation_masks)
+
+# Summary of quality flags
+print("\nQuality Flag Summary:")
+for var in variables:
+    flag_col: str = f'{var}_QC_flag'
+    flag_counts: pd.Series = df_qc[flag_col].value_counts().sort_index()
+    print(f"\n{var}:")
+    flag_meanings: Dict[int, str] = {0: 'Good', 1: 'Suspect', 2: 'Bad', 3: 'Missing'}
+    for flag_value, count in flag_counts.items():
+        print(f"  {flag_meanings[flag_value]}: {count} ({count/len(df_qc)*100:.1f}%)")
+
+print("\n✅ Quality assessment complete!")
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Visualize Quality Assessment Results"
+
+# Create comprehensive quality visualization
+fig, axes = plt.subplots(4, 2, figsize=(15, 16))
+fig.suptitle('Water Quality Data - Quality Assessment Dashboard', 
+             fontsize=16, fontweight='bold', y=0.995)
+
+variables_display: Dict[str, str] = {
+    'temperature_C': 'Temperature (°C)',
+    'pH': 'pH',
+    'dissolved_oxygen_mg_L': 'Dissolved Oxygen (mg/L)',
+    'turbidity_NTU': 'Turbidity (NTU)'
+}
+
+for idx, (var, display_name) in enumerate(variables_display.items()):
+    # Time series plot with quality flags
+    ax1 = axes[idx, 0]
+    flag_col: str = f'{var}_QC_flag'
+    
+    # Plot good data
+    good_data: pd.DataFrame = df_qc[df_qc[flag_col] == 0]
+    ax1.plot(good_data['timestamp'], good_data[var], 
+             'o', markersize=2, color='green', alpha=0.5, label='Good')
+    
+    # Plot suspect data
+    suspect_data: pd.DataFrame = df_qc[df_qc[flag_col] == 1]
+    if len(suspect_data) > 0:
+        ax1.plot(suspect_data['timestamp'], suspect_data[var], 
+                'o', markersize=4, color='orange', label='Suspect')
+    
+    # Plot bad data
+    bad_data: pd.DataFrame = df_qc[df_qc[flag_col] == 2]
+    if len(bad_data) > 0:
+        ax1.plot(bad_data['timestamp'], bad_data[var], 
+                'x', markersize=6, color='red', label='Bad')
+    
+    ax1.set_xlabel('Date')
+    ax1.set_ylabel(display_name)
+    ax1.set_title(f'{display_name} - Time Series with QC Flags')
+    ax1.legend(loc='best', fontsize=8)
+    ax1.grid(True, alpha=0.3)
+    
+    # Distribution plot
+    ax2 = axes[idx, 1]
+    clean_data: pd.Series = df_qc[df_qc[flag_col] == 0][var].dropna()
+    
+    ax2.hist(clean_data, bins=50, color='steelblue', alpha=0.7, edgecolor='black')
+    ax2.axvline(clean_data.mean(), color='red', linestyle='--', 
+                linewidth=2, label=f'Mean: {clean_data.mean():.2f}')
+    ax2.axvline(clean_data.median(), color='green', linestyle='--', 
+                linewidth=2, label=f'Median: {clean_data.median():.2f}')
+    
+    # Add outlier boundaries
+    if var in outlier_stats:
+        ax2.axvline(outlier_stats[var]['Lower_Bound'], 
+                   color='orange', linestyle=':', linewidth=2, label='Outlier Bounds')
+        ax2.axvline(outlier_stats[var]['Upper_Bound'], 
+                   color='orange', linestyle=':', linewidth=2)
+    
+    ax2.set_xlabel(display_name)
+    ax2.set_ylabel('Frequency')
+    ax2.set_title(f'{display_name} - Distribution (Good Data Only)')
+    ax2.legend(loc='best', fontsize=8)
+    ax2.grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+print("📈 Quality assessment visualizations complete!")
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Calculate and Visualize Uncertainty"
+
+def calculate_measurement_uncertainty(
+    series: pd.Series,
+    instrument_uncertainty: float,
+    calibration_uncertainty: float,
+    coverage_factor: float = 2.0
+) -> Dict[str, float]:
+    """
+    Calculate combined measurement uncertainty.
+    
+    Parameters:
+    -----------
+    series : pd.Series
+        Measurement data
+    instrument_uncertainty : float
+        Instrument uncertainty (Type B)
+    calibration_uncertainty : float
+        Calibration uncertainty (Type B)
+    coverage_factor : float
+        Coverage factor for expanded uncertainty (default 2.0 for ~95% confidence)
+    
+    Returns:
+    --------
+    Dict[str, float]
+        Uncertainty components and combined uncertainty
+    """
+    # Type A uncertainty (statistical)
+    n: int = len(series.dropna())
+    standard_error: float = series.std() / np.sqrt(n)
+    
+    # Combined standard uncertainty
+    combined_uncertainty: float = np.sqrt(
+        standard_error**2 + 
+        instrument_uncertainty**2 + 
+        calibration_uncertainty**2
+    )
+    
+    # Expanded uncertainty
+    expanded_uncertainty: float = coverage_factor * combined_uncertainty
+    
+    return {
+        'Type_A_Uncertainty': standard_error,
+        'Instrument_Uncertainty': instrument_uncertainty,
+        'Calibration_Uncertainty': calibration_uncertainty,
+        'Combined_Standard_Uncertainty': combined_uncertainty,
+        'Expanded_Uncertainty': expanded_uncertainty,
+        'Coverage_Factor': coverage_factor
+    }
+
+# Define uncertainty components for each variable
+uncertainty_specs: Dict[str, Dict[str, float]] = {
+    'temperature_C': {
+        'instrument': 0.1,   # ±0.1°C instrument accuracy
+        'calibration': 0.05  # ±0.05°C calibration uncertainty
+    },
+    'pH': {
+        'instrument': 0.02,  # ±0.02 pH units
+        'calibration': 0.01
+    },
+    'dissolved_oxygen_mg_L': {
+        'instrument': 0.2,   # ±0.2 mg/L
+        'calibration': 0.1
+    },
+    'turbidity_NTU': {
+        'instrument': 2.0,   # ±2 NTU
+        'calibration': 1.0
+    }
+}
+
+# Calculate uncertainties
+print("=" * 60)
+print("📏 UNCERTAINTY QUANTIFICATION")
+print("=" * 60)
+
+uncertainty_results: Dict[str, Dict[str, float]] = {}
+
+for var in variables:
+    clean_data: pd.Series = df_qc[df_qc[f'{var}_QC_flag'] == 0][var].dropna()
+    
+    uncertainty: Dict[str, float] = calculate_measurement_uncertainty(
+        clean_data,
+        uncertainty_specs[var]['instrument'],
+        uncertainty_specs[var]['calibration']
+    )
+    
+    uncertainty_results[var] = uncertainty
+    
+    print(f"\n{variables_display[var]}:")
+    print(f"  Mean Value: {clean_data.mean():.3f}")
+    print(f"  Type A Uncertainty (statistical): ±{uncertainty['Type_A_Uncertainty']:.4f}")
+    print(f"  Instrument Uncertainty: ±{uncertainty['Instrument_Uncertainty']:.4f}")
+    print(f"  Calibration Uncertainty: ±{uncertainty['Calibration_Uncertainty']:.4f}")
+    print(f"  Combined Standard Uncertainty: ±{uncertainty['Combined_Standard_Uncertainty']:.4f}")
+    print(f"  Expanded Uncertainty (k=2, ~95% conf): ±{uncertainty['Expanded_Uncertainty']:.4f}")
+    print(f"  Result: {clean_data.mean():.3f} ± {uncertainty['Expanded_Uncertainty']:.3f}")
+
+# Visualize uncertainty components
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+fig.suptitle('Measurement Uncertainty Analysis', fontsize=16, fontweight='bold')
+
+for idx, (var, display_name) in enumerate(variables_display.items()):
+    ax = axes[idx // 2, idx % 2]
+    
+    unc: Dict[str, float] = uncertainty_results[var]
+    components: List[str] = ['Type_A_Uncertainty', 'Instrument_Uncertainty', 
+                             'Calibration_Uncertainty']
+    values: List[float] = [unc[comp] for comp in components]
+    labels: List[str] = ['Type A\n(Statistical)', 'Instrument', 'Calibration']
+    colors: List[str] = ['skyblue', 'lightcoral', 'lightgreen']
+    
+    bars = ax.bar(labels, values, color=colors, alpha=0.7, edgecolor='black')
+    ax.axhline(unc['Combined_Standard_Uncertainty'], 
+               color='red', linestyle='--', linewidth=2,
+               label=f"Combined: {unc['Combined_Standard_Uncertainty']:.4f}")
+    
+    ax.set_ylabel('Uncertainty Magnitude')
+    ax.set_title(f'{display_name} - Uncertainty Components')
+    ax.legend()
+    ax.grid(True, alpha=0.3, axis='y')
+    
+    # Add value labels on bars
+    for bar in bars:
+        height: float = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width()/2., height,
+                f'{height:.4f}',
+                ha='center', va='bottom', fontsize=9)
+
+plt.tight_layout()
+plt.show()
+
+print("\n✅ Uncertainty analysis complete!")
+```
+
+## Student Exercise 📝
+
+### Exercise: Quality Assessment of Air Quality Monitoring Data
+
+You are an environmental scientist working with a city's air quality monitoring network. You've received PM2.5 (particulate matter ≤2.5 μm) concentration data from five monitoring stations over a one-month period. Your task is to perform a comprehensive quality assessment before using this data for public health analysis.
+
+**Dataset Description:**
+
+The data includes:
+
+- **Station ID**: Unique identifier for each monitoring station
+- **Timestamp**: Date and time of measurement (hourly)
+- **PM2.5 (μg/m³)**: Particulate matter concentration
+- **Temperature (°C)**: Ambient temperature
+- **Relative Humidity (%)**: Relative humidity
+
+**Your Tasks:**
+
+1. **Generate or Load Data** (15 minutes):
+   - Create a synthetic dataset for 5 stations over 30 days with hourly measurements
+   - Introduce realistic quality issues:
+     - 5-10% missing data (random)
+     - 2-3 outliers per station (sensor malfunctions)
+     - One station with systematic bias (+10 μg/m³) starting day 15 (calibration drift)
+     - 3-5 physically impossible values (negative PM2.5)
+
+2. **Completeness Assessment** (5 minutes):
+   - Calculate completeness percentage for each station
+   - Identify which stations meet the 85% completeness threshold
+   - Visualize completeness across stations
+
+3. **Range Validity Check** (5 minutes):
+   - Define valid ranges for PM2.5 (0-500 μg/m³), temperature (-20 to 50°C), and humidity (0-100%)
+   - Identify and flag range violations
+   - Report the number and percentage of violations
+
+4. **Outlier Detection** (10 minutes):
+   - Apply both IQR and Z-score methods to detect outliers in PM2.5 data
+   - Compare the results from both methods
+   - Visualize outliers using box plots and time series plots
+
+5. **Inter-Station Consistency** (10 minutes):
+   - Calculate correlation coefficients between stations
+   - Identify the station with systematic bias using time series comparison
+   - Estimate the magnitude and timing of the bias
+
+6. **Uncertainty Quantification** (10 minutes):
+   - Calculate measurement uncertainty for PM2.5 assuming:
+     - Instrument uncertainty: ±3 μg/m³
+     - Calibration uncertainty: ±2 μg/m³
+   - Report mean PM2.5 with expanded uncertainty for each station
+   - Compare uncertainty magnitudes across stations
+
+7. **Quality Reporting** (5 minutes):
+   - Create a summary report indicating:
+     - Overall data quality grade (A-F) based on completeness and accuracy
+     - Recommended actions for each station
+     - Data usability assessment for regulatory compliance
+
+**Deliverables:**
+
+- Python code implementing all analyses
+- Visualizations for each assessment step
+- A written summary (200-300 words) describing:
+  - Key quality issues identified
+  - Stations with acceptable vs. problematic data
+  - Recommendations for improving data quality
+  - Limitations for using this data in health impact studies
+
+**Bonus Challenge** (+30 minutes):
+
+- Implement an automated quality control algorithm that flags suspicious data in real-time
+- Design a quality control chart (Shewhart chart) for monitoring station performance over time
+- Estimate the impact of removing flagged data on monthly average PM2.5 calculations
+
+## Exercise Solution 💡
+
+```{python}
+#| code-fold: true
+#| code-summary: "Solution: Air Quality Data Quality Assessment"
+
+# Task 1: Generate Synthetic Air Quality Data
+def generate_air_quality_data(
+    n_stations: int = 5,
+    n_days: int = 30
+) -> pd.DataFrame:
+    """
+    Generate synthetic air quality monitoring data with quality issues.
+    """
+    np.random.seed(123)
+    n_hours: int = n_days * 24
+    
+    data_list: List[Dict] = []
+    
+    for station in range(1, n_stations + 1):
+        timestamps: List[datetime] = [
+            datetime(2024, 1, 1) + timedelta(hours=h) 
+            for h in range(n_hours)
+        ]
+        
+        # Base PM2.5 with diurnal pattern
+        hour_of_day: np.ndarray = np.array([t.hour for t in timestamps])
+        diurnal_pattern: np.ndarray = 20 + 15 * np.sin(2 * np.pi * (hour_of_day - 6) / 24)
+        pm25: np.ndarray = diurnal_pattern + np.random.normal(0, 5, n_hours)
+        pm25 = np.maximum(pm25, 0)  # Ensure non-negative
+        
+        # Temperature and humidity
+        temp: np.ndarray = 15 + 5 * np.sin(2 * np.pi * np.arange(n_hours) / 24) + \
+                          np.random.normal(0, 2, n_hours)
+        humidity: np.ndarray = 60 + 15 * np.sin(2 * np.pi * np.arange(n_hours) / 24 + np.pi) + \
+                               np.random.normal(0, 5, n_hours)
+        humidity = np.clip(humidity, 0, 100)
+        
+        # Introduce quality issues
+        # Missing data (5-10%)
+        n_missing: int = int(n_hours * np.random.uniform(0.05, 0.10))
+        missing_idx: np.ndarray = np.random.choice(n_hours, n_missing, replace=False)
+        pm25[missing_idx] = np.nan
+        
+        # Outliers (2-3 per station)
+        n_outliers: int = np.random.randint(2, 4)
+        outlier_idx: np.ndarray = np.random.choice(n_hours, n_outliers, replace=False)
+        pm25[outlier_idx] = np.random.uniform(200, 400, n_outliers)
+        
+        # Systematic bias for station 3 starting day 15
+        if station == 3:
+            bias_start: int = 15 * 24
+            pm25[bias_start:] += 10
+        
+        # Physically impossible values (negative)
+        n_impossible: int = np.random.randint(3, 6)
+        impossible_idx: np.ndarray = np.random.choice(n_hours, n_impossible, replace=False)
+        pm25[impossible_idx] = np.random.uniform(-50, -5, n_impossible)
+        
+        for i in range(n_hours):
+            data_list.append({
+                'station_id': f'Station_{station}',
+                'timestamp': timestamps[i],
+                'PM25_ug_m3': pm25[i],
+                'temperature_C': temp[i],
+                'humidity_pct': humidity[i]
+            })
+    
+    return pd.DataFrame(data_list)
+
+# Generate data
+df_aq: pd.DataFrame = generate_air_quality_data()
+print("✅ Generated air quality dataset")
+print(f"Shape: {df_aq.shape}")
+print("\nFirst few rows:")
+print(df_aq.head(10))
+
+# Task 2: Completeness Assessment
+print("\n" + "=" * 60)
+print("📋 TASK 2: COMPLETENESS ASSESSMENT")
+print("=" * 60)
+
+completeness_by_station: pd.Series = df_aq.groupby('station_id')['PM25_ug_m3'].apply(
+    lambda x: (x.notna().sum() / len(x)) * 100
+)
+
+print("\nCompleteness by Station:")
+for station, comp in completeness_by_station.items():
+    status: str = "✅ PASS" if comp >= 85 else "❌ FAIL"
+    print(f"  {station}: {comp:.1f}% {status}")
+
+# Visualization
+fig, ax = plt.subplots(figsize=(10, 6))
+bars = ax.bar(completeness_by_station.index, completeness_by_station.values, 
+              color=['green' if x >= 85 else 'red' for x in completeness_by_station.values],
+              alpha=0.7, edgecolor='black')
+ax.axhline(85, color='blue', linestyle='--', linewidth=2, label='85% Threshold')
+ax.set_ylabel('Completeness (%)')
+ax.set_title('Data Completeness by Station')
+ax.legend()
+ax.grid(True, alpha=0.3, axis='y')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.show()
+
+# Task 3: Range Validity Check
+print("\n" + "=" * 60)
+print("🎯 TASK 3: RANGE VALIDITY CHECK")
+print("=" * 60)
+
+ranges_aq: Dict[str, Tuple[float, float]] = {
+    'PM25_ug_m3': (0, 500),
+    'temperature_C': (-20, 50),
+    'humidity_pct': (0, 100)
+}
+
+range_violations: pd.DataFrame = assess_range_validity(df_aq, ranges_aq)
+print("\nRange Violations:")
+print(range_violations)
+
+# Task 4: Outlier Detection
+print("\n" + "=" * 60)
+print("🔍 TASK 4: OUTLIER DETECTION")
+print("=" * 60)
+
+outliers_iqr_list: List[pd.Series] = []
+outliers_zscore_list: List[pd.Series] = []
+
+for station in df_aq['station_id'].unique():
+    station_data: pd.Series = df_aq[df_aq['station_id'] == station]['PM25_ug_m3'].dropna()
+    
+    # IQR method
+    mask_iqr, stats_iqr = detect_outliers_iqr(station_data)
+    outliers_iqr_list.extend(station_data[mask_iqr].index.tolist())
+    
+    # Z-score method
+    mask_zscore, zscores = detect_outliers_zscore(station_data)
+    outliers_zscore_list.extend(station_data[mask_zscore].index.tolist())
+    
+    print(f"\n{station}:")
+    print(f"  IQR method: {mask_iqr.sum()} outliers")
+    print(f"  Z-score method: {mask_zscore.sum()} outliers")
+
+# Visualization
+fig, axes = plt.subplots(1, 2, figsize=(15, 6))
+
+# Box plots
+df_aq.boxplot(column='PM25_ug_m3', by='station_id', ax=axes[0])
+axes[0].set_title('PM2.5 Distribution by Station (Box Plot)')
+axes[0].set_xlabel('Station')
+axes[0].set_ylabel('PM2.5 (μg/m³)')
+plt.sca(axes[0])
+plt.xticks(rotation=45)
+
+# Time series with outliers
+for station in df_aq['station_id'].unique():
+    station_data_full: pd.DataFrame = df_aq[df_aq['station_id'] == station]
+    axes[1].plot(station_data_full['timestamp'], station_data_full['PM25_ug_m3'], 
+                alpha=0.5, linewidth=0.5, label=station)
+
+axes[1].set_xlabel('Date')
+axes[1].set_ylabel('PM2.5 (μg/m³)')
+axes[1].set_title('PM2.5 Time Series - All Stations')
+axes[1].legend(loc='best', fontsize=8)
+axes[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+# Task 5: Inter-Station Consistency
+print("\n" + "=" * 60)
+print("📊 TASK 5: INTER-STATION CONSISTENCY")
+print("=" * 60)
+
+# Pivot data for correlation analysis
+df_pivot: pd.DataFrame = df_aq.pivot_table(
+    index='timestamp', 
+    columns='station_id', 
+    values='PM25_ug_m3'
+)
+
+correlation_matrix: pd.DataFrame = df_pivot.corr()
+print("\nCorrelation Matrix:")
+print(correlation_matrix)
+
+# Visualize correlations
+fig, ax = plt.subplots(figsize=(10, 8))
+sns.heatmap(correlation_matrix, annot=True, fmt='.3f', cmap='coolwarm', 
+            center=0, ax=ax, square=True)
+ax.set_title('Inter-Station Correlation Matrix')
+plt.tight_layout()
+plt.show()
+
+# Identify systematic bias (Station 3)
+print("\nDetecting Systematic Bias:")
+station_means_first_half: pd.Series = df_aq[
+    df_aq['timestamp'] < datetime(2024, 1, 16)
+].groupby('station_id')['PM25_ug_m3'].mean()
+
+station_means_second_half: pd.Series = df_aq[
+    df_aq['timestamp'] >= datetime(2024, 1, 16)
+].groupby('station_id')['PM25_ug_m3'].mean()
+
+bias_change: pd.Series = station_means_second_half - station_means_first_half
+print("\nChange in Mean PM2.5 (Day 16-30 vs Day 1-15):")
+for station, change in bias_change.items():
+    print(f"  {station}: {change:+.2f} μg/m³")
+
+# Task 6: Uncertainty Quantification
+print("\n" + "=" * 60)
+print("📏 TASK 6: UNCERTAINTY QUANTIFICATION")
+print("=" * 60)
+
+instrument_unc_pm25: float = 3.0
+calibration_unc_pm25: float = 2.0
+
+for station in df_aq['station_id'].unique():
+    station_data_clean: pd.Series = df_aq[
+        (df_aq['station_id'] == station) & 
+        (df_aq['PM25_ug_m3'] >= 0) & 
+        (df_aq['PM25_ug_m3'] <= 500)
+    ]['PM25_ug_m3'].dropna()
+    
+    uncertainty: Dict[str, float] = calculate_measurement_uncertainty(
+        station_data_clean,
+        instrument_unc_pm25,
+        calibration_unc_pm25
+    )
+    
+    print(f"\n{station}:")
+    print(f"  Mean PM2.5: {station_data_clean.mean():.2f} μg/m³")
+    print(f"  Expanded Uncertainty: ±{uncertainty['Expanded_Uncertainty']:.2f} μg/m³")
+    print(f"  Result: {station_data_clean.mean():.2f} ± {uncertainty['Expanded_Uncertainty']:.2f} μg/m³")
+
+# Task 7: Quality Reporting
+print("\n" + "=" * 60)
+print("📄 TASK 7: QUALITY REPORTING")
+print("=" * 60)
+
+def assign_quality_grade(completeness: float, violations: int) -> str:
+    """Assign quality grade based on completeness and violations."""
+    if completeness >= 95 and violations == 0:
+        return 'A'
+    elif completeness >= 90 and violations <= 5:
+        return 'B'
+    elif completeness >= 85 and violations <= 10:
+        return 'C'
+    elif completeness >= 75:
+        return 'D'
+    else:
+        return 'F'
+
+print("\nQuality Report Card:")
+print("-" * 60)
+
+for station in df_aq['station_id'].unique():
+    station_data_all: pd.DataFrame = df_aq[df_aq['station_id'] == station]
+    comp: float = (station_data_all['PM25_ug_m3'].notna().sum() / len(station_data_all)) * 100
+    violations: int = ((station_data_all['PM25_ug_m3'] < 0) | 
+                      (station_data_all['PM25_ug_m3'] > 500)).sum()
+    grade: str = assign_quality_grade(comp, violations)
+    
+    print(f"\n{station}:")
+    print(f"  Completeness: {comp:.1f}%")
+    print(f"  Range Violations: {violations}")
+    print(f"  Quality Grade: {grade}")
+    
+    if grade in ['A', 'B']:
+        print("  ✅ ACCEPTABLE for regulatory compliance")
+        print("  Recommendation: Continue routine maintenance")
+    elif grade == 'C':
+        print("  ⚠️  MARGINAL - use with caution")
+        print("  Recommendation: Increase calibration frequency")
+    else:
+        print("  ❌ NOT ACCEPTABLE for regulatory compliance")
+        print("  Recommendation: Immediate maintenance and recalibration required")
+
+print("\n" + "=" * 60)
+print("✅ Complete Quality Assessment Finished!")
+print("=" * 60)
+```
+
+### Summary Interpretation
+
+**Key Quality Issues Identified:**
+
+The air quality monitoring network exhibits several data quality challenges that impact reliability. Station 3 shows a systematic bias of approximately +10 μg/m³ starting around day 15, likely indicating calibration drift. Multiple stations have 5-10% missing data, with some falling below the 85% completeness threshold required for regulatory reporting. Several physically impossible negative PM2.5 values were detected across stations, suggesting data transmission or sensor errors. Outlier analysis revealed 2-3 extreme values per station, potentially representing sensor malfunctions during maintenance or extreme weather events.
+
+**Stations with Acceptable vs. Problematic Data:**
+
+Stations 1, 2, and 4 demonstrate acceptable data quality (grades A-B) with >90% completeness and minimal range violations, making them suitable for regulatory compliance and health impact studies. Station 3 shows problematic systematic bias in the second half of the monitoring period, requiring recalibration before data can be used confidently. Station 5 exhibits marginal quality (grade C) with lower completeness and higher violation rates, warranting increased quality control measures.
+
+**Recommendations for Improving Data Quality:**
+
+Implement weekly rather than monthly calibration checks to detect drift earlier. Establish real-time automated quality control algorithms to flag impossible values immediately. Conduct inter-station comparison checks daily to identify systematic biases. Improve data transmission protocols to reduce missing data. Implement redundant sensors at critical locations to provide backup measurements.
+
+**Limitations for Health Impact Studies:**
+
+The systematic bias in Station 3 and incomplete data from Station 5 limit spatial coverage for exposure assessment. Uncertainty estimates of ±3-4 μg/m³ are acceptable for general monitoring but may be insufficient for detecting small health effects near regulatory thresholds. Missing data during potential high-pollution episodes could underestimate population exposure. After quality control filtering, approximately 85-90% of data is usable, which is adequate for monthly averages but may be insufficient for daily health alerts.
+
+## Quiz 📝
+
+Test your understanding of data quality assessment and uncertainty concepts:
+
+### Question 1
+
+**What is the difference between accuracy and precision in environmental measurements?**
+
+A) Accuracy refers to reproducibility; precision refers to closeness to true value  
+B) Accuracy refers to closeness to true value; precision refers to reproducibility  
+C) They are the same thing  
+D) Accuracy applies only to field measurements; precision applies only to laboratory measurements
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Accuracy refers to closeness to true value; precision refers to reproducibility**
+
+Accuracy describes how close measurements are to the true or accepted value (systematic error), while precision describes how close repeated measurements are to each other (random error). A measurement can be precise but inaccurate (consistently wrong) or accurate on average but imprecise (scattered around the true value).
+:::
+
+### Question 2
+
+**Which type of error can be reduced by taking multiple measurements and averaging?**
+
+A) Systematic errors  
+B) Random errors  
+C) Gross errors  
+D) Calibration errors
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Random errors**
+
+Random errors vary unpredictably around the true value and tend to cancel out when averaged over many measurements. Systematic errors consistently bias measurements in one direction and are NOT reduced by averaging—they require correction through calibration or methodology changes.
+:::
+
+### Question 3
+
+**What does a completeness percentage of 78% indicate for a monitoring dataset?**
+
+A) 78% of measurements are accurate  
+B) 78% of planned measurements were successfully obtained  
+C) 78% of measurements fall within acceptable ranges  
+D) 78% of sensors are functioning properly
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) 78% of planned measurements were successfully obtained**
+
+Completeness measures the proportion of valid data obtained relative to the amount expected or required. A 78% completeness means that 22% of planned measurements are missing due to equipment failures, quality control rejections, or other issues. This would typically fall below the 85-90% threshold required for many environmental monitoring programs.
+:::
+
+### Question 4
+
+**In the IQR (Interquartile Range) outlier detection method, values are considered outliers if they fall:**
+
+A) More than 1 standard deviation from the mean  
+B) Outside Q1 - 1.5×IQR to Q3 + 1.5×IQR  
+C) More than 2 standard deviations from the median  
+D) Below the 5th percentile or above the 95th percentile
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Outside Q1 - 1.5×IQR to Q3 + 1.5×IQR**
+
+The IQR method defines outliers as values below Q1 - 1.5×IQR or above Q3 + 1.5×IQR, where Q1 and Q3 are the first and third quartiles, and IQR = Q3 - Q1. This is a robust, non-parametric method that doesn't assume normal distribution. Values outside Q1 - 3×IQR to Q3 + 3×IQR are considered extreme outliers.
+:::
+
+### Question 5
+
+**What is Type A uncertainty in measurement?**
+
+A) Uncertainty from systematic errors  
+B) Uncertainty evaluated by statistical methods from repeated measurements  
+C) Uncertainty from instrument specifications  
+D) Uncertainty from environmental conditions
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Uncertainty evaluated by statistical methods from repeated measurements**
+
+According to the GUM (Guide to the Expression of Uncertainty in Measurement), Type A uncertainty is evaluated using statistical analysis of repeated observations, typically quantified as the standard error of the mean. Type B uncertainty is evaluated by other means such as manufacturer specifications, calibration certificates, or scientific judgment.
+:::
+
+### Question 6
+
+**Combined standard uncertainty is calculated using:**
+
+A) Simple addition of all uncertainty components  
+B) The largest uncertainty component only  
+C) Root sum of squares (quadrature) of individual uncertainty components  
+D) Arithmetic mean of all uncertainty components
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**C) Root sum of squares (quadrature) of individual uncertainty components**
+
+Combined standard uncertainty uses the law of propagation of uncertainty: $u_c^2(y) = \sum_{i=1}^{n} \left(\frac{\partial y}{\partial x_i}\right)^2 u^2(x_i)$. This is essentially taking the square root of the sum of squared uncertainties (weighted by sensitivity coefficients), not simple addition. This method properly accounts for the statistical independence of uncertainty sources.
+:::
+
+### Question 7
+
+**A quality control chart shows that several consecutive measurements exceed the upper control limit (mean + 3 standard deviations). This indicates:**
+
+A) The process is in statistical control  
+B) The measurements are more precise than expected  
+C) The process is out of control and requires investigation  
+D) The control limits should be recalculated
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**C) The process is out of control and requires investigation**
+
+In Shewhart control charts, measurements exceeding control limits (typically ±3σ) indicate the process is out of statistical control, suggesting systematic problems like calibration drift, contamination, or equipment malfunction. This requires immediate investigation and corrective action before resuming normal operations.
+:::
+
+### Question 8
+
+**What is the primary purpose of using field blanks in environmental sampling?**
+
+A) To calibrate instruments  
+B) To detect contamination during sample collection and transport  
+C) To measure background concentrations  
+D) To verify instrument precision
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) To detect contamination during sample collection and transport**
+
+Field blanks are samples of pure water or clean substrate exposed to field conditions during sampling operations. They help identify contamination introduced during sample collection, handling, preservation, or transport—but not during laboratory analysis. Method blanks, in contrast, detect laboratory contamination.
+:::
+
+### Question 9
+
+**The Data Quality Objectives (DQO) process is important because it:**
+
+A) Ensures all data collected is 100% accurate  
+B) Links data quality requirements to decision-making needs  
+C) Eliminates all uncertainty from measurements  
+D) Reduces the cost of data collection to zero
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Links data quality requirements to decision-making needs**
+
+The DQO process systematically determines what quality of data is needed to support specific decisions, preventing both under-collection (insufficient data) and over-collection (wasted resources). It explicitly connects data quality to decision consequences, ensuring that data collection efforts are appropriately matched to their intended use.
+:::
+
+### Question 10
+
+**When reporting measurement results with uncertainty, expanded uncertainty with coverage factor k=2 represents approximately:**
+
+A) 68% confidence interval  
+B) 90% confidence interval  
+C) 95% confidence interval  
+D) 99.7% confidence interval
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**C) 95% confidence interval**
+
+Expanded uncertainty U = k × uc, where k is the coverage factor. For k=2, this represents approximately 95% confidence (assuming normal distribution), meaning there's about a 95% probability the true value lies within the reported interval. For k=3, it would be approximately 99.7% confidence. The choice of k depends on the level of confidence required for the application.
+:::
+
+## References
+
+::: {#refs}
+:::

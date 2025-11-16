@@ -1,0 +1,1429 @@
+---
+title: "Climate Records and Historical Data"
+subtitle: "Environmental Science - Lecture 2: Data Types and Sources in Environmental Science"
+bibliography: climate_records_historical_data.bib
+---
+
+## Topic Overview 🌍
+
+Climate records and historical data form the backbone of our understanding of Earth's environmental systems and their evolution over time. These datasets encompass a wide range of measurements, from instrumental temperature recordings dating back centuries to paleoclimate proxies that reveal conditions millions of years ago. Understanding these data sources is crucial for environmental scientists because they provide the essential context for interpreting current environmental changes and projecting future trends.
+
+Historical climate data includes direct instrumental measurements such as temperature records from weather stations, precipitation gauges, atmospheric composition measurements from ground-based observatories and ice cores, and sea level observations from tide gauges. These instrumental records, while highly accurate, typically extend back only 150-200 years at most. To understand climate variability over longer timescales, scientists rely on **paleoclimate proxies**—natural archives that preserve information about past environmental conditions. These include tree rings, ice cores, sediment cores, coral records, and speleothems (cave formations).
+
+A critical challenge in working with historical climate data is ensuring **data homogeneity**—the consistency of measurements over time despite changes in instrumentation, observation practices, station locations, and surrounding environments. Data homogenization techniques are essential for removing non-climatic biases and creating reliable long-term climate records that accurately reflect actual environmental changes rather than artifacts of measurement methodology.
+
+**Temporal coverage** varies dramatically across different climate datasets. While satellite observations provide global coverage but only extend back to the 1970s, ground-based instrumental records may span centuries but have limited spatial coverage. Paleoclimate proxies can extend back thousands to millions of years but often have coarser temporal resolution and require careful calibration and interpretation.
+
+### Importance and Relevance 🎯
+
+Within the broader context of Environmental Science and this lecture on Data Types and Sources, climate records and historical data serve several critical functions:
+
+1. **Establishing Baselines**: Historical data provides the reference conditions against which we measure current and future environmental changes. Without understanding natural variability over long timescales, we cannot properly assess the significance of recent trends.
+
+2. **Detecting Trends and Patterns**: Long-term climate records reveal cyclical patterns (like El Niño), long-term trends (like global warming), and abrupt shifts in Earth's climate system that would be invisible in short-term datasets.
+
+3. **Validating Models**: Historical climate data is essential for testing and calibrating climate models. Models must accurately reproduce past climate conditions before we can trust their future projections.
+
+4. **Understanding Mechanisms**: By examining how different climate variables have changed together over time, scientists can identify cause-and-effect relationships and understand the fundamental mechanisms driving environmental change.
+
+5. **Informing Policy**: Robust historical climate data provides the scientific foundation for environmental policy decisions, from international climate agreements to local adaptation strategies.
+
+This topic connects directly with other lecture topics: it complements remote sensing data (Topic 2.1) by providing ground-truth validation and longer temporal context; it relates to sensor networks (Topic 2.2) by building on their historical predecessors; and it exemplifies the data quality challenges (Topic 2.5) and metadata requirements (Topic 2.6) that are central to environmental data science.
+
+## Background & Theory 📚
+
+### Historical Development of Climate Observation
+
+The systematic observation of climate began in earnest during the 17th century with the invention of reliable thermometers and barometers. The earliest instrumental temperature records date to the 1650s in England and central Europe, though widespread standardized observations only began in the mid-19th century with the establishment of national meteorological services [@jones2009].
+
+The **Central England Temperature (CET) series**, beginning in 1659, represents the longest continuous instrumental temperature record in the world. This remarkable dataset demonstrates both the value of long-term observations and the challenges of maintaining consistency across centuries of changing measurement practices. Early observations were taken with alcohol thermometers, later replaced by mercury thermometers, and observation times, shelter types, and station locations all changed over the centuries.
+
+The late 19th century saw the establishment of global observation networks. The International Meteorological Organization (predecessor to the World Meteorological Organization) was founded in 1873, promoting standardization of observations and data exchange. By the early 20th century, a reasonably dense network of weather stations existed across North America, Europe, and parts of Asia, though coverage remained sparse in the Southern Hemisphere, oceans, and polar regions.
+
+The advent of radiosondes (weather balloons) in the 1930s enabled routine upper-atmosphere observations, revealing the vertical structure of the atmosphere. Satellite observations, beginning with TIROS-1 in 1960, revolutionized climate monitoring by providing truly global coverage, though creating homogeneous long-term records from successive satellite missions presents its own challenges.
+
+### Types of Climate Records
+
+#### Instrumental Records
+
+**Temperature Data**: Surface air temperature is the most widely measured climate variable. Temperature observations come from various sources:
+
+- **Land stations**: Networks like the Global Historical Climatology Network (GHCN) compile data from thousands of weather stations worldwide. These stations measure temperature at standard heights (typically 1.5-2 meters above ground) in ventilated shelters to minimize solar heating effects.
+
+- **Marine observations**: Ship-based measurements and, more recently, moored and drifting buoys provide ocean surface temperature data. Historical ship measurements have well-documented biases related to measurement methods (engine intake temperatures vs. bucket measurements) that require careful correction [@kennedy2011].
+
+- **Upper-air observations**: Radiosondes measure temperature profiles through the troposphere and lower stratosphere, providing crucial data for understanding atmospheric structure and validating satellite retrievals.
+
+The mathematical relationship for converting between temperature scales is straightforward but important for data integration:
+
+$$T_C = \frac{5}{9}(T_F - 32)$$
+
+$$T_K = T_C + 273.15$$
+
+where $T_C$ is Celsius, $T_F$ is Fahrenheit, and $T_K$ is Kelvin.
+
+**Precipitation Data**: Precipitation measurements face unique challenges. Rain gauges are affected by wind (causing undercatch, especially for snow), evaporation, and spatial variability. The **true precipitation** $P_{true}$ can be estimated from gauge measurements $P_{gauge}$ using correction factors:
+
+$$P_{true} = P_{gauge} \times CF$$
+
+where $CF$ is a correction factor accounting for wind-induced undercatch, wetting losses, and evaporation. For snow, correction factors can exceed 1.5 in windy conditions [@goodison1998].
+
+**Atmospheric Composition**: Long-term measurements of atmospheric gases are critical for understanding climate forcing. The **Mauna Loa CO₂ record**, beginning in 1958, is the longest continuous record of atmospheric carbon dioxide and clearly shows both the annual cycle (driven by Northern Hemisphere vegetation) and the long-term anthropogenic trend. The rate of CO₂ increase can be expressed as:
+
+$$\frac{dCO_2}{dt} = E_{fossil} + E_{land} - U_{ocean} - U_{land}$$
+
+where $E$ represents emissions and $U$ represents uptake by oceans and terrestrial ecosystems.
+
+#### Paleoclimate Proxies
+
+Paleoclimate proxies are natural archives that preserve information about past environmental conditions. Each proxy type has characteristic strengths, limitations, and timescales of applicability.
+
+**Tree Rings (Dendroclimatology)**: Tree rings provide annually resolved climate information, typically extending back centuries to millennia. Ring width and density primarily reflect growing season temperature and moisture availability. The relationship between ring width $W$ and climate variables can be modeled as:
+
+$$W_t = \alpha + \beta_1 T_t + \beta_2 P_t + \epsilon_t$$
+
+where $W_t$ is ring width in year $t$, $T_t$ is temperature, $P_t$ is precipitation, and $\epsilon_t$ represents noise and other influences. More sophisticated models account for age trends, competition effects, and nonlinear responses [@fritts1976].
+
+Tree ring chronologies are developed through **crossdating**—matching patterns of wide and narrow rings across multiple trees to establish exact calendar years for each ring. This process ensures accurate dating and allows averaging across many trees to reduce non-climatic noise.
+
+**Ice Cores**: Ice cores from Greenland and Antarctica provide extraordinarily detailed climate records extending back 800,000 years. Ice cores preserve multiple climate indicators:
+
+- **Isotopic composition**: The ratio of heavy to light oxygen isotopes ($\delta^{18}O$) in ice reflects temperature at the time of precipitation. The relationship is approximately:
+
+$$\delta^{18}O = \left(\frac{^{18}O/^{16}O_{sample}}{^{18}O/^{16}O_{standard}} - 1\right) \times 1000$$
+
+The $\delta^{18}O$ value is typically reported in per mil (‰) and correlates with local temperature, though the relationship varies by location and must be calibrated using modern observations.
+
+- **Trapped air bubbles**: Ancient air preserved in ice bubbles provides direct measurements of past atmospheric composition, including CO₂, CH₄, and N₂O concentrations.
+
+- **Dust and aerosol content**: Variations in dust concentration reflect atmospheric circulation patterns, aridity, and volcanic activity.
+
+- **Annual layer counting**: In high-accumulation sites like Greenland, annual layers can be counted like tree rings, providing precise chronologies for the past 100,000+ years.
+
+**Marine Sediment Cores**: Ocean sediments accumulate continuously and preserve climate information over millions of years. Key proxies include:
+
+- **Foraminifera isotopes**: The oxygen isotope ratio in foraminifera (microscopic marine organisms) shells reflects both temperature and global ice volume. Magnesium/Calcium ratios ($Mg/Ca$) provide an independent temperature proxy:
+
+$$T = A \times \ln(Mg/Ca) + B$$
+
+where $A$ and $B$ are calibration constants determined from core-top samples with known temperatures.
+
+- **Alkenones**: Organic molecules produced by marine algae have temperature-dependent structures. The $U^{K'}_{37}$ index based on alkenone composition provides sea surface temperature estimates:
+
+$$U^{K'}_{37} = \frac{[C_{37:2}]}{[C_{37:2}] + [C_{37:3}]}$$
+
+$$SST = \frac{U^{K'}_{37} - 0.044}{0.033}$$
+
+**Speleothems**: Cave formations (stalagmites, stalactites) grow as water drips through caves, depositing calcite layers. Oxygen isotopes in speleothem calcite reflect precipitation amount and source, while uranium-thorium dating provides precise chronologies. Growth rate variations indicate changes in effective moisture [@fairchild2006].
+
+**Coral Records**: Coral skeletons grow in annual bands and preserve multiple climate indicators. Sr/Ca ratios and oxygen isotopes in coral aragonite reflect sea surface temperature and salinity, providing seasonal to annual resolution records extending back centuries.
+
+### Data Homogenization and Quality Control
+
+Creating reliable long-term climate records requires addressing numerous sources of non-climatic variance. The observed climate signal $O_t$ at time $t$ can be decomposed as:
+
+$$O_t = C_t + B_t + N_t$$
+
+where $C_t$ is the true climate signal, $B_t$ represents systematic biases (inhomogeneities), and $N_t$ is random noise.
+
+#### Sources of Inhomogeneity
+
+**Station moves**: Even small relocations can introduce biases. Moving a temperature station from a downtown location to a suburban airport can introduce a spurious cooling trend as urban heat island effects decrease.
+
+**Instrumentation changes**: Transitions from liquid-in-glass thermometers to electronic sensors, changes in rain gauge designs, or modifications to observation shelters can create discontinuities in records.
+
+**Observation time changes**: The time of day when observations are taken affects daily mean calculations. A shift from morning to evening observations can introduce apparent warming.
+
+**Land use changes**: Urbanization, deforestation, or agricultural development around stations can alter local climate independently of regional trends.
+
+**Measurement protocol changes**: Modifications to how measurements are processed, averaged, or quality-controlled can introduce subtle biases.
+
+#### Homogenization Methods
+
+Multiple statistical approaches exist for detecting and correcting inhomogeneities:
+
+**Pairwise comparison methods**: These compare each target station against multiple neighboring reference stations. The Standard Normal Homogeneity Test (SNHT) is commonly used:
+
+$$T_k = k\bar{z}_1^2 + (n-k)\bar{z}_2^2$$
+
+where $T_k$ is the test statistic for a potential breakpoint at position $k$, $n$ is the series length, and $\bar{z}_1$ and $\bar{z}_2$ are the mean normalized differences before and after the potential breakpoint. Large values of $T_k$ indicate likely inhomogeneities [@alexandersson1986].
+
+**Automated algorithms**: Modern approaches like the Pairwise Homogenization Algorithm (PHA) used for GHCN data automatically detect and adjust for multiple changepoints in station records by comparing each station against a network of neighbors and iteratively refining adjustments.
+
+**Metadata-based adjustments**: When available, station history metadata (documenting moves, equipment changes, etc.) can guide adjustment procedures. However, metadata is often incomplete, making statistical detection essential.
+
+### Temporal Coverage and Resolution
+
+Different climate datasets provide information at vastly different temporal scales, creating a hierarchy of climate understanding:
+
+```{mermaid}
+graph TD
+    A[Climate Records by Timescale] --> B[Instrumental Era]
+    A --> C[Historical Period]
+    A --> D[Holocene]
+    A --> E[Quaternary]
+    A --> F[Deep Time]
+    
+    B --> B1[Satellite: 1970s-present<br/>Daily to sub-daily]
+    B --> B2[Station networks: 1850s-present<br/>Daily to monthly]
+    
+    C --> C1[Documentary evidence: 1000s CE-present<br/>Seasonal to annual]
+    C --> C2[High-resolution proxies: Last 2000 years<br/>Annual to decadal]
+    
+    D --> D1[Tree rings, ice cores: Last 10,000 years<br/>Annual to decadal]
+    
+    E --> E1[Ice cores, sediments: Last 2.6 million years<br/>Decadal to millennial]
+    
+    F --> F1[Sediment cores: Millions of years<br/>Millennial to longer]
+    
+    style A fill:#e1f5ff
+    style B fill:#b3e0ff
+    style C fill:#80ccff
+    style D fill:#4db8ff
+    style E fill:#1aa3ff
+    style F fill:#0080e6
+```
+
+**Temporal resolution** refers to how finely time is divided in a dataset. Daily weather station data has high temporal resolution, while marine sediment cores might have resolution of centuries to millennia per sample. **Temporal coverage** refers to the total time span of the record.
+
+The **Nyquist-Shannon sampling theorem** is relevant for understanding temporal resolution requirements:
+
+$$f_s > 2f_{max}$$
+
+where $f_s$ is the sampling frequency and $f_{max}$ is the highest frequency of interest. To resolve annual cycles, for example, requires at least semi-annual sampling (though in practice, much higher sampling rates are needed for reliable characterization).
+
+### Establishing Historical Baselines
+
+Climate anomalies are typically expressed relative to a baseline period. A temperature anomaly $A_t$ is calculated as:
+
+$$A_t = T_t - \bar{T}_{baseline}$$
+
+where $T_t$ is the temperature at time $t$ and $\bar{T}_{baseline}$ is the mean temperature over the baseline period.
+
+The choice of baseline period significantly affects the interpretation of trends. The World Meteorological Organization recommends using 30-year periods updated every decade (currently 1991-2020). However, climate change research often uses pre-industrial baselines (commonly 1850-1900) to quantify total anthropogenic warming.
+
+For proxy records, calibration against instrumental data establishes the quantitative relationship between proxy values and climate variables. A **transfer function** converts proxy measurements to climate estimates:
+
+$$\hat{T}_t = f(P_t, \theta)$$
+
+where $\hat{T}_t$ is the estimated temperature, $P_t$ is the proxy value, and $\theta$ represents calibration parameters determined from the period of overlap between proxy and instrumental data.
+
+**Uncertainty quantification** is critical. Total uncertainty in paleoclimate reconstructions includes:
+
+$$\sigma_{total}^2 = \sigma_{proxy}^2 + \sigma_{calibration}^2 + \sigma_{dating}^2 + \sigma_{local}^2$$
+
+where terms represent uncertainty from proxy measurement, calibration relationships, age models, and local vs. regional climate representation [@mann2008].
+
+### Major Climate Datasets
+
+Several key datasets synthesize climate observations into research-ready products:
+
+**CRUTEM** (Climatic Research Unit Temperature): Land surface air temperature dataset combining quality-controlled station data with homogenization adjustments.
+
+**HadSST** (Hadley Centre Sea Surface Temperature): Marine temperature dataset addressing biases in ship and buoy measurements.
+
+**GPCC** (Global Precipitation Climatology Centre): Monthly precipitation data from global rain gauge networks.
+
+**PAGES 2k Network**: Community effort synthesizing regional temperature reconstructions from multiple proxy types for the past 2000 years.
+
+**NOAA Paleoclimatology Database**: Central repository for paleoclimate data including tree rings, ice cores, corals, and sediment records with standardized metadata.
+
+### Data Integration and Synthesis
+
+Combining multiple climate data types requires careful consideration of their respective strengths and limitations. **Data assimilation** techniques integrate observations with physical models to produce spatially and temporally complete climate fields:
+
+$$x_a = x_b + K(y - Hx_b)$$
+
+where $x_a$ is the analyzed state, $x_b$ is the background (model) state, $y$ represents observations, $H$ is the observation operator mapping model state to observable quantities, and $K$ is the Kalman gain matrix weighting observations vs. model based on their respective uncertainties.
+
+**Reanalysis products** like ERA5, MERRA-2, and JRA-55 use data assimilation to create globally complete, physically consistent climate datasets spanning decades. These products combine observations from weather stations, radiosondes, aircraft, satellites, and buoys with numerical weather prediction models.
+
+### Challenges and Limitations
+
+Despite tremendous progress, significant challenges remain:
+
+**Spatial coverage gaps**: Observations remain sparse over oceans (especially the Southern Ocean), polar regions, Africa, and South America. Interpolating across large data-sparse regions introduces uncertainty.
+
+**Temporal coverage gaps**: The instrumental record is short relative to natural climate variability timescales. Distinguishing forced trends from natural variability requires long records.
+
+**Proxy limitations**: All proxies are indirect, imperfect indicators of climate. Biological proxies are affected by non-climatic factors (nutrients, competition, disease). Calibration relationships may not be stationary over time.
+
+**Uncertainty quantification**: Properly characterizing and propagating uncertainties through complex data processing chains remains challenging. Publication bias toward statistically significant results may underestimate true uncertainty.
+
+**Data accessibility**: While major datasets are increasingly available, many historical records remain in paper archives or national databases with limited international access. Digitization and data rescue efforts are ongoing but incomplete.
+
+## Practical Example / Code Implementation 💻
+
+In this section, we'll work with real climate data to demonstrate key concepts in accessing, processing, and analyzing historical climate records. We'll use Python with common scientific libraries to retrieve temperature data, perform basic homogenization checks, and visualize long-term trends.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show code for installing required libraries"
+
+# Install required libraries
+%pip install -q pandas numpy matplotlib seaborn scipy requests xarray netCDF4
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show code for importing libraries and setup"
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+from scipy.signal import find_peaks
+import requests
+from io import StringIO
+import warnings
+warnings.filterwarnings('ignore')
+
+# Set plotting style
+sns.set_style("whitegrid")
+plt.rcParams['figure.figsize'] = (12, 6)
+plt.rcParams['font.size'] = 10
+```
+
+### Example 1: Accessing and Analyzing Historical Temperature Data
+
+We'll work with the Berkeley Earth surface temperature dataset, which provides global land temperature records with extensive quality control and homogenization.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show code for loading global temperature data"
+
+# Create synthetic global temperature data based on real trends
+# In practice, you would download from Berkeley Earth or NOAA
+np.random.seed(42)
+
+# Generate years from 1850 to 2023
+years = np.arange(1850, 2024)
+n_years = len(years)
+
+# Create temperature anomaly with realistic components:
+# 1. Long-term warming trend (anthropogenic)
+# 2. Natural variability (ENSO-like oscillation)
+# 3. Random noise
+
+# Anthropogenic warming (accelerating)
+time_normalized = (years - 1850) / (2023 - 1850)
+anthro_warming = 0.8 * time_normalized**1.5
+
+# Natural variability (quasi-periodic)
+natural_var = 0.15 * np.sin(2 * np.pi * years / 4.5) + \
+              0.1 * np.sin(2 * np.pi * years / 11)
+
+# Random noise
+noise = np.random.normal(0, 0.1, n_years)
+
+# Combine components
+temp_anomaly = anthro_warming + natural_var + noise
+
+# Create DataFrame
+df_global = pd.DataFrame({
+    'year': years,
+    'temperature_anomaly': temp_anomaly,
+    'uncertainty': np.random.uniform(0.05, 0.15, n_years)
+})
+
+print("Global Temperature Dataset")
+print(df_global.head(10))
+print(f"\nDataset spans {df_global['year'].min()} to {df_global['year'].max()}")
+print(f"Total warming: {df_global['temperature_anomaly'].iloc[-1] - df_global['temperature_anomaly'].iloc[0]:.2f}°C")
+```
+
+### Example 2: Detecting Inhomogeneities in Station Data
+
+Let's simulate a weather station record with an artificial inhomogeneity (representing a station move or instrument change) and demonstrate detection methods.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show code for inhomogeneity detection"
+
+def create_station_data_with_break(
+    n_years: int = 100,
+    break_year: int = 50,
+    break_magnitude: float = 0.5,
+    trend: float = 0.02,
+    noise_std: float = 0.8
+) -> pd.DataFrame:
+    """
+    Create synthetic station temperature data with an artificial inhomogeneity.
+    
+    Parameters:
+    -----------
+    n_years : int
+        Number of years of data
+    break_year : int
+        Year index where break occurs
+    break_magnitude : float
+        Size of artificial break (°C)
+    trend : float
+        True climate trend (°C/year)
+    noise_std : float
+        Standard deviation of random noise
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Station temperature data
+    """
+    years = np.arange(1920, 1920 + n_years)
+    
+    # True climate signal
+    climate_signal = trend * np.arange(n_years)
+    
+    # Add seasonal cycle
+    seasonal = 10 * np.sin(2 * np.pi * np.arange(n_years) / 1)
+    
+    # Add random noise
+    noise = np.random.normal(0, noise_std, n_years)
+    
+    # Create temperature series
+    temperature = climate_signal + seasonal + noise
+    
+    # Add artificial break
+    temperature[break_year:] += break_magnitude
+    
+    return pd.DataFrame({
+        'year': years,
+        'temperature': temperature,
+        'true_signal': climate_signal + seasonal
+    })
+
+# Create station data
+station_data = create_station_data_with_break(
+    n_years=100,
+    break_year=50,
+    break_magnitude=0.8,
+    trend=0.02
+)
+
+# Visualization
+fig, axes = plt.subplots(2, 1, figsize=(12, 10))
+
+# Plot raw data
+axes[0].plot(station_data['year'], station_data['temperature'], 
+             'o-', alpha=0.6, label='Observed', markersize=3)
+axes[0].plot(station_data['year'], station_data['true_signal'], 
+             'r-', linewidth=2, label='True Climate Signal')
+axes[0].axvline(x=1970, color='red', linestyle='--', alpha=0.5, 
+                label='Inhomogeneity (station move)')
+axes[0].set_xlabel('Year')
+axes[0].set_ylabel('Temperature (°C)')
+axes[0].set_title('Station Temperature Record with Artificial Inhomogeneity')
+axes[0].legend()
+axes[0].grid(True, alpha=0.3)
+
+# Calculate first differences to detect break
+first_diff = np.diff(station_data['temperature'])
+years_diff = station_data['year'].values[1:]
+
+axes[1].plot(years_diff, first_diff, 'o-', alpha=0.6, markersize=3)
+axes[1].axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+axes[1].axvline(x=1970, color='red', linestyle='--', alpha=0.5, 
+                label='Expected break location')
+axes[1].set_xlabel('Year')
+axes[1].set_ylabel('First Difference (°C)')
+axes[1].set_title('First Differences (Year-to-Year Changes)')
+axes[1].legend()
+axes[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+print(f"Break detected around year {years_diff[np.argmax(np.abs(first_diff))]}")
+print(f"Break magnitude: {np.max(np.abs(first_diff)):.2f}°C")
+```
+
+### Example 3: Standard Normal Homogeneity Test (SNHT)
+
+Implement the SNHT algorithm to statistically detect the inhomogeneity.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show code for SNHT implementation"
+
+def snht_test(data: np.ndarray, significance_level: float = 0.05) -> tuple:
+    """
+    Perform Standard Normal Homogeneity Test.
+    
+    Parameters:
+    -----------
+    data : np.ndarray
+        Time series data to test
+    significance_level : float
+        Significance level for the test
+    
+    Returns:
+    --------
+    tuple
+        (test_statistic, break_point, is_significant)
+    """
+    n = len(data)
+    
+    # Normalize the data
+    data_normalized = (data - np.mean(data)) / np.std(data)
+    
+    # Calculate test statistic for each potential break point
+    T_values = np.zeros(n - 1)
+    
+    for k in range(1, n):
+        z1_mean = np.mean(data_normalized[:k])
+        z2_mean = np.mean(data_normalized[k:])
+        
+        T_k = k * z1_mean**2 + (n - k) * z2_mean**2
+        T_values[k - 1] = T_k
+    
+    # Find maximum test statistic
+    max_T = np.max(T_values)
+    break_point = np.argmax(T_values) + 1
+    
+    # Critical value (approximation for 95% confidence)
+    critical_value = 7.0  # Approximate for n=100
+    
+    is_significant = max_T > critical_value
+    
+    return max_T, break_point, is_significant, T_values
+
+# Apply SNHT to station data
+max_T, break_point, is_significant, T_values = snht_test(
+    station_data['temperature'].values
+)
+
+print("Standard Normal Homogeneity Test Results")
+print("=" * 50)
+print(f"Maximum test statistic: {max_T:.2f}")
+print(f"Detected break point: Year {station_data['year'].iloc[break_point]}")
+print(f"True break point: Year 1970")
+print(f"Significant at 95% level: {is_significant}")
+
+# Visualize SNHT results
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.plot(station_data['year'].iloc[1:], T_values, 'b-', linewidth=2)
+ax.axhline(y=7.0, color='red', linestyle='--', label='Critical value (95%)')
+ax.axvline(x=station_data['year'].iloc[break_point], color='green', 
+           linestyle='--', label=f'Detected break ({station_data["year"].iloc[break_point]})')
+ax.axvline(x=1970, color='orange', linestyle='--', alpha=0.7,
+           label='True break (1970)')
+ax.set_xlabel('Year')
+ax.set_ylabel('SNHT Test Statistic')
+ax.set_title('Standard Normal Homogeneity Test Results')
+ax.legend()
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+```
+
+### Example 4: Calculating Climate Normals and Anomalies
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show code for calculating climate normals"
+
+def calculate_climate_normal(
+    data: pd.DataFrame,
+    baseline_start: int,
+    baseline_end: int,
+    year_col: str = 'year',
+    value_col: str = 'temperature_anomaly'
+) -> pd.DataFrame:
+    """
+    Calculate climate anomalies relative to a baseline period.
+    
+    Parameters:
+    -----------
+    data : pd.DataFrame
+        Climate data
+    baseline_start : int
+        Start year of baseline period
+    baseline_end : int
+        End year of baseline period
+    year_col : str
+        Name of year column
+    value_col : str
+        Name of value column
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Data with anomalies calculated
+    """
+    # Extract baseline period
+    baseline_mask = (data[year_col] >= baseline_start) & (data[year_col] <= baseline_end)
+    baseline_mean = data.loc[baseline_mask, value_col].mean()
+    
+    # Calculate anomalies
+    result = data.copy()
+    result['anomaly'] = result[value_col] - baseline_mean
+    result['baseline_mean'] = baseline_mean
+    
+    return result
+
+# Calculate anomalies for different baseline periods
+baselines = [
+    (1850, 1900, "Pre-industrial"),
+    (1951, 1980, "WMO 1951-1980"),
+    (1991, 2020, "WMO 1991-2020")
+]
+
+fig, ax = plt.subplots(figsize=(14, 7))
+
+for baseline_start, baseline_end, label in baselines:
+    df_anomaly = calculate_climate_normal(
+        df_global,
+        baseline_start,
+        baseline_end
+    )
+    
+    ax.plot(df_anomaly['year'], df_anomaly['anomaly'], 
+            linewidth=2, label=f'{label} baseline', alpha=0.7)
+
+ax.axhline(y=0, color='black', linestyle='-', linewidth=0.5)
+ax.fill_between(df_global['year'], -df_global['uncertainty'], 
+                df_global['uncertainty'], alpha=0.2, color='gray',
+                label='Uncertainty range')
+ax.set_xlabel('Year')
+ax.set_ylabel('Temperature Anomaly (°C)')
+ax.set_title('Global Temperature Anomalies with Different Baseline Periods')
+ax.legend(loc='upper left')
+ax.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.show()
+
+# Calculate trends for recent period
+recent_data = df_global[df_global['year'] >= 1970]
+slope, intercept, r_value, p_value, std_err = stats.linregress(
+    recent_data['year'], 
+    recent_data['temperature_anomaly']
+)
+
+print(f"\nTrend Analysis (1970-2023)")
+print("=" * 50)
+print(f"Warming rate: {slope:.4f}°C per year")
+print(f"Warming rate: {slope * 10:.4f}°C per decade")
+print(f"R-squared: {r_value**2:.4f}")
+print(f"P-value: {p_value:.2e}")
+```
+
+### Example 5: Working with Proxy Data - Tree Ring Analysis
+
+Let's simulate tree ring width data and demonstrate calibration against instrumental temperature records.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show code for tree ring proxy analysis"
+
+def simulate_tree_ring_data(
+    years: np.ndarray,
+    temperature: np.ndarray,
+    sensitivity: float = 0.3,
+    noise_std: float = 0.15
+) -> pd.DataFrame:
+    """
+    Simulate tree ring width data based on temperature.
+    
+    Parameters:
+    -----------
+    years : np.ndarray
+        Array of years
+    temperature : np.ndarray
+        Temperature data
+    sensitivity : float
+        Sensitivity of ring width to temperature
+    noise_std : float
+        Standard deviation of biological noise
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Simulated tree ring data
+    """
+    # Normalize temperature
+    temp_norm = (temperature - np.mean(temperature)) / np.std(temperature)
+    
+    # Ring width influenced by temperature plus biological noise
+    ring_width = 1.0 + sensitivity * temp_norm + np.random.normal(0, noise_std, len(years))
+    
+    # Add age-related trend (trees grow slower when older)
+    age_effect = -0.002 * np.arange(len(years))
+    ring_width += age_effect
+    
+    # Ensure positive values
+    ring_width = np.maximum(ring_width, 0.1)
+    
+    return pd.DataFrame({
+        'year': years,
+        'ring_width': ring_width,
+        'temperature': temperature
+    })
+
+# Create proxy data for extended period
+proxy_years = np.arange(1600, 2024)
+proxy_temp = 0.01 * (proxy_years - 1600) + \
+             0.15 * np.sin(2 * np.pi * proxy_years / 11) + \
+             np.random.normal(0, 0.2, len(proxy_years))
+
+proxy_data = simulate_tree_ring_data(proxy_years, proxy_temp)
+
+# Calibration period (overlap with instrumental)
+calib_start, calib_end = 1900, 2000
+calib_mask = (proxy_data['year'] >= calib_start) & (proxy_data['year'] <= calib_end)
+
+# Fit linear model
+X_calib = proxy_data.loc[calib_mask, 'ring_width'].values
+y_calib = proxy_data.loc[calib_mask, 'temperature'].values
+
+slope_calib, intercept_calib, r_calib, p_calib, se_calib = stats.linregress(X_calib, y_calib)
+
+# Reconstruct temperature for full period
+proxy_data['temp_reconstructed'] = slope_calib * proxy_data['ring_width'] + intercept_calib
+
+# Calculate reconstruction uncertainty
+reconstruction_error = np.std(y_calib - (slope_calib * X_calib + intercept_calib))
+
+# Visualization
+fig, axes = plt.subplots(3, 1, figsize=(14, 12))
+
+# Panel 1: Calibration relationship
+axes[0].scatter(X_calib, y_calib, alpha=0.5, s=30)
+axes[0].plot(X_calib, slope_calib * X_calib + intercept_calib, 
+             'r-', linewidth=2, label=f'y = {slope_calib:.2f}x + {intercept_calib:.2f}')
+axes[0].set_xlabel('Tree Ring Width (mm)')
+axes[0].set_ylabel('Temperature (°C)')
+axes[0].set_title(f'Calibration Period ({calib_start}-{calib_end}), R² = {r_calib**2:.3f}')
+axes[0].legend()
+axes[0].grid(True, alpha=0.3)
+
+# Panel 2: Proxy record
+axes[1].plot(proxy_data['year'], proxy_data['ring_width'], 
+             'g-', linewidth=1, alpha=0.7, label='Ring Width')
+axes[1].set_xlabel('Year')
+axes[1].set_ylabel('Ring Width (mm)')
+axes[1].set_title('Tree Ring Width Time Series')
+axes[1].legend()
+axes[1].grid(True, alpha=0.3)
+
+# Panel 3: Reconstruction
+axes[2].plot(proxy_data['year'], proxy_data['temp_reconstructed'], 
+             'b-', linewidth=2, label='Reconstructed Temperature', alpha=0.7)
+axes[2].fill_between(proxy_data['year'], 
+                     proxy_data['temp_reconstructed'] - 2*reconstruction_error,
+                     proxy_data['temp_reconstructed'] + 2*reconstruction_error,
+                     alpha=0.2, color='blue', label='95% Confidence Interval')
+axes[2].axvspan(calib_start, calib_end, alpha=0.1, color='green', 
+                label='Calibration Period')
+axes[2].set_xlabel('Year')
+axes[2].set_ylabel('Temperature (°C)')
+axes[2].set_title('Temperature Reconstruction from Tree Rings (1600-2023)')
+axes[2].legend()
+axes[2].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.show()
+
+print("Proxy Calibration Results")
+print("=" * 50)
+print(f"Calibration period: {calib_start}-{calib_end}")
+print(f"Correlation (R): {r_calib:.3f}")
+print(f"R-squared: {r_calib**2:.3f}")
+print(f"Reconstruction error (RMSE): {reconstruction_error:.3f}°C")
+print(f"Sensitivity: {slope_calib:.3f}°C per mm ring width")
+```
+
+This practical example demonstrates key concepts in working with historical climate data:
+
+1. **Data access and structure**: Loading and organizing climate datasets
+2. **Quality control**: Detecting inhomogeneities using statistical tests
+3. **Baseline calculations**: Computing anomalies relative to different reference periods
+4. **Trend analysis**: Quantifying rates of change with uncertainty estimates
+5. **Proxy calibration**: Converting indirect measurements to climate variables
+
+These techniques form the foundation for more advanced climate data analysis and are essential skills for environmental data scientists working with historical records.
+
+## Student Exercise 📝
+
+### Exercise: Multi-Proxy Climate Reconstruction and Validation
+
+**Objective**: Apply the concepts learned about climate records and historical data by creating a multi-proxy temperature reconstruction, assessing its reliability, and comparing it with instrumental observations.
+
+**Background**: You are an environmental scientist tasked with reconstructing temperature for a region over the past 500 years. You have access to three types of data:
+
+1. Tree ring width measurements (1500-2023)
+2. Ice core oxygen isotope data (1500-2023)
+3. Instrumental temperature records (1900-2023)
+
+**Tasks**:
+
+#### Part 1: Data Simulation and Exploration (15 minutes)
+
+Create synthetic datasets representing:
+
+- Tree ring widths with realistic climate sensitivity and biological noise
+- Ice core δ¹⁸O values with appropriate temperature relationship
+- Instrumental temperature record with known warming trend
+
+Each proxy should have different noise characteristics and sensitivities to temperature.
+
+#### Part 2: Individual Proxy Calibration (15 minutes)
+
+For each proxy:
+
+- Identify an appropriate calibration period (overlap with instrumental data)
+- Develop a linear transfer function relating proxy values to temperature
+- Calculate calibration statistics (R², RMSE, p-value)
+- Reconstruct temperature for the full proxy period
+- Estimate reconstruction uncertainty
+
+#### Part 3: Multi-Proxy Integration (15 minutes)
+
+Combine the two proxy reconstructions using:
+
+- Simple averaging
+- Variance-weighted averaging (giving more weight to more reliable proxies)
+- Compare the multi-proxy reconstruction with individual reconstructions
+
+#### Part 4: Validation and Analysis (15 minutes)
+
+- Calculate validation statistics for a withheld portion of the instrumental period
+- Assess whether the reconstruction captures known climate events (e.g., warming trends)
+- Discuss sources of uncertainty and limitations
+- Create publication-quality visualizations showing:
+  - Individual proxy records
+  - Calibration relationships
+  - Final reconstruction with uncertainty bands
+  - Comparison with instrumental data
+
+**Deliverables**:
+
+1. Python code implementing all steps
+2. A written report (500-750 words) addressing:
+   - Calibration methodology and results
+   - Comparison of proxy reliabilities
+   - Validation results and interpretation
+   - Limitations and potential improvements
+3. At least 3 publication-quality figures
+
+**Hints**:
+
+- Use the code examples provided in the notebook as starting points
+- Consider using `scipy.stats.linregress()` for calibration
+- Weighted averaging formula: $\bar{T} = \frac{\sum_{i} w_i T_i}{\sum_{i} w_i}$ where weights $w_i = 1/\sigma_i^2$
+- The reconstruction should show more uncertainty in earlier periods (further from calibration)
+- Think about how to handle the "divergence problem" where proxies may not track recent warming
+
+**Extension Challenges** (Optional):
+
+1. Implement a more sophisticated calibration method (e.g., principal component regression)
+2. Add a third proxy type (coral records, speleothem data)
+3. Perform sensitivity analysis by varying calibration period length
+4. Implement cross-validation to assess reconstruction skill
+
+## Exercise Solution 🔑
+
+```{python}
+#| code-fold: true
+#| code-summary: "Show complete solution code"
+
+# ============================================================================
+# PART 1: DATA SIMULATION
+# ============================================================================
+
+def create_comprehensive_climate_dataset(
+    start_year: int = 1500,
+    end_year: int = 2023,
+    calib_start: int = 1900
+) -> tuple:
+    """
+    Create synthetic multi-proxy climate dataset.
+    
+    Returns:
+    --------
+    tuple of pd.DataFrame
+        (proxy_data, instrumental_data)
+    """
+    years = np.arange(start_year, end_year + 1)
+    n_years = len(years)
+    
+    # True temperature signal with realistic components
+    # Long-term trend (minimal before 1900, accelerating after)
+    time_idx = np.arange(n_years)
+    recent_idx = np.maximum(0, years - 1900)
+    temp_trend = 0.001 * time_idx + 0.015 * (recent_idx / 100) ** 1.5
+    
+    # Multi-decadal variability
+    temp_multidecadal = 0.2 * np.sin(2 * np.pi * years / 60)
+    
+    # Interannual variability (ENSO-like)
+    temp_interannual = 0.15 * np.sin(2 * np.pi * years / 4.2)
+    
+    # Random noise
+    temp_noise = np.random.normal(0, 0.15, n_years)
+    
+    # True temperature
+    true_temp = temp_trend + temp_multidecadal + temp_interannual + temp_noise
+    
+    # Tree ring proxy (sensitive to temperature, with biological noise)
+    tree_sensitivity = 0.35
+    tree_noise = np.random.normal(0, 0.20, n_years)
+    tree_age_trend = -0.0003 * time_idx  # Older trees grow slower
+    tree_ring_width = 1.0 + tree_sensitivity * true_temp + tree_noise + tree_age_trend
+    tree_ring_width = np.maximum(tree_ring_width, 0.1)  # Ensure positive
+    
+    # Ice core proxy (δ18O, different sensitivity and noise characteristics)
+    ice_sensitivity = 0.45
+    ice_noise = np.random.normal(0, 0.25, n_years)
+    # Ice cores have lower temporal resolution (smoothing effect)
+    ice_smoothing = np.convolve(true_temp, np.ones(5)/5, mode='same')
+    ice_d18O = -30 + ice_sensitivity * ice_smoothing + ice_noise
+    
+    # Create proxy DataFrame
+    proxy_data = pd.DataFrame({
+        'year': years,
+        'true_temperature': true_temp,
+        'tree_ring_width': tree_ring_width,
+        'ice_d18O': ice_d18O
+    })
+    
+    # Instrumental data (only from calib_start onwards)
+    inst_mask = years >= calib_start
+    instrumental_noise = np.random.normal(0, 0.08, np.sum(inst_mask))
+    
+    instrumental_data = pd.DataFrame({
+        'year': years[inst_mask],
+        'temperature': true_temp[inst_mask] + instrumental_noise
+    })
+    
+    return proxy_data, instrumental_data
+
+# Generate datasets
+np.random.seed(123)
+proxy_df, instrument_df = create_comprehensive_climate_dataset()
+
+print("Dataset Summary")
+print("=" * 70)
+print(f"Proxy records: {proxy_df['year'].min()} - {proxy_df['year'].max()}")
+print(f"Instrumental records: {instrument_df['year'].min()} - {instrument_df['year'].max()}")
+print(f"\nProxy data preview:")
+print(proxy_df.head())
+print(f"\nInstrumental data preview:")
+print(instrument_df.head())
+
+# ============================================================================
+# PART 2: INDIVIDUAL PROXY CALIBRATION
+# ============================================================================
+
+def calibrate_proxy(
+    proxy_data: pd.DataFrame,
+    instrumental_data: pd.DataFrame,
+    proxy_column: str,
+    calib_start: int = 1900,
+    calib_end: int = 2000,
+    valid_start: int = 2001,
+    valid_end: int = 2023
+) -> dict:
+    """
+    Calibrate proxy against instrumental data.
+    
+    Returns:
+    --------
+    dict
+        Calibration results including statistics and reconstructed values
+    """
+    # Merge datasets for calibration period
+    calib_data = proxy_data[
+        (proxy_data['year'] >= calib_start) & 
+        (proxy_data['year'] <= calib_end)
+    ].merge(instrumental_data, on='year', how='inner')
+    
+    # Calibration regression
+    X_calib = calib_data[proxy_column].values
+    y_calib = calib_data['temperature'].values
+    
+    slope, intercept, r_value, p_value, std_err = stats.linregress(X_calib, y_calib)
+    
+    # Reconstruction for full period
+    proxy_data_copy = proxy_data.copy()
+    proxy_data_copy['reconstructed_temp'] = slope * proxy_data_copy[proxy_column] + intercept
+    
+    # Calculate calibration error
+    y_pred_calib = slope * X_calib + intercept
+    calib_rmse = np.sqrt(np.mean((y_calib - y_pred_calib) ** 2))
+    
+    # Validation on withheld period
+    valid_data = proxy_data[
+        (proxy_data['year'] >= valid_start) & 
+        (proxy_data['year'] <= valid_end)
+    ].merge(instrumental_data, on='year', how='inner')
+    
+    if len(valid_data) > 0:
+        X_valid = valid_data[proxy_column].values
+        y_valid = valid_data['temperature'].values
+        y_pred_valid = slope * X_valid + intercept
+        valid_rmse = np.sqrt(np.mean((y_valid - y_pred_valid) ** 2))
+        valid_r = np.corrcoef(y_valid, y_pred_valid)[0, 1]
+    else:
+        valid_rmse = np.nan
+        valid_r = np.nan
+    
+    return {
+        'proxy_name': proxy_column,
+        'slope': slope,
+        'intercept': intercept,
+        'r_value': r_value,
+        'r_squared': r_value ** 2,
+        'p_value': p_value,
+        'calib_rmse': calib_rmse,
+        'valid_rmse': valid_rmse,
+        'valid_r': valid_r,
+        'reconstruction': proxy_data_copy[['year', 'reconstructed_temp']],
+        'uncertainty': calib_rmse
+    }
+
+# Calibrate both proxies
+tree_results = calibrate_proxy(proxy_df, instrument_df, 'tree_ring_width')
+ice_results = calibrate_proxy(proxy_df, instrument_df, 'ice_d18O')
+
+print("\n" + "=" * 70)
+print("CALIBRATION RESULTS")
+print("=" * 70)
+
+for results in [tree_results, ice_results]:
+    print(f"\n{results['proxy_name'].upper()}")
+    print("-" * 70)
+    print(f"Transfer function: T = {results['slope']:.4f} × {results['proxy_name']} + {results['intercept']:.4f}")
+    print(f"Calibration R²: {results['r_squared']:.4f}")
+    print(f"Calibration RMSE: {results['calib_rmse']:.4f}°C")
+    print(f"Validation RMSE: {results['valid_rmse']:.4f}°C")
+    print(f"Validation R: {results['valid_r']:.4f}")
+    print(f"P-value: {results['p_value']:.2e}")
+
+# ============================================================================
+# PART 3: MULTI-PROXY INTEGRATION
+# ============================================================================
+
+def integrate_proxies(
+    reconstructions: list,
+    uncertainties: list,
+    method: str = 'variance_weighted'
+) -> pd.DataFrame:
+    """
+    Integrate multiple proxy reconstructions.
+    
+    Parameters:
+    -----------
+    reconstructions : list of pd.DataFrame
+        List of reconstruction DataFrames with 'year' and 'reconstructed_temp'
+    uncertainties : list of float
+        Uncertainty (RMSE) for each reconstruction
+    method : str
+        'simple_average' or 'variance_weighted'
+    
+    Returns:
+    --------
+    pd.DataFrame
+        Integrated reconstruction
+    """
+    # Merge all reconstructions
+    merged = reconstructions[0].copy()
+    merged = merged.rename(columns={'reconstructed_temp': 'recon_0'})
+    
+    for i, recon in enumerate(reconstructions[1:], 1):
+        recon_renamed = recon.rename(columns={'reconstructed_temp': f'recon_{i}'})
+        merged = merged.merge(recon_renamed, on='year', how='inner')
+    
+    if method == 'simple_average':
+        # Simple arithmetic mean
+        recon_cols = [f'recon_{i}' for i in range(len(reconstructions))]
+        merged['integrated_temp'] = merged[recon_cols].mean(axis=1)
+        merged['integrated_uncertainty'] = np.mean(uncertainties)
+        
+    elif method == 'variance_weighted':
+        # Variance-weighted mean (inverse variance weighting)
+        weights = np.array([1.0 / (unc ** 2) for unc in uncertainties])
+        weights = weights / np.sum(weights)  # Normalize
+        
+        integrated_temp = np.zeros(len(merged))
+        for i, weight in enumerate(weights):
+            integrated_temp += weight * merged[f'recon_{i}'].values
+        
+        merged['integrated_temp'] = integrated_temp
+        # Uncertainty of weighted mean
+        merged['integrated_uncertainty'] = 1.0 / np.sqrt(np.sum(1.0 / np.array(uncertainties) ** 2))
+    
+    return merged
+
+# Create integrated reconstruction
+reconstructions = [tree_results['reconstruction'], ice_results['reconstruction']]
+uncertainties = [tree_results['uncertainty'], ice_results['uncertainty']]
+
+integrated_simple = integrate_proxies(reconstructions, uncertainties, 'simple_average')
+integrated_weighted = integrate_proxies(reconstructions, uncertainties, 'variance_weighted')
+
+print("\n" + "=" * 70)
+print("MULTI-PROXY INTEGRATION")
+print("=" * 70)
+print(f"\nSimple average uncertainty: {integrated_simple['integrated_uncertainty'].iloc[0]:.4f}°C")
+print(f"Variance-weighted uncertainty: {integrated_weighted['integrated_uncertainty'].iloc[0]:.4f}°C")
+print(f"\nWeights for variance-weighted average:")
+weights = np.array([1.0 / (unc ** 2) for unc in uncertainties])
+weights = weights / np.sum(weights)
+print(f"  Tree rings: {weights[0]:.3f}")
+print(f"  Ice cores: {weights[1]:.3f}")
+
+# ============================================================================
+# PART 4: VALIDATION AND VISUALIZATION
+# ============================================================================
+
+# Validation statistics for integrated reconstruction
+validation_period = integrated_weighted.merge(
+    instrument_df[instrument_df['year'] >= 2001],
+    on='year',
+    how='inner'
+)
+
+if len(validation_period) > 0:
+    valid_corr = np.corrcoef(
+        validation_period['integrated_temp'],
+        validation_period['temperature']
+    )[0, 1]
+    valid_rmse = np.sqrt(np.mean(
+        (validation_period['integrated_temp'] - validation_period['temperature']) ** 2
+    ))
+    print(f"\nIntegrated reconstruction validation (2001-2023):")
+    print(f"  Correlation: {valid_corr:.4f}")
+    print(f"  RMSE: {valid_rmse:.4f}°C")
+
+# Create comprehensive visualization
+fig = plt.figure(figsize=(16, 14))
+gs = fig.add_gridspec(4, 2, hspace=0.3, wspace=0.3)
+
+# Panel 1: Raw proxy data
+ax1 = fig.add_subplot(gs[0, :])
+ax1_twin = ax1.twinx()
+ax1.plot(proxy_df['year'], proxy_df['tree_ring_width'], 
+         'g-', alpha=0.6, linewidth=1, label='Tree Ring Width')
+ax1_twin.plot(proxy_df['year'], proxy_df['ice_d18O'], 
+              'b-', alpha=0.6, linewidth=1, label='Ice Core δ¹⁸O')
+ax1.set_xlabel('Year')
+ax1.set_ylabel('Tree Ring Width (mm)', color='g')
+ax1_twin.set_ylabel('δ¹⁸O (‰)', color='b')
+ax1.set_title('Raw Proxy Records (1500-2023)')
+ax1.tick_params(axis='y', labelcolor='g')
+ax1_twin.tick_params(axis='y', labelcolor='b')
+ax1.grid(True, alpha=0.3)
+
+# Panel 2: Tree ring calibration
+ax2 = fig.add_subplot(gs[1, 0])
+calib_tree = proxy_df[
+    (proxy_df['year'] >= 1900) & (proxy_df['year'] <= 2000)
+].merge(instrument_df, on='year', how='inner')
+ax2.scatter(calib_tree['tree_ring_width'], calib_tree['temperature'], 
+            alpha=0.5, s=30, color='green')
+x_line = np.array([calib_tree['tree_ring_width'].min(), 
+                   calib_tree['tree_ring_width'].max()])
+y_line = tree_results['slope'] * x_line + tree_results['intercept']
+ax2.plot(x_line, y_line, 'r-', linewidth=2, 
+         label=f'R² = {tree_results["r_squared"]:.3f}')
+ax2.set_xlabel('Tree Ring Width (mm)')
+ax2.set_ylabel('Temperature (°C)')
+ax2.set_title('Tree Ring Calibration (1900-2000)')
+ax2.legend()
+ax2.grid(True, alpha=0.3)
+
+# Panel 3: Ice core calibration
+ax3 = fig.add_subplot(gs[1, 1])
+calib_ice = proxy_df[
+    (proxy_df['year'] >= 1900) & (proxy_df['year'] <= 2000)
+].merge(instrument_df, on='year', how='inner')
+ax3.scatter(calib_ice['ice_d18O'], calib_ice['temperature'], 
+            alpha=0.5, s=30, color='blue')
+x_line = np.array([calib_ice['ice_d18O'].min(), calib_ice['ice_d18O'].max()])
+y_line = ice_results['slope'] * x_line + ice_results['intercept']
+ax3.plot(x_line, y_line, 'r-', linewidth=2, 
+         label=f'R² = {ice_results["r_squared"]:.3f}')
+ax3.set_xlabel('Ice Core δ¹⁸O (‰)')
+ax3.set_ylabel('Temperature (°C)')
+ax3.set_title('Ice Core Calibration (1900-2000)')
+ax3.legend()
+ax3.grid(True, alpha=0.3)
+
+# Panel 4: Individual reconstructions
+ax4 = fig.add_subplot(gs[2, :])
+ax4.plot(tree_results['reconstruction']['year'], 
+         tree_results['reconstruction']['reconstructed_temp'],
+         'g-', linewidth=1.5, alpha=0.7, label='Tree Ring Reconstruction')
+ax4.plot(ice_results['reconstruction']['year'],
+         ice_results['reconstruction']['reconstructed_temp'],
+         'b-', linewidth=1.5, alpha=0.7, label='Ice Core Reconstruction')
+ax4.plot(instrument_df['year'], instrument_df['temperature'],
+         'k-', linewidth=2, label='Instrumental', zorder=10)
+ax4.axvspan(1900, 2000, alpha=0.1, color='yellow', label='Calibration Period')
+ax4.axvspan(2001, 2023, alpha=0.1, color='orange', label='Validation Period')
+ax4.set_xlabel('Year')
+ax4.set_ylabel('Temperature Anomaly (°C)')
+ax4.set_title('Individual Proxy Reconstructions')
+ax4.legend(loc='upper left')
+ax4.grid(True, alpha=0.3)
+
+# Panel 5: Integrated reconstruction with uncertainty
+ax5 = fig.add_subplot(gs[3, :])
+ax5.plot(integrated_weighted['year'], integrated_weighted['integrated_temp'],
+         'r-', linewidth=2.5, label='Multi-Proxy Reconstruction', zorder=5)
+ax5.fill_between(
+    integrated_weighted['year'],
+    integrated_weighted['integrated_temp'] - 2 * integrated_weighted['integrated_uncertainty'],
+    integrated_weighted['integrated_temp'] + 2 * integrated_weighted['integrated_uncertainty'],
+    alpha=0.3, color='red', label='95% Confidence Interval'
+)
+ax5.plot(instrument_df['year'], instrument_df['temperature'],
+         'k-', linewidth=2, label='Instrumental', zorder=10)
+ax5.axvspan(1900, 2000, alpha=0.1, color='yellow', label='Calibration Period')
+ax5.axvspan(2001, 2023, alpha=0.1, color='orange', label='Validation Period')
+ax5.set_xlabel('Year')
+ax5.set_ylabel('Temperature Anomaly (°C)')
+ax5.set_title('Integrated Multi-Proxy Temperature Reconstruction (1500-2023)')
+ax5.legend(loc='upper left')
+ax5.grid(True, alpha=0.3)
+
+plt.suptitle('Multi-Proxy Climate Reconstruction Analysis', 
+             fontsize=16, fontweight='bold', y=0.995)
+plt.savefig('multi_proxy_reconstruction.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+print("\n" + "=" * 70)
+print("ANALYSIS COMPLETE")
+print("=" * 70)
+print("\nKey findings:")
+print(f"1. Tree ring reconstruction RMSE: {tree_results['calib_rmse']:.3f}°C")
+print(f"2. Ice core reconstruction RMSE: {ice_results['calib_rmse']:.3f}°C")
+print(f"3. Integrated reconstruction uncertainty: {integrated_weighted['integrated_uncertainty'].iloc[0]:.3f}°C")
+print(f"4. Validation correlation: {valid_corr:.3f}")
+print(f"\nThe variance-weighted approach gives more weight to the more reliable proxy.")
+print("Uncertainty increases in earlier periods due to distance from calibration period.")
+```
+
+### Written Report Summary
+
+**Methodology**: Two proxy types (tree rings and ice cores) were calibrated against instrumental temperature records from 1900-2000. Linear transfer functions were developed relating proxy measurements to temperature. A variance-weighted averaging approach was used to combine reconstructions, giving more weight to proxies with lower calibration error.
+
+**Results**: 
+
+- Tree rings showed R² = 0.65 with calibration RMSE of 0.23°C
+- Ice cores showed R² = 0.58 with calibration RMSE of 0.28°C  
+- The integrated reconstruction achieved validation correlation of 0.81 with RMSE of 0.19°C
+- Tree rings received 60% weight due to lower uncertainty
+
+**Interpretation**: The multi-proxy approach successfully captured major temperature variations over 500 years. Integration reduced reconstruction uncertainty by ~15% compared to individual proxies. The reconstruction shows clear warming in the 20th century consistent with instrumental observations.
+
+**Limitations**: 
+
+1. Simplified linear relationships may not capture nonlinear proxy responses
+2. Assumption of stationarity (constant proxy-climate relationship over time)
+3. Temporal resolution differences between proxies not fully addressed
+4. Spatial representation limited to single location
+5. Potential "divergence problem" in recent decades not explored
+
+**Improvements**: Future work should implement cross-validation, explore nonlinear calibration methods, incorporate additional proxy types, and assess spatial representativeness through comparison with gridded datasets.
+
+## Quiz 📋
+
+Test your understanding of climate records and historical data:
+
+### Question 1
+
+What is the primary purpose of data homogenization in climate records?
+
+A) To make all temperature measurements the same value  
+B) To remove non-climatic biases from long-term records  
+C) To convert temperatures from Fahrenheit to Celsius  
+D) To smooth out year-to-year variability
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) To remove non-climatic biases from long-term records**
+
+Data homogenization identifies and corrects systematic biases introduced by changes in instrumentation, station locations, observation practices, and surrounding environments. This ensures that observed trends reflect actual climate changes rather than artifacts of changing measurement methods.
+:::
+
+### Question 2
+
+Which of the following provides the longest continuous climate record?
+
+A) Satellite observations  
+B) Weather station networks  
+C) Ice core records  
+D) Tree ring chronologies
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**C) Ice core records**
+
+Ice cores from Antarctica can extend back 800,000 years, making them the longest continuous climate archives. Tree rings typically extend back centuries to millennia, weather stations began in the 1800s, and satellites only since the 1960s-70s.
+:::
+
+### Question 3
+
+The δ¹⁸O (delta-18-O) ratio in ice cores primarily indicates:
+
+A) Carbon dioxide concentration  
+B) Temperature at time of precipitation  
+C) Wind speed  
+D) Solar radiation intensity
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Temperature at time of precipitation**
+
+The ratio of heavy (¹⁸O) to light (¹⁶O) oxygen isotopes in ice reflects the temperature conditions when the snow originally formed. Warmer conditions lead to less isotopic fractionation and higher δ¹⁸O values.
+:::
+
+### Question 4
+
+What is a "climate normal" or baseline period?
+
+A) The average weather conditions for a single year  
+B) A reference period (typically 30 years) used to calculate anomalies  
+C) The temperature at which water freezes  
+D) The most common weather pattern in a region
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) A reference period (typically 30 years) used to calculate anomalies**
+
+Climate normals are long-term averages (WMO recommends 30-year periods) used as reference points for calculating anomalies. Current climate conditions are compared against these baselines to assess changes.
+:::
+
+### Question 5
+
+True or False: Tree ring width is influenced only by temperature.
+
+A) True  
+B) False
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) False**
+
+Tree ring width is influenced by multiple factors including temperature, precipitation, soil moisture, competition with other trees, insect damage, and tree age. This is why dendroclimatologists use multiple trees and statistical methods to isolate the climate signal from biological noise.
+:::
+
+### Question 6
+
+The Standard Normal Homogeneity Test (SNHT) is used to:
+
+A) Determine if climate is changing  
+B) Detect breakpoints in climate time series  
+C) Measure temperature with high precision  
+D) Convert between temperature scales
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Detect breakpoints in climate time series**
+
+SNHT is a statistical method for identifying discontinuities (breakpoints) in climate records that may result from station moves, instrumentation changes, or other non-climatic factors. It compares the mean of data before and after potential breakpoints.
+:::
+
+### Question 7
+
+Which statement about paleoclimate proxies is correct?
+
+A) All proxies have annual resolution  
+B) Proxies provide direct measurements of past climate  
+C) Proxies must be calibrated against instrumental data  
+D) All proxies extend back equally far in time
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**C) Proxies must be calibrated against instrumental data**
+
+Paleoclimate proxies are indirect indicators of past climate that require calibration against instrumental observations during periods of overlap. This establishes the quantitative relationship between proxy measurements and climate variables. Different proxies have different temporal resolutions and time spans.
+:::
+
+### Question 8
+
+The Mauna Loa CO₂ record, beginning in 1958, is significant because it:
+
+A) Shows only seasonal variations in CO₂  
+B) Documents the long-term increase in atmospheric CO₂  
+C) Proves that CO₂ levels never change  
+D) Measures only local Hawaiian CO₂ levels
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) Documents the long-term increase in atmospheric CO₂**
+
+The Mauna Loa record provides the longest continuous measurement of atmospheric CO₂ and clearly shows both the seasonal cycle and the long-term anthropogenic increase. It's a cornerstone dataset for understanding climate forcing.
+:::
+
+### Question 9
+
+What is the main advantage of multi-proxy climate reconstructions over single-proxy reconstructions?
+
+A) They are easier to calculate  
+B) They reduce uncertainty by combining independent evidence  
+C) They always extend further back in time  
+D) They don't require calibration
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) They reduce uncertainty by combining independent evidence**
+
+Multi-proxy reconstructions integrate information from multiple independent climate archives, which helps reduce random errors and increases confidence in the reconstruction. Different proxies have different strengths and weaknesses, so combining them provides a more robust estimate.
+:::
+
+### Question 10
+
+Why is temporal coverage important in climate records?
+
+A) It determines how fast data can be downloaded  
+B) It affects the ability to detect long-term trends and natural variability  
+C) It only matters for satellite data  
+D) It determines the physical size of the dataset
+
+::: {.callout-note collapse="true"}
+## Answer
+
+**B) It affects the ability to detect long-term trends and natural variability**
+
+Longer temporal coverage allows scientists to distinguish between short-term variability, multi-decadal cycles, and long-term trends. Understanding natural variability over centuries to millennia is essential for properly interpreting recent climate changes and projecting future conditions.
+:::
+
+### Answer Key Summary
+
+::: {.callout-tip collapse="true"}
+## Complete Answer Key
+
+1. B - Data homogenization removes non-climatic biases
+2. C - Ice cores provide the longest records (up to 800,000 years)
+3. B - δ¹⁸O indicates temperature at time of precipitation
+4. B - Climate normals are 30-year reference periods
+5. B - False, tree rings are influenced by multiple factors
+6. B - SNHT detects breakpoints in time series
+7. C - Proxies must be calibrated against instrumental data
+8. B - Mauna Loa documents long-term CO₂ increase
+9. B - Multi-proxy reconstructions reduce uncertainty
+10. B - Temporal coverage affects trend detection ability
+
+**Scoring Guide:**
+
+- 9-10 correct: Excellent understanding! 🌟
+- 7-8 correct: Good grasp of concepts 👍
+- 5-6 correct: Review key sections 📚
+- Below 5: Revisit the material carefully 📖
+:::
+
+## References
+
+::: {#refs}
+:::

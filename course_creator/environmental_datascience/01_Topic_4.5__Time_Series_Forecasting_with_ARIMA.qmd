@@ -1,0 +1,1293 @@
+---
+title: "Time Series Forecasting with ARIMA"
+subtitle: "Environmental Data Science - Lecture 4: Topic 4.5"
+bibliography: arima_forecasting.bib
+---
+
+## Topic Overview 📊
+
+Time series forecasting is a fundamental skill in environmental data science, enabling us to predict future conditions based on historical patterns. Among the many forecasting methods available, **ARIMA (AutoRegressive Integrated Moving Average)** models stand out as one of the most widely used and theoretically sound approaches for analyzing and predicting temporal data.
+
+ARIMA models are particularly valuable in environmental science because they can capture complex temporal dependencies without requiring extensive domain knowledge or external predictors. These models excel at identifying patterns in data that exhibit:
+
+- **Autocorrelation**: Where current values depend on past values
+- **Trends**: Long-term increases or decreases in the data
+- **Non-stationarity**: Statistical properties that change over time
+
+The beauty of ARIMA lies in its flexibility and interpretability. By combining three key components—autoregression (AR), differencing (I for "integrated"), and moving averages (MA)—ARIMA models can adapt to a wide variety of temporal patterns commonly observed in environmental systems.
+
+**Why is ARIMA Important for Environmental Data Science?** 🌍
+
+In the context of environmental monitoring and prediction, ARIMA models serve several critical functions:
+
+1. **Short to medium-term forecasting**: Predicting air quality indices for the next few days, anticipating temperature anomalies, or forecasting pollution concentrations
+2. **Resource planning**: Helping environmental managers prepare for expected conditions
+3. **Anomaly detection**: Establishing baseline expectations against which unusual events can be identified
+4. **Policy evaluation**: Understanding temporal dynamics before and after environmental interventions
+5. **Data gap filling**: Interpolating missing observations in monitoring networks
+
+Within the broader context of Lecture 4 on Time Series Analysis, ARIMA represents a natural progression from the foundational topics. After understanding time series fundamentals (Topic 4.1), detecting trends (Topic 4.2), decomposing seasonality (Topic 4.3), and analyzing autocorrelation and stationarity (Topic 4.4), we now apply these concepts to build predictive models. ARIMA synthesizes these earlier topics into a unified forecasting framework that can handle the complexities of real-world environmental data.
+
+## Background & Theory 📚
+
+### Historical Context
+
+The development of ARIMA models represents decades of statistical innovation. The autoregressive (AR) and moving average (MA) components were developed separately in the early 20th century, but it was **George Box and Gwilym Jenkins** who unified these approaches in their seminal 1970 book "Time Series Analysis: Forecasting and Control" [@box1970time]. Their systematic methodology for model identification, estimation, and diagnostic checking—now known as the **Box-Jenkins approach**—revolutionized time series analysis and remains the standard framework today.
+
+The "integrated" component (I) addresses non-stationarity through differencing, a technique that had been used informally but was formalized within the ARIMA framework. This innovation made it possible to model a much broader class of time series, including those with trends and other forms of non-stationary behavior common in environmental data.
+
+### Theoretical Foundations
+
+#### The Components of ARIMA
+
+An ARIMA model is denoted as **ARIMA(p, d, q)**, where:
+
+- **p**: Order of the autoregressive component (AR)
+- **d**: Degree of differencing required for stationarity (I)
+- **q**: Order of the moving average component (MA)
+
+Let's explore each component in detail:
+
+#### 1. Autoregressive (AR) Component
+
+The autoregressive component models the current value as a linear combination of past values. An AR(p) process is defined as:
+
+$$
+Y_t = c + \phi_1 Y_{t-1} + \phi_2 Y_{t-2} + \cdots + \phi_p Y_{t-p} + \varepsilon_t
+$$
+
+Where:
+
+- $Y_t$ is the value at time $t$
+- $c$ is a constant
+- $\phi_1, \phi_2, \ldots, \phi_p$ are the autoregressive coefficients
+- $\varepsilon_t$ is white noise (random error) at time $t$
+- $p$ is the order of the AR process
+
+**Intuition**: The AR component captures the idea that environmental conditions today are influenced by conditions in the recent past. For example, today's air quality often depends on yesterday's air quality due to atmospheric persistence and the gradual dispersion of pollutants.
+
+**Example**: An AR(1) model for temperature might be:
+
+$$
+T_t = 15 + 0.7 T_{t-1} + \varepsilon_t
+$$
+
+This suggests that today's temperature is influenced by 70% of yesterday's deviation from the long-term mean, plus some random variation.
+
+#### 2. Moving Average (MA) Component
+
+The moving average component models the current value as a linear combination of past forecast errors. An MA(q) process is defined as:
+
+$$
+Y_t = \mu + \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2} + \cdots + \theta_q \varepsilon_{t-q}
+$$
+
+Where:
+
+- $\mu$ is the mean of the series
+- $\theta_1, \theta_2, \ldots, \theta_q$ are the moving average coefficients
+- $\varepsilon_t, \varepsilon_{t-1}, \ldots$ are white noise terms
+- $q$ is the order of the MA process
+
+**Intuition**: The MA component captures short-term irregularities and shocks that propagate through the system. In environmental contexts, this might represent the lingering effects of a pollution event or weather disturbance.
+
+**Example**: An MA(1) model for pollutant concentration might be:
+
+$$
+C_t = 50 + \varepsilon_t - 0.5 \varepsilon_{t-1}
+$$
+
+This indicates that unexpected shocks to pollutant levels have a dampened effect on the next time period.
+
+#### 3. Integration (I) Component
+
+The integration component addresses non-stationarity through differencing. A time series is differenced by subtracting consecutive observations:
+
+**First difference** (d=1):
+$$
+Y'_t = Y_t - Y_{t-1} = \nabla Y_t
+$$
+
+**Second difference** (d=2):
+$$
+Y''_t = Y'_t - Y'_{t-1} = \nabla^2 Y_t
+$$
+
+**Intuition**: Differencing removes trends and makes the series stationary. Most environmental time series require at most first or second-order differencing. For example, if temperature shows a linear trend, first differencing will remove it, leaving only the fluctuations around the trend.
+
+#### The Complete ARIMA Model
+
+Combining all three components, an ARIMA(p, d, q) model can be written as:
+
+$$
+\phi(B)(1-B)^d Y_t = \theta(B)\varepsilon_t
+$$
+
+Where:
+
+- $B$ is the backshift operator: $B Y_t = Y_{t-1}$
+- $\phi(B) = 1 - \phi_1 B - \phi_2 B^2 - \cdots - \phi_p B^p$ is the AR polynomial
+- $\theta(B) = 1 + \theta_1 B + \theta_2 B^2 + \cdots + \theta_q B^q$ is the MA polynomial
+- $(1-B)^d$ represents the differencing operation
+
+This compact notation expresses the full model structure, though it may seem abstract at first glance.
+
+### The Box-Jenkins Methodology
+
+The Box-Jenkins approach provides a systematic framework for building ARIMA models:
+
+```{mermaid}
+flowchart TD
+    A[Start: Raw Time Series Data] --> B[Step 1: Model Identification]
+    B --> C{Is series stationary?}
+    C -->|No| D[Apply differencing d=1,2,...]
+    D --> C
+    C -->|Yes| E[Examine ACF and PACF plots]
+    E --> F[Propose candidate ARIMA p,d,q values]
+    F --> G[Step 2: Parameter Estimation]
+    G --> H[Estimate model coefficients using MLE]
+    H --> I[Step 3: Diagnostic Checking]
+    I --> J{Residuals are white noise?}
+    J -->|No| K[Modify model structure]
+    K --> F
+    J -->|Yes| L{Model passes other diagnostics?}
+    L -->|No| K
+    L -->|Yes| M[Step 4: Forecasting]
+    M --> N[Generate predictions with confidence intervals]
+    N --> O[End: Validated Forecast Model]
+```
+
+Let's examine each step in detail:
+
+#### Step 1: Model Identification
+
+**Objective**: Determine appropriate values for p, d, and q.
+
+**Stationarity Assessment**:
+
+Before modeling, we must ensure the series is stationary (constant mean, variance, and autocorrelation structure over time). Common tests include:
+
+- **Visual inspection**: Plot the series and look for trends or changing variance
+- **Augmented Dickey-Fuller (ADF) test**: Tests the null hypothesis that a unit root is present (non-stationary)
+- **KPSS test**: Tests the null hypothesis that the series is stationary
+
+**Determining d (differencing order)**:
+
+- Start with d=0 and test for stationarity
+- If non-stationary, apply first differencing (d=1) and retest
+- Rarely need d>2 for environmental data
+- Over-differencing can introduce spurious dynamics
+
+**Determining p and q (AR and MA orders)**:
+
+The **Autocorrelation Function (ACF)** and **Partial Autocorrelation Function (PACF)** are essential diagnostic tools:
+
+**ACF**: Measures correlation between $Y_t$ and $Y_{t-k}$ for various lags k
+
+$$
+\rho_k = \frac{\text{Cov}(Y_t, Y_{t-k})}{\text{Var}(Y_t)}
+$$
+
+**PACF**: Measures correlation between $Y_t$ and $Y_{t-k}$ after removing the linear dependence on intermediate lags
+
+**Pattern Recognition Rules**:
+
+| Model Type | ACF Pattern | PACF Pattern |
+|------------|-------------|--------------|
+| AR(p) | Decays exponentially or in damped sine wave | Cuts off after lag p |
+| MA(q) | Cuts off after lag q | Decays exponentially or in damped sine wave |
+| ARMA(p,q) | Decays exponentially | Decays exponentially |
+
+These patterns help identify candidate models, though in practice, multiple models may need to be tested.
+
+#### Step 2: Parameter Estimation
+
+**Objective**: Estimate the coefficients $\phi_1, \ldots, \phi_p$ and $\theta_1, \ldots, \theta_q$.
+
+**Maximum Likelihood Estimation (MLE)**:
+
+The most common approach is MLE, which finds parameter values that maximize the likelihood of observing the data. For ARIMA models, the likelihood function is:
+
+$$
+L(\phi, \theta, \sigma^2 | Y) = \prod_{t=1}^{n} f(Y_t | Y_{t-1}, \ldots, Y_1; \phi, \theta, \sigma^2)
+$$
+
+Where $f(\cdot)$ is the conditional probability density function of $Y_t$.
+
+In practice, we maximize the log-likelihood:
+
+$$
+\ell(\phi, \theta, \sigma^2) = \log L(\phi, \theta, \sigma^2 | Y)
+$$
+
+Modern software packages like R's `forecast` package handle this optimization automatically using numerical methods.
+
+#### Step 3: Diagnostic Checking
+
+**Objective**: Verify that the model adequately captures the data structure.
+
+**Residual Analysis**:
+
+If the model is appropriate, residuals $\hat{\varepsilon}_t = Y_t - \hat{Y}_t$ should behave as white noise:
+
+1. **Zero mean**: $E[\hat{\varepsilon}_t] \approx 0$
+2. **Constant variance**: No heteroscedasticity
+3. **No autocorrelation**: Residuals should be independent
+4. **Normality**: For inference and prediction intervals
+
+**Diagnostic Tests**:
+
+- **Ljung-Box test**: Tests for autocorrelation in residuals
+  
+$$
+Q = n(n+2)\sum_{k=1}^{h}\frac{\hat{\rho}_k^2}{n-k}
+$$
+
+Where $\hat{\rho}_k$ is the sample autocorrelation of residuals at lag k. Under the null hypothesis (no autocorrelation), Q follows a $\chi^2$ distribution.
+
+- **Normality tests**: Shapiro-Wilk test, Q-Q plots
+- **Heteroscedasticity tests**: Plot residuals vs. fitted values
+
+**Model Selection Criteria**:
+
+When comparing multiple candidate models:
+
+**Akaike Information Criterion (AIC)**:
+$$
+\text{AIC} = -2\log(L) + 2k
+$$
+
+**Bayesian Information Criterion (BIC)**:
+$$
+\text{BIC} = -2\log(L) + k\log(n)
+$$
+
+Where $L$ is the maximized likelihood, $k$ is the number of parameters, and $n$ is the sample size. Lower values indicate better models, with BIC penalizing complexity more heavily.
+
+#### Step 4: Forecasting
+
+**Objective**: Generate future predictions with uncertainty quantification.
+
+**Point Forecasts**:
+
+For an ARIMA model, h-step-ahead forecasts are computed recursively:
+
+$$
+\hat{Y}_{T+h|T} = E[Y_{T+h} | Y_T, Y_{T-1}, \ldots]
+$$
+
+The forecast is the conditional expectation given all past observations.
+
+**Prediction Intervals**:
+
+Uncertainty increases with forecast horizon. The $(1-\alpha)$ prediction interval is:
+
+$$
+\hat{Y}_{T+h|T} \pm z_{\alpha/2} \cdot \sigma_h
+$$
+
+Where $z_{\alpha/2}$ is the critical value from the standard normal distribution and $\sigma_h$ is the forecast standard error at horizon h, which grows with h.
+
+### Special Cases and Extensions
+
+**Seasonal ARIMA (SARIMA)**:
+
+Many environmental time series exhibit seasonality (e.g., annual temperature cycles). SARIMA models extend ARIMA to handle seasonal patterns:
+
+$$
+\text{SARIMA}(p,d,q)(P,D,Q)_s
+$$
+
+Where $(P,D,Q)_s$ represents seasonal components with period s (e.g., s=12 for monthly data with annual seasonality).
+
+**ARIMAX Models**:
+
+ARIMA with eXogenous variables incorporates external predictors:
+
+$$
+Y_t = \beta_0 + \beta_1 X_{1,t} + \cdots + \beta_k X_{k,t} + \eta_t
+$$
+
+Where $\eta_t$ follows an ARIMA process. This is useful when environmental outcomes are influenced by known external factors (e.g., wind speed affecting pollution dispersion).
+
+### Practical Considerations for Environmental Data
+
+**Data Quality Issues**:
+
+- **Missing values**: ARIMA requires complete time series; use interpolation or specialized methods
+- **Outliers**: Can severely affect parameter estimates; consider robust methods or outlier treatment
+- **Measurement error**: Adds noise that may inflate MA terms
+
+**Temporal Resolution**:
+
+- Higher frequency data (hourly, daily) may require more complex models
+- Aggregation to coarser resolution can simplify modeling but loses information
+
+**Non-linear Dynamics**:
+
+- ARIMA assumes linear relationships
+- Environmental systems may exhibit thresholds, regime shifts, or non-linear responses
+- Consider transformations (log, Box-Cox) or alternative methods (machine learning, state-space models) for highly non-linear systems
+
+**Model Limitations**:
+
+- ARIMA works best for short to medium-term forecasts
+- Forecast accuracy degrades rapidly beyond a few time steps
+- Cannot predict structural breaks or unprecedented events
+- Assumes the future will resemble the past
+
+### Connections to Other Topics in the Lecture
+
+**From Topic 4.4 (Autocorrelation and Stationarity)**:
+
+The concepts of ACF, PACF, and stationarity testing learned in the previous topic are directly applied in ARIMA model identification. Understanding these tools is essential for successful ARIMA modeling.
+
+**Toward Topic 4.6 (Advanced Forecasting with Prophet)**:
+
+While ARIMA is powerful, it has limitations with complex seasonality and trend changes. Prophet and other modern methods build on ARIMA's foundations while addressing some of its weaknesses, representing the next evolution in time series forecasting.
+
+For further reading on ARIMA theory and applications, see @hyndman2018forecasting for a comprehensive treatment of forecasting methods, @shumway2017time for rigorous mathematical foundations, and @hipel1994time for environmental applications.
+
+## Practical Example / Code Implementation 💻
+
+Let's implement ARIMA forecasting using real-world environmental data. We'll analyze and forecast atmospheric CO₂ concentrations from the famous Mauna Loa Observatory dataset, which has been continuously monitored since 1958.
+
+### Setup and Data Loading
+
+```{r setup, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show package installation and loading code"
+
+# Install required packages (uncomment if needed)
+# install.packages("tidyverse")
+# install.packages("forecast")
+# install.packages("tseries")
+# install.packages("ggplot2")
+# install.packages("gridExtra")
+
+# Load libraries
+library(tidyverse)
+library(forecast)
+library(tseries)
+library(ggplot2)
+library(gridExtra)
+
+# Set theme for plots
+theme_set(theme_minimal() +
+          theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+                plot.subtitle = element_text(hjust = 0.5)))
+```
+
+```{r load_data, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show data loading code"
+
+# Load CO2 data from Mauna Loa Observatory
+# This is a built-in dataset in R
+data("co2")
+
+# Convert to data frame for easier manipulation
+co2_df <- data.frame(
+  date = as.Date(paste0(floor(time(co2)), "-", 
+                        round((time(co2) %% 1) * 12 + 1), "-01")),
+  co2 = as.numeric(co2)
+)
+
+# Display first few rows
+head(co2_df)
+
+# Summary statistics
+summary(co2_df$co2)
+
+# Plot the original time series
+ggplot(co2_df, aes(x = date, y = co2)) +
+  geom_line(color = "darkgreen", size = 0.8) +
+  labs(title = "Atmospheric CO₂ Concentration at Mauna Loa",
+       subtitle = "Monthly measurements from 1959-1997",
+       x = "Date",
+       y = "CO₂ Concentration (ppm)") +
+  theme_minimal()
+```
+
+### Step 1: Model Identification
+
+```{r identification, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show model identification code"
+
+# Create time series object
+co2_ts <- ts(co2_df$co2, start = c(1959, 1), frequency = 12)
+
+# Check for stationarity using Augmented Dickey-Fuller test
+cat("=== Augmented Dickey-Fuller Test (Original Series) ===\n")
+adf_test <- adf.test(co2_ts)
+print(adf_test)
+
+# The series is clearly non-stationary (has trend and seasonality)
+# Let's visualize this with decomposition
+decomp <- decompose(co2_ts)
+autoplot(decomp) +
+  labs(title = "Time Series Decomposition of CO₂ Data",
+       subtitle = "Showing trend, seasonal, and random components")
+
+# Apply first differencing to remove trend
+co2_diff1 <- diff(co2_ts, differences = 1)
+
+# Test stationarity after first differencing
+cat("\n=== Augmented Dickey-Fuller Test (First Differenced) ===\n")
+adf_test_diff1 <- adf.test(co2_diff1)
+print(adf_test_diff1)
+
+# Plot original vs differenced series
+p1 <- autoplot(co2_ts) +
+  labs(title = "Original Series", y = "CO₂ (ppm)")
+
+p2 <- autoplot(co2_diff1) +
+  labs(title = "First Differenced Series", y = "Change in CO₂")
+
+grid.arrange(p1, p2, ncol = 1)
+
+# Examine ACF and PACF for differenced series
+par(mfrow = c(2, 1))
+acf(co2_diff1, lag.max = 50, main = "ACF of First Differenced CO₂")
+pacf(co2_diff1, lag.max = 50, main = "PACF of First Differenced CO₂")
+par(mfrow = c(1, 1))
+
+# Notice strong seasonal patterns at lag 12, 24, 36...
+# This suggests we need seasonal differencing as well
+
+# Apply seasonal differencing
+co2_diff_seasonal <- diff(co2_diff1, lag = 12)
+
+# Plot seasonally differenced series
+autoplot(co2_diff_seasonal) +
+  labs(title = "First + Seasonal Differenced Series",
+       y = "Differenced CO₂")
+
+# ACF and PACF of seasonally differenced series
+par(mfrow = c(2, 1))
+acf(co2_diff_seasonal, lag.max = 50, 
+    main = "ACF of Differenced + Seasonal Differenced CO₂")
+pacf(co2_diff_seasonal, lag.max = 50, 
+     main = "PACF of Differenced + Seasonal Differenced CO₂")
+par(mfrow = c(1, 1))
+```
+
+### Step 2: Model Fitting
+
+```{r model_fitting, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show model fitting code"
+
+# Based on ACF/PACF analysis, we'll fit several candidate models
+# The auto.arima function can also help identify good models automatically
+
+# Manual model specification: SARIMA(1,1,1)(1,1,1)[12]
+# This includes both non-seasonal and seasonal components
+model_manual <- Arima(co2_ts, 
+                      order = c(1, 1, 1),  # Non-seasonal: p, d, q
+                      seasonal = list(order = c(1, 1, 1), period = 12))  # Seasonal
+
+cat("=== Manually Specified Model ===\n")
+print(summary(model_manual))
+
+# Automatic model selection using auto.arima
+# This function searches through different combinations and selects based on AIC
+model_auto <- auto.arima(co2_ts, 
+                         seasonal = TRUE,
+                         stepwise = FALSE,  # More thorough search
+                         approximation = FALSE,
+                         trace = TRUE)  # Show search process
+
+cat("\n=== Auto-selected Model ===\n")
+print(summary(model_auto))
+
+# Compare AIC and BIC
+cat("\n=== Model Comparison ===\n")
+cat("Manual Model - AIC:", model_manual$aic, "BIC:", model_manual$bic, "\n")
+cat("Auto Model   - AIC:", model_auto$aic, "BIC:", model_auto$bic, "\n")
+
+# We'll use the auto-selected model for further analysis
+final_model <- model_auto
+```
+
+### Step 3: Diagnostic Checking
+
+```{r diagnostics, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show diagnostic checking code"
+
+# Extract residuals
+residuals <- residuals(final_model)
+
+# 1. Check residual plots
+checkresiduals(final_model)
+
+# 2. Ljung-Box test for autocorrelation in residuals
+cat("\n=== Ljung-Box Test ===\n")
+lb_test <- Box.test(residuals, lag = 20, type = "Ljung-Box", fitdf = 4)
+print(lb_test)
+
+# 3. Normality test
+cat("\n=== Shapiro-Wilk Normality Test ===\n")
+shapiro_test <- shapiro.test(residuals)
+print(shapiro_test)
+
+# 4. Additional residual diagnostics
+par(mfrow = c(2, 2))
+
+# Residuals over time
+plot(residuals, main = "Residuals Over Time", ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+# Histogram of residuals
+hist(residuals, breaks = 30, main = "Histogram of Residuals",
+     xlab = "Residuals", col = "lightblue")
+
+# Q-Q plot
+qqnorm(residuals, main = "Q-Q Plot")
+qqline(residuals, col = "red")
+
+# Residuals vs fitted
+fitted_vals <- fitted(final_model)
+plot(fitted_vals, residuals, main = "Residuals vs Fitted",
+     xlab = "Fitted Values", ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+
+par(mfrow = c(1, 1))
+
+# Interpretation
+cat("\n=== Diagnostic Interpretation ===\n")
+cat("1. Ljung-Box test p-value:", round(lb_test$p.value, 4), "\n")
+if(lb_test$p.value > 0.05) {
+  cat("   ✓ No significant autocorrelation in residuals (good!)\n")
+} else {
+  cat("   ✗ Significant autocorrelation detected (model may need improvement)\n")
+}
+
+cat("2. Shapiro-Wilk test p-value:", round(shapiro_test$p.value, 4), "\n")
+if(shapiro_test$p.value > 0.05) {
+  cat("   ✓ Residuals appear normally distributed (good!)\n")
+} else {
+  cat("   ✗ Residuals deviate from normality (predictions intervals may be affected)\n")
+}
+```
+
+### Step 4: Forecasting
+
+```{r forecasting, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show forecasting code"
+
+# Generate forecasts for the next 5 years (60 months)
+forecast_horizon <- 60
+co2_forecast <- forecast(final_model, h = forecast_horizon)
+
+# Print forecast summary
+print(co2_forecast)
+
+# Plot forecast
+autoplot(co2_forecast) +
+  labs(title = "CO₂ Concentration Forecast",
+       subtitle = "5-year ahead prediction with 80% and 95% confidence intervals",
+       x = "Time",
+       y = "CO₂ Concentration (ppm)") +
+  theme_minimal()
+
+# Zoom in on the forecast period
+autoplot(co2_forecast, include = 120) +  # Show last 10 years + forecast
+  labs(title = "CO₂ Concentration Forecast (Zoomed)",
+       subtitle = "Last 10 years of data plus 5-year forecast",
+       x = "Time",
+       y = "CO₂ Concentration (ppm)") +
+  theme_minimal()
+
+# Extract point forecasts and intervals
+forecast_df <- data.frame(
+  date = seq.Date(from = as.Date("1998-01-01"), 
+                  by = "month", 
+                  length.out = forecast_horizon),
+  point_forecast = as.numeric(co2_forecast$mean),
+  lower_80 = as.numeric(co2_forecast$lower[, 1]),
+  upper_80 = as.numeric(co2_forecast$upper[, 1]),
+  lower_95 = as.numeric(co2_forecast$lower[, 2]),
+  upper_95 = as.numeric(co2_forecast$upper[, 2])
+)
+
+# Display first few forecasts
+head(forecast_df, 12)
+
+# Calculate forecast accuracy metrics on training data
+accuracy_metrics <- accuracy(final_model)
+cat("\n=== Model Accuracy Metrics ===\n")
+print(accuracy_metrics)
+
+# Interpretation
+cat("\n=== Forecast Interpretation ===\n")
+cat("The model forecasts continued increase in CO₂ concentrations.\n")
+cat("At 1 year ahead (Jan 1999):\n")
+cat("  Point forecast:", round(forecast_df$point_forecast[1], 2), "ppm\n")
+cat("  95% CI: [", round(forecast_df$lower_95[1], 2), ",", 
+    round(forecast_df$upper_95[1], 2), "] ppm\n\n")
+cat("At 5 years ahead (Jan 2003):\n")
+cat("  Point forecast:", round(forecast_df$point_forecast[60], 2), "ppm\n")
+cat("  95% CI: [", round(forecast_df$lower_95[60], 2), ",", 
+    round(forecast_df$upper_95[60], 2), "] ppm\n")
+cat("\nNote: Uncertainty (width of confidence intervals) increases with forecast horizon.\n")
+```
+
+### Model Interpretation and Key Insights
+
+```{r interpretation, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show interpretation code"
+
+# Extract and interpret model coefficients
+cat("=== Model Coefficients ===\n")
+coef_summary <- coef(final_model)
+print(coef_summary)
+
+cat("\n=== Model Structure ===\n")
+cat("Selected Model:", final_model$arma, "\n")
+cat("This is a SARIMA model with:\n")
+cat("  - Non-seasonal AR order (p):", final_model$arma[1], "\n")
+cat("  - Non-seasonal MA order (q):", final_model$arma[2], "\n")
+cat("  - Seasonal AR order (P):", final_model$arma[3], "\n")
+cat("  - Seasonal MA order (Q):", final_model$arma[4], "\n")
+cat("  - Seasonal period:", final_model$arma[5], "\n")
+cat("  - Non-seasonal differencing (d):", final_model$arma[6], "\n")
+cat("  - Seasonal differencing (D):", final_model$arma[7], "\n")
+
+cat("\n=== Key Findings ===\n")
+cat("1. The CO₂ time series exhibits strong trend and seasonality\n")
+cat("2. Both non-seasonal and seasonal differencing were required for stationarity\n")
+cat("3. The model captures the annual cycle (seasonal period = 12 months)\n")
+cat("4. Residuals pass diagnostic checks, indicating good model fit\n")
+cat("5. Forecast uncertainty increases with prediction horizon\n")
+cat("6. The model projects continued CO₂ increase, consistent with climate science\n")
+```
+
+This example demonstrates the complete ARIMA workflow:
+
+- **Data preparation**: Loading and exploring environmental time series
+- **Identification**: Testing stationarity, examining ACF/PACF, determining model orders
+- **Estimation**: Fitting models manually and automatically
+- **Diagnostics**: Checking residuals for white noise properties
+- **Forecasting**: Generating predictions with uncertainty quantification
+
+The CO₂ example is particularly relevant for environmental data science because it exhibits common features: trend, seasonality, and autocorrelation. The skills learned here transfer directly to other environmental forecasting problems like air quality prediction, temperature anomaly forecasting, and pollution concentration modeling.
+
+## Student Exercise 📝
+
+### Exercise: Forecasting Daily Air Quality Index (AQI)
+
+**Background**: You are an environmental data scientist working for a city's public health department. Your task is to develop an ARIMA model to forecast the daily Air Quality Index (AQI) for the next two weeks to help the department issue advance warnings to sensitive populations.
+
+**Dataset**: Use the synthetic AQI dataset provided below, which simulates daily AQI measurements for a city over three years. The data includes typical patterns found in real air quality data: weekly cycles (lower on weekends), seasonal variation (worse in summer and winter), and autocorrelation.
+
+**Tasks**:
+
+1. **Data Exploration** (10 minutes)
+   - Load and visualize the AQI time series
+   - Calculate summary statistics
+   - Identify any obvious patterns, trends, or seasonality
+
+2. **Stationarity Analysis** (10 minutes)
+   - Test for stationarity using the Augmented Dickey-Fuller test
+   - If non-stationary, apply appropriate differencing
+   - Plot ACF and PACF to identify potential model orders
+
+3. **Model Building** (15 minutes)
+   - Fit at least three candidate ARIMA models:
+     - One specified manually based on ACF/PACF analysis
+     - One using `auto.arima()`
+     - One alternative model of your choice
+   - Compare models using AIC and BIC
+
+4. **Diagnostics** (10 minutes)
+   - Perform residual analysis for your best model
+   - Conduct Ljung-Box test for residual autocorrelation
+   - Check normality of residuals
+   - Interpret the diagnostic results
+
+5. **Forecasting** (10 minutes)
+   - Generate 14-day ahead forecasts with 95% prediction intervals
+   - Visualize the forecast
+   - Interpret the results: What does the model predict? How certain are the predictions?
+
+6. **Reflection** (5 minutes)
+   - What are the limitations of this ARIMA model for AQI forecasting?
+   - What additional information might improve predictions?
+   - How would you communicate forecast uncertainty to public health officials?
+
+**Generate the synthetic dataset using this code:**
+
+```{r exercise_data, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show exercise data generation code"
+
+# Set seed for reproducibility
+set.seed(123)
+
+# Generate 3 years of daily data
+n_days <- 3 * 365
+dates <- seq.Date(from = as.Date("2020-01-01"), by = "day", length.out = n_days)
+
+# Create components
+# Trend: slight increase over time
+trend <- seq(50, 65, length.out = n_days)
+
+# Seasonal component: worse in summer (June-Aug) and winter (Dec-Feb)
+seasonal <- 15 * sin(2 * pi * (as.numeric(format(dates, "%j")) - 172) / 365)
+
+# Weekly cycle: better on weekends
+weekly <- ifelse(weekdays(dates) %in% c("Saturday", "Sunday"), -8, 2)
+
+# Autoregressive component
+ar_component <- arima.sim(n = n_days, list(ar = c(0.6, 0.2)), sd = 5)
+
+# Combine components and add noise
+aqi <- trend + seasonal + weekly + ar_component + rnorm(n_days, 0, 3)
+
+# Ensure AQI is positive and realistic (0-200 scale)
+aqi <- pmax(pmin(aqi, 200), 0)
+
+# Create data frame
+aqi_data <- data.frame(
+  date = dates,
+  aqi = round(aqi, 1)
+)
+
+# Save to CSV for students
+write.csv(aqi_data, "aqi_data.csv", row.names = FALSE)
+
+# Display first few rows
+cat("AQI Dataset (first 10 days):\n")
+print(head(aqi_data, 10))
+
+# Plot the data
+ggplot(aqi_data, aes(x = date, y = aqi)) +
+  geom_line(color = "steelblue", alpha = 0.7) +
+  labs(title = "Daily Air Quality Index (AQI)",
+       subtitle = "3 years of synthetic data",
+       x = "Date",
+       y = "AQI",
+       caption = "Lower values indicate better air quality") +
+  theme_minimal()
+```
+
+**Submission**: Prepare a brief report (can be a Quarto document) that includes:
+
+- Your code with comments explaining each step
+- Visualizations of the data, diagnostics, and forecasts
+- Written interpretation of your findings
+- Discussion of model limitations and potential improvements
+
+**Bonus Challenge** (Optional): 
+
+- Investigate whether including day-of-week as an external regressor (ARIMAX) improves the model
+- Compare your ARIMA forecast to a simple baseline (e.g., seasonal naive forecast)
+- Calculate forecast accuracy metrics if you split the data into training and test sets
+
+## Exercise Solution 🔍
+
+```{r solution_setup, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show solution setup"
+
+# Load the data (assuming it's already generated from the exercise)
+# If starting fresh, run the exercise data generation code first
+aqi_data <- read.csv("aqi_data.csv")
+aqi_data$date <- as.Date(aqi_data$date)
+```
+
+### Task 1: Data Exploration
+
+```{r solution_exploration, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show exploration solution"
+
+# Summary statistics
+cat("=== AQI Summary Statistics ===\n")
+summary(aqi_data$aqi)
+cat("\nStandard Deviation:", round(sd(aqi_data$aqi), 2), "\n")
+
+# Visualize the time series
+p1 <- ggplot(aqi_data, aes(x = date, y = aqi)) +
+  geom_line(color = "steelblue", alpha = 0.7) +
+  geom_smooth(method = "loess", color = "red", se = FALSE) +
+  labs(title = "Daily AQI Time Series with Trend",
+       x = "Date", y = "AQI") +
+  theme_minimal()
+
+# Check for weekly patterns
+aqi_data$weekday <- weekdays(aqi_data$date)
+aqi_data$weekday <- factor(aqi_data$weekday, 
+                           levels = c("Monday", "Tuesday", "Wednesday", 
+                                     "Thursday", "Friday", "Saturday", "Sunday"))
+
+p2 <- ggplot(aqi_data, aes(x = weekday, y = aqi)) +
+  geom_boxplot(fill = "lightblue") +
+  labs(title = "AQI by Day of Week",
+       x = "Day of Week", y = "AQI") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+grid.arrange(p1, p2, ncol = 1)
+
+# Check for seasonal patterns
+aqi_data$month <- format(aqi_data$date, "%b")
+aqi_data$month <- factor(aqi_data$month, 
+                        levels = c("Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                                  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"))
+
+ggplot(aqi_data, aes(x = month, y = aqi)) +
+  geom_boxplot(fill = "lightgreen") +
+  labs(title = "AQI by Month",
+       subtitle = "Showing seasonal patterns",
+       x = "Month", y = "AQI") +
+  theme_minimal()
+
+cat("\n=== Key Observations ===\n")
+cat("1. Overall trend: Slight increase over time\n")
+cat("2. Weekly pattern: Lower AQI on weekends\n")
+cat("3. Seasonal pattern: Higher AQI in summer and winter months\n")
+cat("4. Presence of autocorrelation (values cluster together)\n")
+```
+
+### Task 2: Stationarity Analysis
+
+```{r solution_stationarity, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show stationarity analysis solution"
+
+# Create time series object
+aqi_ts <- ts(aqi_data$aqi, frequency = 7)  # Weekly seasonality
+
+# Test for stationarity
+cat("=== Augmented Dickey-Fuller Test (Original) ===\n")
+adf_original <- adf.test(aqi_ts)
+print(adf_original)
+
+if(adf_original$p.value > 0.05) {
+  cat("\nSeries is NON-STATIONARY (p-value > 0.05)\n")
+  cat("Applying first differencing...\n\n")
+  
+  # Apply first differencing
+  aqi_diff <- diff(aqi_ts, differences = 1)
+  
+  # Test again
+  cat("=== Augmented Dickey-Fuller Test (Differenced) ===\n")
+  adf_diff <- adf.test(aqi_diff)
+  print(adf_diff)
+  
+  if(adf_diff$p.value <= 0.05) {
+    cat("\nDifferenced series is STATIONARY (p-value ≤ 0.05)\n")
+  }
+} else {
+  cat("\nSeries appears STATIONARY (p-value ≤ 0.05)\n")
+  aqi_diff <- aqi_ts
+}
+
+# Plot ACF and PACF
+par(mfrow = c(2, 2))
+plot(aqi_ts, main = "Original Series", ylab = "AQI")
+plot(aqi_diff, main = "Differenced Series", ylab = "Differenced AQI")
+acf(aqi_diff, lag.max = 40, main = "ACF of Differenced Series")
+pacf(aqi_diff, lag.max = 40, main = "PACF of Differenced Series")
+par(mfrow = c(1, 1))
+
+cat("\n=== ACF/PACF Interpretation ===\n")
+cat("ACF: Shows gradual decay with some significant lags\n")
+cat("PACF: Shows significant spikes at early lags (1-3)\n")
+cat("Weekly pattern visible at lag 7 and multiples\n")
+cat("Suggested models: ARIMA(2,1,1) or ARIMA(3,1,1)\n")
+```
+
+### Task 3: Model Building
+
+```{r solution_modeling, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show model building solution"
+
+# Model 1: Manual specification based on ACF/PACF
+cat("=== Model 1: Manual ARIMA(2,1,1) ===\n")
+model1 <- Arima(aqi_ts, order = c(2, 1, 1))
+print(summary(model1))
+
+# Model 2: Auto ARIMA
+cat("\n=== Model 2: Auto ARIMA ===\n")
+model2 <- auto.arima(aqi_ts, 
+                     seasonal = TRUE,
+                     stepwise = FALSE,
+                     approximation = FALSE,
+                     trace = FALSE)
+print(summary(model2))
+
+# Model 3: Alternative with weekly seasonality
+cat("\n=== Model 3: ARIMA with weekly seasonality ===\n")
+model3 <- Arima(aqi_ts, order = c(1, 1, 1), 
+                seasonal = list(order = c(1, 0, 1), period = 7))
+print(summary(model3))
+
+# Compare models
+cat("\n=== Model Comparison ===\n")
+comparison <- data.frame(
+  Model = c("ARIMA(2,1,1)", 
+            paste0("Auto: ", paste(model2$arma[c(1,6,2)], collapse=",")),
+            "ARIMA(1,1,1)(1,0,1)[7]"),
+  AIC = c(model1$aic, model2$aic, model3$aic),
+  BIC = c(model1$bic, model2$bic, model3$bic)
+)
+print(comparison)
+
+# Select best model (lowest AIC)
+best_model_idx <- which.min(comparison$AIC)
+cat("\nBest model by AIC:", comparison$Model[best_model_idx], "\n")
+
+# Use model2 (auto.arima result) for further analysis
+final_model <- model2
+```
+
+### Task 4: Diagnostics
+
+```{r solution_diagnostics, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show diagnostics solution"
+
+cat("=== Diagnostic Checking for Selected Model ===\n\n")
+
+# Automated diagnostics
+checkresiduals(final_model)
+
+# Ljung-Box test
+cat("\n=== Ljung-Box Test ===\n")
+lb_test <- Box.test(residuals(final_model), lag = 20, 
+                    type = "Ljung-Box", 
+                    fitdf = sum(final_model$arma[1:2]))
+print(lb_test)
+
+if(lb_test$p.value > 0.05) {
+  cat("✓ No significant autocorrelation in residuals (p =", 
+      round(lb_test$p.value, 3), ")\n")
+} else {
+  cat("✗ Significant autocorrelation detected (p =", 
+      round(lb_test$p.value, 3), ")\n")
+}
+
+# Shapiro-Wilk test for normality
+cat("\n=== Shapiro-Wilk Normality Test ===\n")
+shapiro_test <- shapiro.test(residuals(final_model))
+print(shapiro_test)
+
+if(shapiro_test$p.value > 0.05) {
+  cat("✓ Residuals appear normally distributed (p =", 
+      round(shapiro_test$p.value, 3), ")\n")
+} else {
+  cat("⚠ Residuals show some deviation from normality (p =", 
+      round(shapiro_test$p.value, 3), ")\n")
+  cat("  This may affect prediction interval coverage\n")
+}
+
+# Additional plots
+par(mfrow = c(2, 2))
+res <- residuals(final_model)
+plot(res, main = "Residuals Over Time", ylab = "Residuals")
+abline(h = 0, col = "red", lty = 2)
+hist(res, breaks = 30, main = "Histogram of Residuals", col = "lightblue")
+qqnorm(res, main = "Q-Q Plot")
+qqline(res, col = "red")
+acf(res, main = "ACF of Residuals")
+par(mfrow = c(1, 1))
+
+cat("\n=== Overall Diagnostic Assessment ===\n")
+cat("The model shows:", "\n")
+cat("- Residuals appear randomly distributed around zero\n")
+cat("- No significant autocorrelation remaining\n")
+cat("- Approximately normal distribution (minor deviations acceptable)\n")
+cat("- Model is adequate for forecasting\n")
+```
+
+### Task 5: Forecasting
+
+```{r solution_forecasting, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show forecasting solution"
+
+# Generate 14-day forecast
+forecast_horizon <- 14
+aqi_forecast <- forecast(final_model, h = forecast_horizon)
+
+# Print forecast
+cat("=== 14-Day AQI Forecast ===\n")
+print(aqi_forecast)
+
+# Plot forecast
+autoplot(aqi_forecast, include = 60) +
+  labs(title = "14-Day AQI Forecast",
+       subtitle = "Last 60 days of data plus 14-day forecast with 80% and 95% CIs",
+       x = "Time (days)",
+       y = "AQI") +
+  theme_minimal()
+
+# Create detailed forecast table
+forecast_dates <- seq.Date(from = max(aqi_data$date) + 1, 
+                           by = "day", 
+                           length.out = forecast_horizon)
+
+forecast_df <- data.frame(
+  Date = forecast_dates,
+  Weekday = weekdays(forecast_dates),
+  Point_Forecast = round(as.numeric(aqi_forecast$mean), 1),
+  Lower_95 = round(as.numeric(aqi_forecast$lower[, 2]), 1),
+  Upper_95 = round(as.numeric(aqi_forecast$upper[, 2]), 1),
+  Interval_Width = round(as.numeric(aqi_forecast$upper[, 2] - 
+                                    aqi_forecast$lower[, 2]), 1)
+)
+
+cat("\n=== Detailed Forecast Table ===\n")
+print(forecast_df)
+
+# Visualize uncertainty growth
+ggplot(forecast_df, aes(x = Date)) +
+  geom_line(aes(y = Point_Forecast), color = "blue", size = 1) +
+  geom_ribbon(aes(ymin = Lower_95, ymax = Upper_95), 
+              alpha = 0.3, fill = "blue") +
+  geom_point(aes(y = Point_Forecast), color = "blue", size = 2) +
+  labs(title = "AQI Forecast with Uncertainty",
+       subtitle = "95% prediction intervals",
+       x = "Date",
+       y = "Predicted AQI") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+cat("\n=== Forecast Interpretation ===\n")
+cat("1. Point forecasts range from", min(forecast_df$Point_Forecast),
+    "to", max(forecast_df$Point_Forecast), "AQI\n")
+cat("2. Average predicted AQI:", round(mean(forecast_df$Point_Forecast), 1), "\n")
+cat("3. Uncertainty (95% CI width) ranges from", 
+    min(forecast_df$Interval_Width), "to", 
+    max(forecast_df$Interval_Width), "AQI points\n")
+cat("4. Uncertainty increases with forecast horizon (as expected)\n")
+cat("5. No extreme values predicted; air quality expected to remain moderate\n")
+
+# Calculate accuracy on training data
+accuracy_metrics <- accuracy(final_model)
+cat("\n=== Model Accuracy (Training Data) ===\n")
+print(accuracy_metrics)
+```
+
+### Task 6: Reflection
+
+```{r solution_reflection, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show reflection solution"
+
+cat("=== Model Limitations and Considerations ===\n\n")
+
+cat("1. LIMITATIONS OF THIS ARIMA MODEL:\n")
+cat("   - Cannot predict unprecedented events (e.g., wildfires, industrial accidents)\n")
+cat("   - Assumes future patterns will resemble the past\n")
+cat("   - Does not incorporate meteorological variables (wind, temperature, humidity)\n")
+cat("   - Limited to short-term forecasts (accuracy degrades beyond 2 weeks)\n")
+cat("   - May not capture non-linear relationships or threshold effects\n")
+cat("   - Weekly patterns may change due to holidays or special events\n\n")
+
+cat("2. ADDITIONAL INFORMATION TO IMPROVE PREDICTIONS:\n")
+cat("   - Weather forecasts (wind speed/direction, temperature, precipitation)\n")
+cat("   - Traffic patterns and vehicle emissions data\n")
+cat("   - Industrial activity schedules\n")
+cat("   - Seasonal factors (pollen, agricultural burning)\n")
+cat("   - Spatial information from nearby monitoring stations\n")
+cat("   - Holiday calendars and special events\n\n")
+
+cat("3. COMMUNICATING UNCERTAINTY TO PUBLIC HEALTH OFFICIALS:\n")
+cat("   - Use visual aids: Show forecast ranges, not just point estimates\n")
+cat("   - Provide probability statements: 'There is a 95% chance AQI will be between X and Y'\n")
+cat("   - Explain forecast horizon: Emphasize that near-term forecasts are more reliable\n")
+cat("   - Use categorical language: 'Good', 'Moderate', 'Unhealthy' rather than exact numbers\n")
+cat("   - Update frequently: Revise forecasts as new data becomes available\n")
+cat("   - Provide context: Compare to historical patterns and health thresholds\n")
+cat("   - Be transparent: Acknowledge limitations and scenarios not captured by the model\n\n")
+
+cat("4. RECOMMENDED NEXT STEPS:\n")
+cat("   - Validate forecasts against held-out test data\n")
+cat("   - Compare ARIMA performance to other methods (Prophet, machine learning)\n")
+cat("   - Develop ensemble forecasts combining multiple models\n")
+cat("   - Implement real-time updating as new observations arrive\n")
+cat("   - Create automated alert system for predicted high AQI days\n")
+cat("   - Establish feedback loop with public health officials to improve model utility\n")
+```
+
+### Bonus Challenge Solution
+
+```{r solution_bonus, code_fold=TRUE}
+#| code-fold: true
+#| code-summary: "Show bonus challenge solution"
+
+cat("=== BONUS: ARIMAX with Day-of-Week Regressor ===\n\n")
+
+# Create day-of-week dummy variables
+aqi_data$is_weekend <- as.numeric(weekdays(aqi_data$date) %in% 
+                                  c("Saturday", "Sunday"))
+
+# Fit ARIMAX model
+model_arimax <- auto.arima(aqi_ts, 
+                           xreg = aqi_data$is_weekend,
+                           seasonal = TRUE,
+                           stepwise = FALSE)
+
+cat("ARIMAX Model Summary:\n")
+print(summary(model_arimax))
+
+# Compare to original model
+cat("\n=== Comparison: ARIMA vs ARIMAX ===\n")
+cat("Original ARIMA AIC:", final_model$aic, "\n")
+cat("ARIMAX AIC:", model_arimax$aic, "\n")
+cat("Improvement:", final_model$aic - model_arimax$aic, "AIC points\n")
+
+if(model_arimax$aic < final_model$aic) {
+  cat("\n✓ ARIMAX shows improvement by incorporating weekend effect\n")
+} else {
+  cat("\n⚠ ARIMAX does not substantially improve the model\n")
+}
+
+# For forecasting with ARIMAX, need future weekend indicators
+future_dates <- seq.Date(from = max(aqi_data$date) + 1, 
+                        by = "day", 
+                        length.out = 14)
+future_weekend <- as.numeric(weekdays(future_dates) %in% 
+                            c("Saturday", "Sunday"))
+
+# Generate ARIMAX forecast
+arimax_forecast <- forecast(model_arimax, h = 14, xreg = future_weekend)
+
+# Compare forecasts
+comparison_plot <- autoplot(aqi_forecast, include = 60) +
+  autolayer(arimax_forecast, series = "ARIMAX", PI = FALSE) +
+  labs(title = "Forecast Comparison: ARIMA vs ARIMAX",
+       y = "AQI") +
+  theme_minimal()
+
+print(comparison_plot)
+
+cat("\n=== BONUS: Baseline Comparison ===\n\n")
+
+# Seasonal naive forecast (repeat last week)
+naive_forecast <- snaive(aqi_ts, h = 14)
+
+# If we had test data, we could calculate:
+# accuracy(final_model, test_data)
+# accuracy(naive_forecast, test_data)
+
+cat("Seasonal Naive Forecast created for comparison\n")
+cat("Note: True accuracy comparison requires held-out test data\n")
+
+# Visual comparison
+comparison_all <- autoplot(aqi_forecast, include = 60) +
+  autolayer(naive_forecast, series = "Seasonal Naive", PI = FALSE) +
+  labs(title = "Forecast Comparison: ARIMA vs Seasonal Naive",
+       subtitle = "ARIMA should outperform simple baseline",
+       y = "AQI") +
+  theme_minimal()
+
+print(comparison_all)
+```
+
+This comprehensive solution demonstrates all aspects of the ARIMA modeling workflow, from data exploration through forecasting and model evaluation. Students should aim for similar thoroughness in their own analyses, with clear documentation and interpretation at each step.
+
+## Quiz 📝
+
+Test your understanding of Time Series Forecasting with ARIMA! Click on each question to reveal the answer.
+
+<details>
+<summary><strong>Question 1:</strong> What do the letters in ARIMA stand for?</summary>
+
+**Answer:** ARIMA stands for **AutoRegressive Integrated Moving Average**. The three components are: AR (AutoRegressive) which models dependence on past values, I (Integrated) which refers to differencing to achieve stationarity, and MA (Moving Average) which models dependence on past forecast errors.
+
+</details>
+
+<details>
+<summary><strong>Question 2:</strong> In an ARIMA(2,1,3) model, what does the "1" represent?</summary>
+
+**Answer:** The "1" represents the **degree of differencing (d=1)**. This means the original time series is differenced once to achieve stationarity before fitting the ARMA components. First differencing is calculated as: $Y'_t = Y_t - Y_{t-1}$.
+
+</details>
+
+<details>
+<summary><strong>Question 3:</strong> True or False: An AR(1) process means that the current value depends only on the immediately preceding value.</summary>
+
+**Answer:** **True**. An AR(1) process has the form $Y_t = c + \phi_1 Y_{t-1} + \varepsilon_t$, where the current value $Y_t$ depends only on the previous value $Y_{t-1}$ plus a random error term. Higher order AR processes (e.g., AR(2)) would include additional lagged values.
+
+</details>
+
+<details>
+<summary><strong>Question 4:</strong> What is the primary purpose of the ACF (Autocorrelation Function) in ARIMA modeling?</summary>
+
+**Answer:** The ACF helps **identify the order of the MA component (q)** and assess the overall temporal dependence structure. For a pure MA(q) process, the ACF cuts off after lag q. The ACF also helps determine if differencing is needed by showing whether correlations decay slowly (indicating non-stationarity).
+
+</details>
+
+<details>
+<summary><strong>Question 5:</strong> True or False: ARIMA models require the time series to be stationary before fitting the AR and MA components.</summary>
+
+**Answer:** **True**. Stationarity (constant mean, variance, and autocorrelation structure over time) is required for the AR and MA components. This is why the "I" (Integrated/differencing) component exists—to transform non-stationary series into stationary ones before fitting the ARMA model.
+
+</details>
+
+<details>
+<summary><strong>Question 6:</strong> Which diagnostic test is commonly used to check for autocorrelation in ARIMA model residuals?</summary>
+
+**Answer:** The **Ljung-Box test** is the most commonly used diagnostic for checking residual autocorrelation. If residuals show significant autocorrelation (p-value < 0.05), it suggests the model hasn't fully captured the temporal structure, and a different model specification may be needed.
+
+</details>
+
+<details>
+<summary><strong>Question 7:</strong> In the Box-Jenkins methodology, which step comes first?</summary>
+
+**Answer:** **Model Identification** comes first. The Box-Jenkins methodology follows this order: (1) Model Identification (determining p, d, q using stationarity tests and ACF/PACF), (2) Parameter Estimation (fitting the model using MLE), (3) Diagnostic Checking (validating residuals), and (4) Forecasting (generating predictions).
+
+</details>
+
+<details>
+<summary><strong>Question 8:</strong> True or False: Prediction intervals in ARIMA forecasts get narrower as the forecast horizon increases.</summary>
+
+**Answer:** **False**. Prediction intervals get **wider** as the forecast horizon increases. This reflects growing uncertainty about future values—we're more confident about tomorrow's forecast than next month's forecast. The forecast standard error $\sigma_h$ increases with horizon h.
+
+</details>
+
+<details>
+<summary><strong>Question 9:</strong> What does it mean if the PACF cuts off after lag 2?</summary>
+
+**Answer:** If the PACF cuts off after lag 2, it suggests an **AR(2) process** (p=2). The partial autocorrelation measures the correlation between $Y_t$ and $Y_{t-k}$ after removing the influence of intermediate lags. A cutoff at lag p is characteristic of an AR(p) process.
+
+</details>
+
+<details>
+<summary><strong>Question 10:</strong> Which criterion penalizes model complexity more heavily: AIC or BIC?</summary>
+
+**Answer:** **BIC (Bayesian Information Criterion)** penalizes complexity more heavily than AIC. BIC includes a term $k\log(n)$ where n is sample size, while AIC uses $2k$ where k is the number of parameters. For large samples, BIC's penalty grows with sample size, favoring more parsimonious models than AIC.
+
+</details>
+
+---
+
+### Quiz Answer Key 🔑
+
+1. AutoRegressive Integrated Moving Average
+2. Degree of differencing (d=1)
+3. True
+4. Identify MA order (q) and assess temporal dependence
+5. True
+6. Ljung-Box test
+7. Model Identification
+8. False (they get wider)
+9. Suggests an AR(2) process
+10. BIC penalizes complexity more heavily
+
+---
+
+## References
+
+::: {#refs}
+:::

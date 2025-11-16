@@ -1,0 +1,1560 @@
+---
+title: "Environmental Sensor Networks"
+subtitle: "Lecture 2: Data Types and Sources in Environmental Science"
+bibliography: environmental_sensor_networks.bib
+---
+
+## Topic Overview 🌐
+
+Environmental sensor networks represent a transformative approach to monitoring our planet's vital signs in real-time. These networks consist of interconnected devices deployed across landscapes, water bodies, and atmospheric zones to continuously measure environmental parameters such as air quality, water chemistry, soil moisture, temperature, and meteorological conditions. Unlike traditional monitoring approaches that rely on periodic manual sampling or satellite observations, sensor networks provide continuous, high-temporal-resolution data streams that capture environmental dynamics as they unfold.
+
+The advent of Internet of Things (IoT) technology has revolutionized environmental monitoring by making sensors smaller, more affordable, and capable of wireless communication. Modern sensor networks can range from a handful of devices monitoring a local watershed to thousands of nodes spanning entire continents. These systems leverage wireless communication protocols, edge computing, cloud storage, and real-time data analytics to transform raw sensor readings into actionable environmental intelligence.
+
+Ground-based and in-situ sensors complement remote sensing technologies by providing ground truth data, measuring parameters that satellites cannot detect, and offering fine-scale spatial and temporal resolution. For instance, while satellites can estimate surface temperature across broad areas, a network of ground-based sensors can capture microclimatic variations within a forest canopy or urban heat island effects at the street level. Similarly, water quality sensors deployed in rivers can detect pollution events within minutes, enabling rapid response to environmental emergencies.
+
+**Importance and Relevance** 🎯
+
+Within the broader context of Environmental Science and this lecture on Data Types and Sources, environmental sensor networks occupy a critical niche. They bridge the gap between remote sensing observations (Topic 2.1) and historical climate records (Topic 2.3), providing real-time, continuous data that complements both satellite imagery and long-term datasets. As we progress through this course, understanding sensor networks becomes essential for:
+
+- **Data Integration**: Combining sensor data with remote sensing imagery and climate models to create comprehensive environmental assessments
+- **Validation**: Using ground-based sensors to validate satellite observations and model predictions
+- **Early Warning Systems**: Detecting environmental hazards such as air pollution episodes, harmful algal blooms, or extreme weather events
+- **Citizen Science**: Engaging communities in environmental monitoring through accessible sensor technologies
+- **Policy and Management**: Providing evidence-based data for environmental regulations and resource management decisions
+
+The skills and concepts covered in this notebook will prepare you to work with real-time environmental data streams, understand sensor capabilities and limitations, and contribute to the growing field of environmental informatics.
+
+## Background & Theory 📚
+
+### Historical Development of Environmental Monitoring
+
+Environmental monitoring has evolved dramatically over the past century. Early environmental observations relied on manual measurements taken by trained observers at fixed locations—weather stations established in the 1800s, water quality sampling programs initiated in the early 1900s, and air quality monitoring networks developed in response to industrial pollution in the mid-20th century [@oke2006initial].
+
+The 1970s marked a pivotal decade with the establishment of environmental protection agencies worldwide and the passage of landmark legislation like the U.S. Clean Air Act and Clean Water Act. These regulatory frameworks necessitated systematic environmental monitoring, leading to the deployment of standardized monitoring stations. However, these early networks were sparse, expensive to maintain, and provided limited spatial coverage.
+
+The digital revolution of the 1990s and 2000s brought automated data loggers, digital sensors, and remote data transmission capabilities. Scientists could now deploy sensors in remote locations and retrieve data without physical site visits. The true transformation, however, began in the 2010s with the convergence of several technological trends:
+
+1. **Miniaturization**: Advances in microelectromechanical systems (MEMS) enabled sensors small enough to fit on a fingertip
+2. **Cost Reduction**: Mass production of smartphone components drove down sensor costs dramatically
+3. **Wireless Connectivity**: WiFi, cellular networks, and low-power wide-area networks (LoRaWAN, NB-IoT) enabled ubiquitous connectivity
+4. **Cloud Computing**: Scalable infrastructure for storing and processing massive sensor data streams
+5. **Open-Source Hardware**: Platforms like Arduino and Raspberry Pi democratized sensor deployment
+
+### Fundamental Concepts in Sensor Networks
+
+#### Sensor Types and Measurement Principles
+
+Environmental sensors convert physical or chemical phenomena into electrical signals that can be measured and recorded. Understanding the measurement principles is crucial for interpreting sensor data correctly.
+
+**Electrochemical Sensors** are widely used for measuring gas concentrations (CO, NO₂, O₃) and water quality parameters (pH, dissolved oxygen). These sensors generate an electrical current proportional to the analyte concentration through redox reactions at electrode surfaces. For example, an amperometric oxygen sensor measures dissolved oxygen by reducing O₂ molecules at a cathode:
+
+$$O_2 + 4e^- + 2H_2O \rightarrow 4OH^-$$
+
+The resulting current ($I$) is proportional to oxygen concentration according to the Cottrell equation:
+
+$$I(t) = \frac{nFAD^{1/2}C}{\pi^{1/2}t^{1/2}}$$
+
+where $n$ is the number of electrons transferred, $F$ is Faraday's constant, $A$ is electrode area, $D$ is the diffusion coefficient, $C$ is analyte concentration, and $t$ is time.
+
+**Optical Sensors** measure light absorption, scattering, or fluorescence. Turbidity sensors, for instance, use nephelometry to measure suspended particles in water by detecting scattered light at specific angles. The relationship between scattered light intensity ($I_s$) and particle concentration follows:
+
+$$I_s = I_0 \cdot k \cdot C \cdot l$$
+
+where $I_0$ is incident light intensity, $k$ is a proportionality constant depending on particle properties, $C$ is particle concentration, and $l$ is path length.
+
+**Thermal Sensors** like thermistors and resistance temperature detectors (RTDs) exploit the temperature dependence of electrical resistance. The Steinhart-Hart equation describes thermistor behavior:
+
+$$\frac{1}{T} = A + B\ln(R) + C(\ln(R))^3$$
+
+where $T$ is temperature in Kelvin, $R$ is resistance, and $A$, $B$, $C$ are calibration coefficients.
+
+**Capacitive Sensors** measure soil moisture by detecting changes in the dielectric constant of soil as water content varies. The Topp equation relates volumetric water content ($\theta$) to dielectric constant ($\varepsilon_r$):
+
+$$\theta = -5.3 \times 10^{-2} + 2.92 \times 10^{-2}\varepsilon_r - 5.5 \times 10^{-4}\varepsilon_r^2 + 4.3 \times 10^{-6}\varepsilon_r^3$$
+
+#### Network Architecture and Topology
+
+Environmental sensor networks can be organized in various topologies, each with distinct advantages:
+
+```{mermaid}
+graph TD
+    A[Network Topologies] --> B[Star Topology]
+    A --> C[Mesh Topology]
+    A --> D[Hybrid Topology]
+    
+    B --> B1[Central Gateway]
+    B1 --> B2[Sensor 1]
+    B1 --> B3[Sensor 2]
+    B1 --> B4[Sensor 3]
+    
+    C --> C1[Sensor A]
+    C1 --> C2[Sensor B]
+    C2 --> C3[Sensor C]
+    C3 --> C4[Sensor D]
+    C4 --> C1
+    C1 --> C3
+    
+    D --> D1[Gateway Cluster]
+    D1 --> D2[Mesh Network 1]
+    D1 --> D3[Mesh Network 2]
+```
+
+**Star Topology**: Sensors communicate directly with a central gateway or base station. This is simple and energy-efficient for sensors but creates a single point of failure and limits range.
+
+**Mesh Topology**: Sensors can relay data through neighboring nodes, creating redundant pathways. This increases network resilience and extends coverage but requires more complex routing protocols and consumes more energy.
+
+**Hybrid Topology**: Combines approaches, such as local mesh networks connecting to gateways that use cellular or satellite links for long-range transmission.
+
+#### Data Transmission and Communication Protocols
+
+The choice of communication protocol profoundly affects network performance, cost, and energy consumption:
+
+**WiFi (IEEE 802.11)**: High bandwidth (up to 1 Gbps) but high power consumption (~200 mW transmitting). Range: 50-100m outdoors. Suitable for dense urban networks with power access.
+
+**Bluetooth Low Energy (BLE)**: Moderate bandwidth (1 Mbps), low power (~10 mW). Range: 10-100m. Ideal for personal environmental monitors and proximity-based applications.
+
+**LoRaWAN (Long Range Wide Area Network)**: Low bandwidth (0.3-50 kbps), ultra-low power (~100 mW peak, <1 mW average). Range: 2-15 km. Excellent for rural/remote monitoring with battery-powered sensors.
+
+**Cellular (4G/5G, NB-IoT)**: Variable bandwidth, moderate-to-high power. Global coverage. Best for mobile sensors or locations without other infrastructure.
+
+**Satellite (Iridium, Globalstar)**: Low bandwidth, high power, global coverage including oceans and poles. Used for remote buoys, weather stations, and wildlife tracking.
+
+The data transmission energy cost often dominates sensor network power budgets. For a sensor transmitting $N$ bytes over distance $d$ using radio frequency, the energy consumption is approximately:
+
+$$E_{tx} = E_{elec} \cdot N + E_{amp} \cdot N \cdot d^{\alpha}$$
+
+where $E_{elec}$ is electronics energy per bit, $E_{amp}$ is amplifier energy coefficient, and $\alpha$ is the path loss exponent (typically 2-4).
+
+#### Power Management and Energy Harvesting
+
+Sustainability of sensor networks depends critically on power management. Battery-powered sensors must balance measurement frequency, data transmission, and operational lifetime. The energy budget for a sensor node includes:
+
+$$E_{total} = E_{sensing} + E_{processing} + E_{transmission} + E_{idle}$$
+
+**Duty Cycling**: Sensors sleep between measurements, waking periodically. If a sensor measures for time $t_m$ every period $T$, the duty cycle is $D = t_m/T$. Average power consumption becomes:
+
+$$P_{avg} = D \cdot P_{active} + (1-D) \cdot P_{sleep}$$
+
+For example, a sensor consuming 50 mW when active and 0.1 mW when sleeping, with 1% duty cycle:
+
+$$P_{avg} = 0.01 \times 50 + 0.99 \times 0.1 = 0.5 + 0.099 = 0.599 \text{ mW}$$
+
+This extends battery life by nearly 100-fold compared to continuous operation.
+
+**Energy Harvesting**: Solar panels, wind turbines, thermoelectric generators, and vibration harvesters can power sensors indefinitely. Solar panels are most common, providing 10-200 mW/cm² under full sun. A small 5 cm² panel can generate sufficient power for many low-power sensor applications.
+
+### Data Quality and Calibration
+
+Sensor data quality depends on several factors that must be understood and managed:
+
+**Accuracy**: How close measurements are to true values. Specified as absolute error (±0.5°C) or relative error (±2% of reading).
+
+**Precision**: Repeatability of measurements. A sensor can be precise but inaccurate if systematically biased.
+
+**Resolution**: Smallest detectable change. A temperature sensor might have 0.1°C resolution.
+
+**Response Time**: Time to reach 90% of final reading after a step change. Critical for detecting rapid environmental changes.
+
+**Drift**: Gradual change in sensor response over time due to aging, fouling, or degradation. Requires periodic recalibration.
+
+**Cross-Sensitivity**: Response to interfering compounds. For example, CO sensors may respond to hydrogen gas.
+
+Calibration establishes the relationship between sensor output (voltage, frequency, digital counts) and the measured parameter. A simple linear calibration has the form:
+
+$$C = m \cdot V + b$$
+
+where $C$ is the calibrated value, $V$ is sensor voltage, $m$ is slope, and $b$ is intercept. More complex sensors require polynomial or multi-point calibrations.
+
+**Field Calibration** involves comparing sensor readings to reference instruments or known standards in situ. For water quality sensors, this might mean:
+
+1. Collecting water samples at sensor location
+2. Analyzing samples with laboratory instruments (reference method)
+3. Comparing sensor readings to lab results
+4. Adjusting calibration coefficients
+5. Repeating monthly or quarterly
+
+**Quality Assurance/Quality Control (QA/QC)** procedures include:
+
+- **Range Checks**: Flagging physically impossible values (e.g., -50°C air temperature in the tropics)
+- **Rate-of-Change Tests**: Identifying unrealistic temporal gradients
+- **Spatial Consistency**: Comparing neighboring sensors for anomalies
+- **Statistical Tests**: Detecting outliers using standard deviation or interquartile range methods
+- **Cross-Validation**: Comparing multiple sensors measuring the same parameter
+
+### Real-Time Data Streaming and Edge Computing
+
+Modern sensor networks increasingly process data at the "edge"—on the sensor node or gateway—rather than transmitting all raw data to the cloud. This approach reduces bandwidth requirements, latency, and costs while enabling real-time decision-making.
+
+**Data Aggregation**: Sensors can compute and transmit statistics (mean, min, max, standard deviation) over time windows rather than individual readings. This reduces data volume by 10-100×.
+
+**Event Detection**: Sensors trigger alarms when thresholds are exceeded. For example, a water quality sensor might transmit data hourly under normal conditions but switch to minute-by-minute reporting when detecting a pollution event.
+
+**Machine Learning at the Edge**: Lightweight models can run on microcontrollers to classify environmental conditions, detect anomalies, or predict sensor failures. TensorFlow Lite and Edge Impulse enable deploying neural networks on resource-constrained devices.
+
+**Data Fusion**: Combining multiple sensor types improves accuracy and provides richer context. For instance, fusing temperature, humidity, and particulate matter sensors better characterizes air quality than any single sensor.
+
+### Applications Across Environmental Domains
+
+#### Air Quality Monitoring
+
+Urban air quality networks combine regulatory-grade monitoring stations with dense networks of low-cost sensors. Regulatory monitors use expensive ($10,000-$100,000) instruments meeting EPA standards for criteria pollutants (PM₂.₅, PM₁₀, O₃, NO₂, SO₂, CO). These provide legally defensible data but sparse spatial coverage (typically one station per 100,000 people).
+
+Low-cost sensors ($50-$500) using optical particle counters, electrochemical gas sensors, and metal oxide sensors enable deployment of hundreds to thousands of nodes, revealing pollution hotspots, exposure gradients, and source contributions. The PurpleAir network, for example, has deployed over 20,000 community-operated sensors worldwide [@barkjohn2021development].
+
+Challenges include sensor drift, cross-sensitivities (humidity effects on particle sensors), and calibration. Recent research shows machine learning calibration using collocated reference monitors can improve low-cost sensor accuracy from ±50% to ±20% for PM₂.₅ [@zimmerman2018tutorial].
+
+#### Water Quality Networks
+
+Freshwater and marine monitoring employs multi-parameter sondes measuring temperature, pH, dissolved oxygen, conductivity, turbidity, and nutrient concentrations. These instruments cost $5,000-$50,000 and can operate autonomously for weeks to months.
+
+**Applications include**:
+
+- **Harmful Algal Bloom Detection**: Fluorescence sensors detect chlorophyll and phycocyanin pigments, providing early warning of toxic cyanobacterial blooms
+- **Hypoxia Monitoring**: Dissolved oxygen sensors track "dead zones" in coastal waters and lakes
+- **Pollution Source Tracking**: High-frequency conductivity and turbidity measurements identify contamination events and their sources
+- **Ecosystem Metabolism**: Paired oxygen and light sensors calculate primary production and respiration rates
+
+Biofouling—accumulation of algae and bacteria on sensor surfaces—is a major challenge. Mechanical wipers, copper shutters, and UV lights help mitigate fouling, but sensors still require monthly cleaning and calibration.
+
+#### Soil Monitoring Networks
+
+Soil sensors measure moisture, temperature, salinity, and nutrient availability. These are crucial for precision agriculture, drought monitoring, and understanding land-atmosphere interactions.
+
+**Time Domain Reflectometry (TDR)** and **Frequency Domain Reflectometry (FDR)** sensors measure soil dielectric constant, which correlates with water content. Typical accuracy is ±2-3% volumetric water content after soil-specific calibration.
+
+**Cosmic Ray Neutron Sensors** provide soil moisture measurements averaged over ~600m diameter footprints and 10-50cm depth. Fast neutrons from cosmic rays are moderated by hydrogen atoms (primarily in water), so neutron counts decrease as soil moisture increases:
+
+$$\theta = a_0 \frac{N_0 - N}{N} - a_1 - a_2\rho_{bd}$$
+
+where $\theta$ is volumetric water content, $N$ is neutron count rate, $N_0$ is count rate over dry soil, $\rho_{bd}$ is bulk density, and $a_i$ are calibration parameters [@zreda2012cosmos].
+
+Wireless soil sensor networks inform irrigation decisions, reducing water use by 20-40% while maintaining crop yields.
+
+#### Meteorological Networks
+
+Weather stations measure air temperature, humidity, pressure, wind speed/direction, precipitation, and solar radiation. Professional stations cost $1,000-$10,000 and require careful siting to meet World Meteorological Organization standards.
+
+Citizen weather networks like Weather Underground and Netatmo have deployed hundreds of thousands of personal weather stations, dramatically increasing observation density. These data improve local weather forecasts, urban heat island studies, and precipitation estimates, though quality varies widely [@bell2013how].
+
+**Mesonets**—regional-scale networks of standardized weather stations—provide critical data for agriculture, aviation, and severe weather warning. The Oklahoma Mesonet, for example, operates 120 stations with 5-minute data transmission, detecting tornadoes, flash floods, and wildfires minutes to hours before traditional radar or satellite systems [@brock2009oklahoma].
+
+### Data Management and Interoperability
+
+Environmental sensor networks generate massive data streams—a single sensor transmitting hourly generates 8,760 records annually; a network of 1,000 sensors produces nearly 9 million records. Managing these data requires robust infrastructure:
+
+**Data Pipelines**: Automated workflows that ingest, validate, process, and archive sensor data. Typical pipeline stages include:
+
+1. **Ingestion**: Receiving data via API, MQTT, or file transfer
+2. **Parsing**: Converting raw data formats (JSON, CSV, binary) to standardized structures
+3. **Validation**: Applying QA/QC checks
+4. **Transformation**: Unit conversions, calibration corrections, aggregation
+5. **Storage**: Writing to databases (PostgreSQL, InfluxDB, MongoDB)
+6. **Distribution**: Serving data via APIs, web interfaces, or data feeds
+
+**Time Series Databases**: Optimized for sensor data with timestamp-value pairs. InfluxDB, TimescaleDB, and Prometheus handle millions of writes per second and efficiently query temporal patterns.
+
+**Metadata Standards**: Sensor Observation Service (SOS) and Sensor Things API standardize how sensor metadata (location, calibration, units) and observations are described and accessed. This enables data discovery and interoperability across networks.
+
+**Data Formats**: NetCDF, HDF5, and Zarr efficiently store multidimensional sensor data with self-describing metadata. These formats are widely supported by scientific software.
+
+### Emerging Trends and Future Directions
+
+**Artificial Intelligence and Sensor Networks**: Machine learning models trained on historical sensor data can predict air quality 24-48 hours in advance, detect sensor malfunctions, fill data gaps, and optimize sensor placement. Deep learning models processing multi-sensor data streams achieve near-human performance in environmental pattern recognition tasks.
+
+**Biodegradable and Environmentally Friendly Sensors**: Research is developing sensors from sustainable materials that naturally decompose, reducing electronic waste from large-scale deployments.
+
+**Sensor Swarms and Mobile Networks**: Autonomous vehicles (drones, boats, rovers) carrying sensors create dynamic monitoring networks that adapt to changing conditions. Swarms of drones can map pollution plumes, track wildlife, or survey disaster areas.
+
+**Quantum Sensors**: Emerging quantum technologies promise ultra-sensitive measurements of magnetic fields, gravity, and time, potentially revolutionizing geophysical and environmental monitoring.
+
+**Digital Twins**: Virtual replicas of environmental systems continuously updated with sensor data enable scenario testing, predictive modeling, and decision support. Digital twins of watersheds, cities, or ecosystems help stakeholders visualize impacts of proposed interventions.
+
+### Ethical and Social Considerations
+
+Environmental sensor networks raise important questions about data privacy, access, and governance. Personal air quality monitors reveal where individuals spend time; smart home environmental sensors could be subpoenaed in legal proceedings. Who owns environmental data? Should citizen-collected data inform regulatory decisions? How do we ensure equitable sensor deployment doesn't create "data deserts" in disadvantaged communities?
+
+Community-based monitoring programs empower residents to document environmental injustices and hold polluters accountable. However, they also raise questions about data quality, interpretation, and the potential for misuse. Establishing clear data governance frameworks, ensuring transparency, and involving affected communities in network design are essential for ethical sensor deployments [@english2020environmental].
+
+## Practical Example / Code Implementation 💻
+
+In this section, we'll build a practical example of working with environmental sensor network data. We'll simulate a small air quality sensor network, process the data, perform quality control, visualize spatial and temporal patterns, and demonstrate real-time data streaming concepts.
+
+### Installing Required Libraries
+
+```{python}
+#| code-fold: true
+#| code-summary: "Install Required Libraries"
+
+# Install necessary packages
+%pip install -q pandas numpy matplotlib seaborn folium plotly scipy scikit-learn requests
+```
+
+### Simulating a Sensor Network
+
+We'll create synthetic data representing a network of 10 air quality sensors measuring PM2.5 (particulate matter) and temperature over one week.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Import Libraries and Set Random Seed"
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from datetime import datetime, timedelta
+import folium
+from folium import plugins
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from scipy import stats
+from sklearn.ensemble import IsolationForest
+import warnings
+warnings.filterwarnings('ignore')
+
+# Set random seed for reproducibility
+np.random.seed(42)
+
+# Configure plotting style
+plt.style.use('seaborn-v0_8-darkgrid')
+sns.set_palette("husl")
+```
+
+```{python}
+#| code-fold: true
+#| code-summary: "Generate Synthetic Sensor Network Data"
+
+def generate_sensor_network_data(
+    n_sensors: int = 10,
+    n_days: int = 7,
+    freq_minutes: int = 15
+) -> pd.DataFrame:
+    """
+    Generate synthetic environmental sensor network data.
+    
+    Parameters:
+    -----------
+    n_sensors : int
+        Number of sensors in the network
+    n_days : int
+        Number of days to simulate
+    freq_minutes : int
+        Measurement frequency in minutes
+        
+    Returns:
+    --------
+    pd.DataFrame
+        Sensor network data with timestamps, locations, and measurements
+    """
+    
+    # Generate timestamps
+    start_time = datetime(2024, 1, 1, 0, 0, 0)
+    timestamps = pd.date_range(
+        start=start_time,
+        periods=int(n_days * 24 * 60 / freq_minutes),
+        freq=f'{freq_minutes}min'
+    )
+    
+    # Generate sensor locations (latitude, longitude)
+    # Simulating sensors in a city area (approximately 10km x 10km)
+    base_lat, base_lon = 40.7128, -74.0060  # New York City
+    sensor_locations = {
+        f'sensor_{i:02d}': {
+            'lat': base_lat + np.random.uniform(-0.05, 0.05),
+            'lon': base_lon + np.random.uniform(-0.05, 0.05),
+            'elevation': np.random.uniform(0, 100)  # meters
+        }
+        for i in range(n_sensors)
+    }
+    
+    # Generate data for each sensor
+    data_list = []
+    
+    for sensor_id, location in sensor_locations.items():
+        # Base patterns for each sensor (some sensors in more polluted areas)
+        pollution_level = np.random.uniform(5, 25)  # base PM2.5 level
+        temp_base = np.random.uniform(15, 20)  # base temperature
+        
+        for timestamp in timestamps:
+            hour = timestamp.hour
+            day = timestamp.dayofyear
+            
+            # Diurnal pattern (higher pollution during rush hours)
+            diurnal_factor = 1 + 0.5 * np.sin(2 * np.pi * (hour - 6) / 24)
+            
+            # Weekly pattern (lower pollution on weekends)
+            weekly_factor = 0.7 if timestamp.weekday() >= 5 else 1.0
+            
+            # Seasonal trend (simplified)
+            seasonal_factor = 1 + 0.2 * np.sin(2 * np.pi * day / 365)
+            
+            # Add random noise and occasional pollution events
+            noise = np.random.normal(0, 2)
+            pollution_event = 30 if np.random.random() < 0.01 else 0
+            
+            pm25 = (pollution_level * diurnal_factor * weekly_factor * 
+                   seasonal_factor + noise + pollution_event)
+            pm25 = max(0, pm25)  # PM2.5 can't be negative
+            
+            # Temperature with diurnal cycle
+            temp_diurnal = 5 * np.sin(2 * np.pi * (hour - 6) / 24)
+            temperature = temp_base + temp_diurnal + np.random.normal(0, 0.5)
+            
+            # Simulate sensor drift and occasional failures
+            if np.random.random() < 0.001:  # 0.1% chance of sensor failure
+                pm25 = np.nan
+                temperature = np.nan
+            elif np.random.random() < 0.002:  # 0.2% chance of outlier
+                pm25 *= np.random.uniform(3, 5)
+            
+            # Simulate calibration drift (gradual increase over time)
+            drift_factor = 1 + 0.0001 * (timestamp - start_time).days
+            pm25 *= drift_factor
+            
+            data_list.append({
+                'timestamp': timestamp,
+                'sensor_id': sensor_id,
+                'latitude': location['lat'],
+                'longitude': location['lon'],
+                'elevation': location['elevation'],
+                'pm25': pm25,
+                'temperature': temperature,
+                'humidity': np.random.uniform(40, 80),  # simplified
+                'status': 'active' if not pd.isna(pm25) else 'offline'
+            })
+    
+    df = pd.DataFrame(data_list)
+    return df
+
+# Generate the sensor network data
+sensor_data = generate_sensor_network_data(n_sensors=10, n_days=7, freq_minutes=15)
+
+print("Sensor Network Data Generated!")
+print(f"Total records: {len(sensor_data):,}")
+print(f"Date range: {sensor_data['timestamp'].min()} to {sensor_data['timestamp'].max()}")
+print(f"Number of sensors: {sensor_data['sensor_id'].nunique()}")
+print("\nFirst few records:")
+print(sensor_data.head(10))
+```
+
+### Data Quality Control
+
+Implementing QA/QC procedures to identify and flag problematic data.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Quality Control Functions"
+
+def apply_quality_control(
+    df: pd.DataFrame,
+    param: str = 'pm25'
+) -> pd.DataFrame:
+    """
+    Apply quality control checks to sensor data.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Sensor data
+    param : str
+        Parameter to check (e.g., 'pm25', 'temperature')
+        
+    Returns:
+    --------
+    pd.DataFrame
+        Data with quality flags added
+    """
+    
+    df = df.copy()
+    df[f'{param}_qc_flag'] = 'good'
+    
+    # 1. Range check
+    if param == 'pm25':
+        valid_range = (0, 500)
+    elif param == 'temperature':
+        valid_range = (-40, 50)
+    else:
+        valid_range = (None, None)
+    
+    if valid_range[0] is not None:
+        mask = (df[param] < valid_range[0]) | (df[param] > valid_range[1])
+        df.loc[mask, f'{param}_qc_flag'] = 'range_error'
+    
+    # 2. Rate of change check (for each sensor)
+    for sensor_id in df['sensor_id'].unique():
+        sensor_mask = df['sensor_id'] == sensor_id
+        sensor_data = df.loc[sensor_mask, param].copy()
+        
+        # Calculate rate of change
+        rate_of_change = sensor_data.diff().abs()
+        
+        # Flag if change exceeds threshold
+        if param == 'pm25':
+            threshold = 50  # μg/m³ per 15 minutes
+        elif param == 'temperature':
+            threshold = 10  # °C per 15 minutes
+        else:
+            threshold = float('inf')
+        
+        excessive_change = rate_of_change > threshold
+        df.loc[sensor_mask & excessive_change, f'{param}_qc_flag'] = 'rate_error'
+    
+    # 3. Statistical outlier detection (Isolation Forest)
+    # Group by sensor and apply outlier detection
+    for sensor_id in df['sensor_id'].unique():
+        sensor_mask = df['sensor_id'] == sensor_id
+        sensor_values = df.loc[sensor_mask, param].dropna().values.reshape(-1, 1)
+        
+        if len(sensor_values) > 10:  # Need sufficient data
+            iso_forest = IsolationForest(contamination=0.01, random_state=42)
+            outlier_labels = iso_forest.fit_predict(sensor_values)
+            
+            # Map outlier labels back to dataframe
+            valid_indices = df.loc[sensor_mask, param].dropna().index
+            outlier_mask = outlier_labels == -1
+            
+            for idx, is_outlier in zip(valid_indices, outlier_mask):
+                if is_outlier and df.loc[idx, f'{param}_qc_flag'] == 'good':
+                    df.loc[idx, f'{param}_qc_flag'] = 'statistical_outlier'
+    
+    # 4. Missing data flag
+    df.loc[df[param].isna(), f'{param}_qc_flag'] = 'missing'
+    
+    return df
+
+# Apply QC to PM2.5 data
+sensor_data = apply_quality_control(sensor_data, param='pm25')
+sensor_data = apply_quality_control(sensor_data, param='temperature')
+
+# Print QC summary
+print("Quality Control Summary for PM2.5:")
+print(sensor_data['pm25_qc_flag'].value_counts())
+print("\nQuality Control Summary for Temperature:")
+print(sensor_data['temperature_qc_flag'].value_counts())
+
+# Calculate data availability
+total_expected = len(sensor_data)
+good_data = (sensor_data['pm25_qc_flag'] == 'good').sum()
+print(f"\nData Availability: {good_data/total_expected*100:.2f}%")
+```
+
+### Spatial Visualization
+
+Creating an interactive map showing sensor locations and average PM2.5 levels.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Create Interactive Map of Sensor Network"
+
+def create_sensor_map(df: pd.DataFrame) -> folium.Map:
+    """
+    Create an interactive map showing sensor locations and measurements.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Sensor data with location information
+        
+    Returns:
+    --------
+    folium.Map
+        Interactive map object
+    """
+    
+    # Calculate average PM2.5 for each sensor (only good data)
+    good_data = df[df['pm25_qc_flag'] == 'good'].copy()
+    sensor_summary = good_data.groupby('sensor_id').agg({
+        'latitude': 'first',
+        'longitude': 'first',
+        'pm25': 'mean',
+        'temperature': 'mean'
+    }).reset_index()
+    
+    # Create base map centered on sensors
+    center_lat = sensor_summary['latitude'].mean()
+    center_lon = sensor_summary['longitude'].mean()
+    
+    m = folium.Map(
+        location=[center_lat, center_lon],
+        zoom_start=12,
+        tiles='OpenStreetMap'
+    )
+    
+    # Add markers for each sensor
+    for _, row in sensor_summary.iterrows():
+        # Color based on PM2.5 level (green: good, yellow: moderate, red: unhealthy)
+        if row['pm25'] < 12:
+            color = 'green'
+            air_quality = 'Good'
+        elif row['pm25'] < 35:
+            color = 'orange'
+            air_quality = 'Moderate'
+        elif row['pm25'] < 55:
+            color = 'red'
+            air_quality = 'Unhealthy for Sensitive Groups'
+        else:
+            color = 'darkred'
+            air_quality = 'Unhealthy'
+        
+        # Create popup text
+        popup_text = f"""
+        <b>{row['sensor_id']}</b><br>
+        PM2.5: {row['pm25']:.1f} μg/m³<br>
+        Temperature: {row['temperature']:.1f} °C<br>
+        Air Quality: {air_quality}
+        """
+        
+        folium.CircleMarker(
+            location=[row['latitude'], row['longitude']],
+            radius=10,
+            popup=folium.Popup(popup_text, max_width=200),
+            color=color,
+            fill=True,
+            fillColor=color,
+            fillOpacity=0.7
+        ).add_to(m)
+    
+    # Add a legend
+    legend_html = '''
+    <div style="position: fixed; 
+                bottom: 50px; right: 50px; width: 200px; height: 140px; 
+                background-color: white; border:2px solid grey; z-index:9999; 
+                font-size:14px; padding: 10px">
+    <p><b>Air Quality Index</b></p>
+    <p><span style="color:green;">●</span> Good (0-12)</p>
+    <p><span style="color:orange;">●</span> Moderate (12-35)</p>
+    <p><span style="color:red;">●</span> Unhealthy (35-55)</p>
+    <p><span style="color:darkred;">●</span> Very Unhealthy (55+)</p>
+    </div>
+    '''
+    m.get_root().html.add_child(folium.Element(legend_html))
+    
+    return m
+
+# Create and display the map
+sensor_map = create_sensor_map(sensor_data)
+sensor_map.save('sensor_network_map.html')
+print("Interactive map saved as 'sensor_network_map.html'")
+print("Open this file in a web browser to view the sensor network")
+```
+
+### Temporal Analysis and Visualization
+
+Analyzing temporal patterns in the sensor data.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Time Series Analysis and Visualization"
+
+def plot_temporal_patterns(df: pd.DataFrame) -> None:
+    """
+    Create visualizations of temporal patterns in sensor data.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Sensor data with timestamps
+    """
+    
+    # Filter to good data only
+    good_data = df[df['pm25_qc_flag'] == 'good'].copy()
+    
+    # Create figure with subplots
+    fig, axes = plt.subplots(3, 1, figsize=(14, 10))
+    
+    # 1. Time series for all sensors
+    for sensor_id in good_data['sensor_id'].unique():
+        sensor_subset = good_data[good_data['sensor_id'] == sensor_id]
+        axes[0].plot(sensor_subset['timestamp'], sensor_subset['pm25'], 
+                    alpha=0.6, linewidth=1, label=sensor_id)
+    
+    axes[0].set_xlabel('Date')
+    axes[0].set_ylabel('PM2.5 (μg/m³)')
+    axes[0].set_title('PM2.5 Time Series - All Sensors')
+    axes[0].legend(bbox_to_anchor=(1.05, 1), loc='upper left', fontsize=8)
+    axes[0].grid(True, alpha=0.3)
+    
+    # 2. Diurnal pattern (hourly average across all sensors)
+    good_data['hour'] = good_data['timestamp'].dt.hour
+    hourly_mean = good_data.groupby('hour')['pm25'].agg(['mean', 'std']).reset_index()
+    
+    axes[1].plot(hourly_mean['hour'], hourly_mean['mean'], 
+                marker='o', linewidth=2, markersize=6, color='steelblue')
+    axes[1].fill_between(hourly_mean['hour'], 
+                         hourly_mean['mean'] - hourly_mean['std'],
+                         hourly_mean['mean'] + hourly_mean['std'],
+                         alpha=0.3, color='steelblue')
+    axes[1].set_xlabel('Hour of Day')
+    axes[1].set_ylabel('PM2.5 (μg/m³)')
+    axes[1].set_title('Average Diurnal Pattern (with ±1 SD)')
+    axes[1].set_xticks(range(0, 24, 2))
+    axes[1].grid(True, alpha=0.3)
+    
+    # 3. Day of week pattern
+    good_data['day_of_week'] = good_data['timestamp'].dt.day_name()
+    day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+    daily_mean = good_data.groupby('day_of_week')['pm25'].mean().reindex(day_order)
+    
+    axes[2].bar(range(7), daily_mean.values, color='coral', alpha=0.7)
+    axes[2].set_xlabel('Day of Week')
+    axes[2].set_ylabel('Average PM2.5 (μg/m³)')
+    axes[2].set_title('Weekly Pattern')
+    axes[2].set_xticks(range(7))
+    axes[2].set_xticklabels(day_order, rotation=45, ha='right')
+    axes[2].grid(True, alpha=0.3, axis='y')
+    
+    plt.tight_layout()
+    plt.savefig('temporal_patterns.png', dpi=300, bbox_inches='tight')
+    plt.show()
+    
+    print("Temporal pattern analysis complete!")
+
+# Create temporal visualizations
+plot_temporal_patterns(sensor_data)
+```
+
+### Spatial Interpolation
+
+Interpolating sensor measurements to create a continuous surface map.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Spatial Interpolation Using IDW"
+
+from scipy.spatial import distance
+
+def inverse_distance_weighting(
+    df: pd.DataFrame,
+    param: str = 'pm25',
+    grid_resolution: int = 50,
+    power: float = 2.0
+) -> tuple:
+    """
+    Perform inverse distance weighting interpolation.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Sensor data with coordinates
+    param : str
+        Parameter to interpolate
+    grid_resolution : int
+        Number of grid points in each dimension
+    power : float
+        Power parameter for IDW (higher = more weight to nearby points)
+        
+    Returns:
+    --------
+    tuple
+        (lon_grid, lat_grid, interpolated_values)
+    """
+    
+    # Get good data only
+    good_data = df[df[f'{param}_qc_flag'] == 'good'].copy()
+    
+    # Calculate mean value for each sensor
+    sensor_means = good_data.groupby(['sensor_id', 'latitude', 'longitude'])[param].mean().reset_index()
+    
+    # Create interpolation grid
+    lon_min, lon_max = sensor_means['longitude'].min(), sensor_means['longitude'].max()
+    lat_min, lat_max = sensor_means['latitude'].min(), sensor_means['latitude'].max()
+    
+    # Add padding
+    lon_range = lon_max - lon_min
+    lat_range = lat_max - lat_min
+    padding = 0.1
+    
+    lon_grid = np.linspace(lon_min - padding * lon_range, 
+                          lon_max + padding * lon_range, 
+                          grid_resolution)
+    lat_grid = np.linspace(lat_min - padding * lat_range, 
+                          lat_max + padding * lat_range, 
+                          grid_resolution)
+    
+    lon_mesh, lat_mesh = np.meshgrid(lon_grid, lat_grid)
+    
+    # Perform IDW interpolation
+    interpolated = np.zeros_like(lon_mesh)
+    
+    sensor_coords = sensor_means[['longitude', 'latitude']].values
+    sensor_values = sensor_means[param].values
+    
+    for i in range(grid_resolution):
+        for j in range(grid_resolution):
+            grid_point = np.array([lon_mesh[i, j], lat_mesh[i, j]])
+            
+            # Calculate distances to all sensors
+            distances = np.linalg.norm(sensor_coords - grid_point, axis=1)
+            
+            # Avoid division by zero
+            distances = np.maximum(distances, 1e-10)
+            
+            # Calculate weights
+            weights = 1 / (distances ** power)
+            weights /= weights.sum()
+            
+            # Interpolate
+            interpolated[i, j] = np.sum(weights * sensor_values)
+    
+    return lon_mesh, lat_mesh, interpolated
+
+# Perform interpolation
+lon_mesh, lat_mesh, pm25_interpolated = inverse_distance_weighting(
+    sensor_data, param='pm25', grid_resolution=50, power=2.0
+)
+
+# Create contour plot
+fig, ax = plt.subplots(figsize=(12, 10))
+
+contour = ax.contourf(lon_mesh, lat_mesh, pm25_interpolated, 
+                      levels=15, cmap='YlOrRd', alpha=0.7)
+ax.contour(lon_mesh, lat_mesh, pm25_interpolated, 
+          levels=15, colors='black', alpha=0.3, linewidths=0.5)
+
+# Add sensor locations
+good_data = sensor_data[sensor_data['pm25_qc_flag'] == 'good']
+sensor_locs = good_data.groupby(['sensor_id', 'latitude', 'longitude']).size().reset_index()
+ax.scatter(sensor_locs['longitude'], sensor_locs['latitude'], 
+          c='blue', s=100, marker='^', edgecolors='black', 
+          linewidths=1.5, label='Sensors', zorder=5)
+
+ax.set_xlabel('Longitude')
+ax.set_ylabel('Latitude')
+ax.set_title('Spatial Interpolation of PM2.5 Concentrations (IDW Method)')
+ax.legend()
+
+cbar = plt.colorbar(contour, ax=ax)
+cbar.set_label('PM2.5 (μg/m³)')
+
+plt.tight_layout()
+plt.savefig('spatial_interpolation.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+print("Spatial interpolation complete!")
+```
+
+### Simulating Real-Time Data Streaming
+
+Demonstrating how to process streaming sensor data.
+
+```{python}
+#| code-fold: true
+#| code-summary: "Real-Time Data Processing Simulation"
+
+from collections import deque
+import time
+
+class RealTimeSensorProcessor:
+    """
+    Simulates real-time processing of sensor data streams.
+    """
+    
+    def __init__(self, window_size: int = 20):
+        """
+        Initialize the processor.
+        
+        Parameters:
+        -----------
+        window_size : int
+            Number of recent measurements to keep in memory
+        """
+        self.window_size = window_size
+        self.data_windows = {}  # Store recent data for each sensor
+        self.alerts = []
+        
+    def process_measurement(
+        self, 
+        sensor_id: str, 
+        timestamp: datetime, 
+        value: float
+    ) -> dict:
+        """
+        Process a single sensor measurement.
+        
+        Parameters:
+        -----------
+        sensor_id : str
+            Sensor identifier
+        timestamp : datetime
+            Measurement timestamp
+        value : float
+            Measured value
+            
+        Returns:
+        --------
+        dict
+            Processing results including statistics and alerts
+        """
+        
+        # Initialize window for new sensor
+        if sensor_id not in self.data_windows:
+            self.data_windows[sensor_id] = deque(maxlen=self.window_size)
+        
+        # Add measurement to window
+        self.data_windows[sensor_id].append({
+            'timestamp': timestamp,
+            'value': value
+        })
+        
+        # Calculate statistics over window
+        values = [m['value'] for m in self.data_windows[sensor_id]]
+        
+        stats = {
+            'sensor_id': sensor_id,
+            'timestamp': timestamp,
+            'current_value': value,
+            'window_mean': np.mean(values),
+            'window_std': np.std(values),
+            'window_min': np.min(values),
+            'window_max': np.max(values)
+        }
+        
+        # Check for alerts
+        if value > 35:  # EPA unhealthy threshold
+            alert = {
+                'sensor_id': sensor_id,
+                'timestamp': timestamp,
+                'type': 'threshold_exceeded',
+                'message': f'PM2.5 = {value:.1f} μg/m³ exceeds healthy limit (35 μg/m³)'
+            }
+            self.alerts.append(alert)
+            stats['alert'] = alert
+        
+        # Check for rapid change
+        if len(values) >= 2:
+            recent_change = abs(values[-1] - values[-2])
+            if recent_change > 20:
+                alert = {
+                    'sensor_id': sensor_id,
+                    'timestamp': timestamp,
+                    'type': 'rapid_change',
+                    'message': f'Rapid change detected: Δ = {recent_change:.1f} μg/m³'
+                }
+                self.alerts.append(alert)
+                stats['alert'] = alert
+        
+        return stats
+
+# Simulate real-time processing
+print("Simulating Real-Time Sensor Data Processing")
+print("=" * 60)
+
+processor = RealTimeSensorProcessor(window_size=20)
+
+# Take a subset of data to simulate streaming
+streaming_data = sensor_data[sensor_data['sensor_id'] == 'sensor_00'].head(50).copy()
+
+print("\nProcessing measurements...")
+for idx, row in streaming_data.iterrows():
+    if pd.notna(row['pm25']):
+        result = processor.process_measurement(
+            sensor_id=row['sensor_id'],
+            timestamp=row['timestamp'],
+            value=row['pm25']
+        )
+        
+        # Print every 10th measurement
+        if idx % 10 == 0:
+            print(f"\n{result['timestamp']}")
+            print(f"  Current: {result['current_value']:.2f} μg/m³")
+            print(f"  Window Mean: {result['window_mean']:.2f} μg/m³")
+            print(f"  Window Std: {result['window_std']:.2f} μg/m³")
+            
+            if 'alert' in result:
+                print(f"  ⚠️  ALERT: {result['alert']['message']}")
+
+print(f"\n\nTotal alerts generated: {len(processor.alerts)}")
+print("\nReal-time processing simulation complete!")
+```
+
+This practical example demonstrates key concepts in environmental sensor network data processing:
+
+1. **Data Generation**: Creating realistic synthetic sensor data with temporal patterns and quality issues
+2. **Quality Control**: Implementing range checks, rate-of-change tests, and statistical outlier detection
+3. **Spatial Analysis**: Visualizing sensor locations and interpolating measurements across space
+4. **Temporal Analysis**: Identifying diurnal and weekly patterns in pollution data
+5. **Real-Time Processing**: Simulating streaming data analysis with moving windows and alert generation
+
+These techniques form the foundation for working with real environmental sensor networks in research and operational settings.
+
+## Student Exercise 📝
+
+### Exercise: Analyzing Water Quality Sensor Network Data
+
+**Objective**: Apply the concepts and techniques learned to analyze a water quality monitoring network.
+
+**Scenario**: You are working with a watershed management agency that operates a network of water quality sensors along a river system. The sensors measure dissolved oxygen (DO), pH, and temperature every 30 minutes. Recent heavy rainfall has raised concerns about pollution runoff affecting water quality.
+
+**Tasks**:
+
+1. **Data Generation** (15 minutes):
+   - Modify the `generate_sensor_network_data()` function to simulate water quality data instead of air quality
+   - Create 5 sensors along a river (use linearly spaced coordinates to represent upstream to downstream)
+   - Generate 3 days of data with 30-minute intervals
+   - Include the following parameters:
+     - Dissolved Oxygen (DO): Normal range 6-12 mg/L, with lower values downstream
+     - pH: Normal range 6.5-8.5
+     - Temperature: Normal range 10-25°C
+   - Simulate a pollution event on day 2 where DO drops significantly at downstream sensors
+
+2. **Quality Control** (10 minutes):
+   - Implement QC checks for dissolved oxygen data:
+     - Range check: 0-20 mg/L
+     - Rate of change: no more than 3 mg/L per 30 minutes
+     - Cross-parameter check: DO should decrease as temperature increases (inverse relationship)
+   - Calculate and report the percentage of good data for each sensor
+
+3. **Temporal Analysis** (15 minutes):
+   - Create a time series plot showing DO levels for all sensors
+   - Calculate and plot the average DO for upstream sensors (sensors 1-2) vs. downstream sensors (sensors 4-5)
+   - Identify when the pollution event occurred based on DO drop
+
+4. **Spatial Analysis** (10 minutes):
+   - Create a plot showing the spatial gradient of average DO from upstream to downstream
+   - Calculate the DO deficit (saturation value - measured value) for each sensor
+   - Identify which sensor(s) show the most severe oxygen depletion
+
+5. **Alert System** (10 minutes):
+   - Implement an alert system that triggers when:
+     - DO falls below 5 mg/L (hypoxic threshold)
+     - pH goes outside the range 6.0-9.0
+     - Temperature exceeds 25°C
+   - Generate a summary report of all alerts including timestamp, sensor ID, and parameter values
+
+**Deliverables**:
+
+- Commented Python code implementing all tasks
+- Visualizations (plots) for temporal and spatial analysis
+- A brief written summary (200-300 words) describing:
+  - The pollution event: when it occurred, which sensors were affected, and severity
+  - Recommendations for watershed management based on your analysis
+  - Limitations of the sensor network and suggestions for improvement
+
+**Bonus Challenge** (Optional):
+
+- Implement a simple predictive model that forecasts DO levels 1 hour ahead based on recent measurements
+- Calculate the oxygen reaeration rate (how quickly DO recovers after the pollution event)
+
+**Hints**:
+
+- Use pandas `rolling()` function for moving averages
+- The DO saturation value at 20°C is approximately 9.1 mg/L (use this as reference)
+- Consider using `matplotlib` subplots to show multiple parameters together
+- For the alert system, you can adapt the `RealTimeSensorProcessor` class from the example
+
+**Estimated Time**: 60 minutes
+
+## Exercise Solution 🔑
+
+```{python}
+#| code-fold: true
+#| code-summary: "Solution: Water Quality Sensor Network Analysis"
+
+# Task 1: Data Generation
+def generate_water_quality_data(
+    n_sensors: int = 5,
+    n_days: int = 3,
+    freq_minutes: int = 30
+) -> pd.DataFrame:
+    """
+    Generate synthetic water quality sensor network data.
+    """
+    
+    # Generate timestamps
+    start_time = datetime(2024, 6, 1, 0, 0, 0)
+    timestamps = pd.date_range(
+        start=start_time,
+        periods=int(n_days * 24 * 60 / freq_minutes),
+        freq=f'{freq_minutes}min'
+    )
+    
+    # Generate sensor locations along a river (upstream to downstream)
+    base_lat, base_lon = 40.7128, -74.0060
+    sensor_locations = {}
+    
+    for i in range(n_sensors):
+        # Linear spacing from upstream to downstream
+        position_factor = i / (n_sensors - 1)
+        sensor_locations[f'sensor_{i+1}'] = {
+            'lat': base_lat + 0.05 * position_factor,
+            'lon': base_lon - 0.05 * position_factor,
+            'position': i + 1,  # 1 = upstream, 5 = downstream
+            'distance_km': position_factor * 20  # 20 km river stretch
+        }
+    
+    data_list = []
+    
+    for sensor_id, location in sensor_locations.items():
+        position = location['position']
+        
+        # Base values depend on position (degradation downstream)
+        do_base = 10 - (position - 1) * 0.5  # DO decreases downstream
+        ph_base = 7.2 + (position - 1) * 0.1
+        temp_base = 15 + (position - 1) * 1.5
+        
+        for timestamp in timestamps:
+            hour = timestamp.hour
+            day = (timestamp - start_time).days + 1
+            
+            # Diurnal patterns
+            do_diurnal = 1.5 * np.sin(2 * np.pi * (hour - 6) / 24)
+            temp_diurnal = 3 * np.sin(2 * np.pi * (hour - 6) / 24)
+            
+            # Base values
+            do = do_base + do_diurnal + np.random.normal(0, 0.3)
+            temperature = temp_base + temp_diurnal + np.random.normal(0, 0.2)
+            ph = ph_base + np.random.normal(0, 0.1)
+            
+            # Simulate pollution event on day 2 (affects downstream sensors more)
+            if day == 2 and 10 <= hour <= 20:
+                pollution_intensity = (position / n_sensors) * (1 - abs(hour - 15) / 10)
+                do -= 4 * pollution_intensity  # Severe DO drop
+                ph -= 0.5 * pollution_intensity
+            
+            # Temperature-DO inverse relationship
+            do -= (temperature - 15) * 0.1
+            
+            # Ensure physical constraints
+            do = max(0, min(do, 20))
+            ph = max(0, min(ph, 14))
+            temperature = max(0, temperature)
+            
+            # Occasional sensor issues
+            if np.random.random() < 0.005:
+                do = np.nan
+                
+            data_list.append({
+                'timestamp': timestamp,
+                'sensor_id': sensor_id,
+                'latitude': location['lat'],
+                'longitude': location['lon'],
+                'position': position,
+                'distance_km': location['distance_km'],
+                'dissolved_oxygen': do,
+                'ph': ph,
+                'temperature': temperature,
+                'status': 'active' if not pd.isna(do) else 'offline'
+            })
+    
+    return pd.DataFrame(data_list)
+
+# Generate water quality data
+water_data = generate_water_quality_data(n_sensors=5, n_days=3, freq_minutes=30)
+print("Water Quality Data Generated!")
+print(f"Total records: {len(water_data):,}")
+print(f"Sensors: {water_data['sensor_id'].nunique()}")
+print("\nSample data:")
+print(water_data.head())
+
+# Task 2: Quality Control
+def water_quality_qc(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Apply quality control checks to water quality data.
+    """
+    
+    df = df.copy()
+    df['do_qc_flag'] = 'good'
+    
+    # 1. Range check for DO
+    mask = (df['dissolved_oxygen'] < 0) | (df['dissolved_oxygen'] > 20)
+    df.loc[mask, 'do_qc_flag'] = 'range_error'
+    
+    # 2. Rate of change check
+    for sensor_id in df['sensor_id'].unique():
+        sensor_mask = df['sensor_id'] == sensor_id
+        do_values = df.loc[sensor_mask, 'dissolved_oxygen'].copy()
+        
+        rate_of_change = do_values.diff().abs()
+        excessive_change = rate_of_change > 3  # 3 mg/L per 30 min
+        
+        df.loc[sensor_mask & excessive_change, 'do_qc_flag'] = 'rate_error'
+    
+    # 3. Cross-parameter check (DO vs Temperature)
+    # Calculate expected DO change based on temperature
+    df['temp_diff'] = df.groupby('sensor_id')['temperature'].diff()
+    df['do_diff'] = df.groupby('sensor_id')['dissolved_oxygen'].diff()
+    
+    # DO should generally decrease when temp increases (inverse relationship)
+    # Flag if both increase or both decrease significantly
+    inconsistent = (df['temp_diff'] * df['do_diff'] > 0.5)
+    df.loc[inconsistent & (df['do_qc_flag'] == 'good'), 'do_qc_flag'] = 'cross_param_error'
+    
+    # 4. Missing data
+    df.loc[df['dissolved_oxygen'].isna(), 'do_qc_flag'] = 'missing'
+    
+    return df
+
+water_data = water_quality_qc(water_data)
+
+print("\n" + "="*60)
+print("Quality Control Summary:")
+print("="*60)
+for sensor_id in sorted(water_data['sensor_id'].unique()):
+    sensor_subset = water_data[water_data['sensor_id'] == sensor_id]
+    total = len(sensor_subset)
+    good = (sensor_subset['do_qc_flag'] == 'good').sum()
+    pct = good / total * 100
+    print(f"{sensor_id}: {pct:.1f}% good data ({good}/{total} records)")
+
+# Task 3: Temporal Analysis
+fig, axes = plt.subplots(2, 1, figsize=(14, 10))
+
+# Plot 1: Time series for all sensors
+good_data = water_data[water_data['do_qc_flag'] == 'good'].copy()
+
+for sensor_id in sorted(good_data['sensor_id'].unique()):
+    sensor_subset = good_data[good_data['sensor_id'] == sensor_id]
+    axes[0].plot(sensor_subset['timestamp'], sensor_subset['dissolved_oxygen'],
+                label=sensor_id, linewidth=1.5, alpha=0.8)
+
+axes[0].axhline(y=5, color='red', linestyle='--', linewidth=2, 
+               label='Hypoxic Threshold (5 mg/L)')
+axes[0].set_xlabel('Date and Time')
+axes[0].set_ylabel('Dissolved Oxygen (mg/L)')
+axes[0].set_title('Dissolved Oxygen Time Series - All Sensors')
+axes[0].legend(loc='upper right')
+axes[0].grid(True, alpha=0.3)
+
+# Plot 2: Upstream vs Downstream comparison
+upstream = good_data[good_data['sensor_id'].isin(['sensor_1', 'sensor_2'])]
+downstream = good_data[good_data['sensor_id'].isin(['sensor_4', 'sensor_5'])]
+
+upstream_mean = upstream.groupby('timestamp')['dissolved_oxygen'].mean()
+downstream_mean = downstream.groupby('timestamp')['dissolved_oxygen'].mean()
+
+axes[1].plot(upstream_mean.index, upstream_mean.values, 
+            label='Upstream (Sensors 1-2)', linewidth=2, color='blue')
+axes[1].plot(downstream_mean.index, downstream_mean.values,
+            label='Downstream (Sensors 4-5)', linewidth=2, color='orange')
+axes[1].axhline(y=5, color='red', linestyle='--', linewidth=2,
+               label='Hypoxic Threshold')
+axes[1].fill_between(upstream_mean.index,
+                     upstream_mean.values,
+                     downstream_mean.values,
+                     alpha=0.2, color='gray')
+
+axes[1].set_xlabel('Date and Time')
+axes[1].set_ylabel('Dissolved Oxygen (mg/L)')
+axes[1].set_title('Upstream vs Downstream DO Comparison')
+axes[1].legend(loc='upper right')
+axes[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('water_quality_temporal.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+# Identify pollution event
+downstream_min = downstream_mean.min()
+pollution_time = downstream_mean.idxmin()
+print(f"\n" + "="*60)
+print("Pollution Event Detection:")
+print("="*60)
+print(f"Minimum DO: {downstream_min:.2f} mg/L")
+print(f"Occurred at: {pollution_time}")
+print(f"Duration: Approximately 10 hours on Day 2")
+
+# Task 4: Spatial Analysis
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Calculate average DO for each sensor
+sensor_avg = good_data.groupby(['sensor_id', 'distance_km']).agg({
+    'dissolved_oxygen': 'mean'
+}).reset_index()
+
+# DO saturation at 20°C is approximately 9.1 mg/L
+do_saturation = 9.1
+sensor_avg['do_deficit'] = do_saturation - sensor_avg['dissolved_oxygen']
+
+# Plot 1: Spatial gradient
+axes[0].plot(sensor_avg['distance_km'], sensor_avg['dissolved_oxygen'],
+            marker='o', markersize=10, linewidth=2, color='steelblue')
+axes[0].axhline(y=5, color='red', linestyle='--', linewidth=2,
+               label='Hypoxic Threshold')
+axes[0].axhline(y=do_saturation, color='green', linestyle='--', linewidth=2,
+               label='DO Saturation (20°C)')
+axes[0].set_xlabel('Distance from Upstream (km)')
+axes[0].set_ylabel('Average Dissolved Oxygen (mg/L)')
+axes[0].set_title('Spatial Gradient: Upstream to Downstream')
+axes[0].legend()
+axes[0].grid(True, alpha=0.3)
+
+# Plot 2: DO deficit
+bars = axes[1].bar(sensor_avg['sensor_id'], sensor_avg['do_deficit'],
+                   color='coral', alpha=0.7)
+axes[1].set_xlabel('Sensor ID')
+axes[1].set_ylabel('DO Deficit (mg/L)')
+axes[1].set_title('Oxygen Depletion by Sensor')
+axes[1].tick_params(axis='x', rotation=45)
+axes[1].grid(True, alpha=0.3, axis='y')
+
+# Highlight most severe depletion
+max_deficit_idx = sensor_avg['do_deficit'].idxmax()
+bars[max_deficit_idx].set_color('darkred')
+
+plt.tight_layout()
+plt.savefig('water_quality_spatial.png', dpi=300, bbox_inches='tight')
+plt.show()
+
+print(f"\nMost severe oxygen depletion:")
+print(sensor_avg.loc[max_deficit_idx])
+
+# Task 5: Alert System
+class WaterQualityAlertSystem:
+    """Alert system for water quality monitoring."""
+    
+    def __init__(self):
+        self.alerts = []
+        
+    def check_alerts(self, row: pd.Series) -> None:
+        """Check for alert conditions."""
+        
+        # DO threshold
+        if row['dissolved_oxygen'] < 5:
+            self.alerts.append({
+                'timestamp': row['timestamp'],
+                'sensor_id': row['sensor_id'],
+                'type': 'hypoxia',
+                'parameter': 'DO',
+                'value': row['dissolved_oxygen'],
+                'message': f"Hypoxic conditions: DO = {row['dissolved_oxygen']:.2f} mg/L"
+            })
+        
+        # pH threshold
+        if row['ph'] < 6.0 or row['ph'] > 9.0:
+            self.alerts.append({
+                'timestamp': row['timestamp'],
+                'sensor_id': row['sensor_id'],
+                'type': 'ph_extreme',
+                'parameter': 'pH',
+                'value': row['ph'],
+                'message': f"pH outside normal range: {row['ph']:.2f}"
+            })
+        
+        # Temperature threshold
+        if row['temperature'] > 25:
+            self.alerts.append({
+                'timestamp': row['timestamp'],
+                'sensor_id': row['sensor_id'],
+                'type': 'high_temperature',
+                'parameter': 'temperature',
+                'value': row['temperature'],
+                'message': f"High temperature: {row['temperature']:.1f}°C"
+            })
+    
+    def generate_report(self) -> pd.DataFrame:
+        """Generate alert summary report."""
+        return pd.DataFrame(self.alerts)
+
+# Run alert system
+alert_system = WaterQualityAlertSystem()
+good_data.apply(alert_system.check_alerts, axis=1)
+
+alert_report = alert_system.generate_report()
+
+print("\n" + "="*60)
+print("Alert System Summary:")
+print("="*60)
+print(f"Total alerts: {len(alert_report)}")
+print("\nAlerts by type:")
+print(alert_report['type'].value_counts())
+print("\nAlerts by sensor:")
+print(alert_report['sensor_id'].value_counts())
+
+print("\nFirst 5 alerts:")
+print(alert_report.head())
+
+# Summary Report
+print("\n" + "="*60)
+print("WATER QUALITY ANALYSIS SUMMARY")
+print("="*60)
+print("""
+POLLUTION EVENT ANALYSIS:
+
+The sensor network detected a significant pollution event on Day 2 
+(June 2, 2024) between 10:00 and 20:00. The event primarily affected 
+downstream sensors (4 and 5), with dissolved oxygen levels dropping 
+below the hypoxic threshold of 5 mg/L.
+
+Key Findings:
+- Minimum DO: {:.2f} mg/L at downstream sensors
+- Event duration: ~10 hours
+- Spatial extent: Primarily downstream 10-20 km
+- Most affected sensor: sensor_5 (furthest downstream)
+- DO deficit at sensor_5: {:.2f} mg/L below saturation
+
+RECOMMENDATIONS:
+
+1. Investigate pollution sources in the watershed, particularly 
+   upstream of sensor_3 where degradation begins
+2. Increase monitoring frequency during rainfall events
+3. Deploy additional sensors in the 5-15 km range to better 
+   resolve pollution transport
+4. Implement automated alerts to water treatment facilities 
+   downstream when DO drops below 6 mg/L
+5. Conduct regular calibration (monthly) to ensure data quality
+
+NETWORK LIMITATIONS:
+
+- Current 5-sensor network provides limited spatial resolution
+- 30-minute sampling may miss rapid pollution pulses
+- Single-parameter focus on DO; additional parameters (BOD, 
+  nutrients) would help identify pollution sources
+- No flow/velocity measurements to estimate pollution load
+
+SUGGESTED IMPROVEMENTS:
+
+- Add 3-5 sensors in middle reach (5-15 km)
+- Increase sampling frequency to 15 minutes during events
+- Deploy multi-parameter sondes measuring nutrients, turbidity
+- Install flow meters to calculate pollutant flux
+- Implement machine learning for pollution source identification
+""".format(downstream_min, sensor_avg.loc[max_deficit_idx, 'do_deficit']))
+
+print("="*60)
+print("Analysis complete! Check output plots for visualizations.")
+```
+
+This solution provides a comprehensive analysis of the water quality sensor network, demonstrating practical skills in data generation, quality control, temporal and spatial analysis, and alert system implementation.
+
+## Quiz 📋
+
+Test your understanding of environmental sensor networks with these questions:
+
+### Question 1
+What is the primary advantage of environmental sensor networks over traditional periodic sampling?
+
+A) Lower cost  
+B) Higher accuracy  
+C) Continuous, real-time monitoring  
+D) Easier calibration
+
+::: {.callout-note collapse="true"}
+## Answer
+**C) Continuous, real-time monitoring**
+
+The key advantage is the ability to capture environmental dynamics as they occur, providing continuous data streams rather than periodic snapshots. While cost and ease of use are benefits of some modern sensors, the fundamental advantage is temporal resolution.
+:::
+
+### Question 2
+True or False: Mesh network topology creates a single point of failure when the central gateway goes offline.
+
+::: {.callout-note collapse="true"}
+## Answer
+**False**
+
+Mesh networks provide redundancy by allowing sensors to relay data through multiple pathways. Star topology creates a single point of failure at the central gateway, but mesh networks maintain connectivity even if individual nodes fail.
+:::
+
+### Question 3
+Which communication protocol is best suited for remote environmental monitoring with battery-powered sensors?
+
+A) WiFi  
+B) Bluetooth Low Energy  
+C) LoRaWAN  
+D) 5G Cellular
+
+::: {.callout-note collapse="true"}
+## Answer
+**C) LoRaWAN**
+
+LoRaWAN offers ultra-low power consumption with long-range transmission (2-15 km), making it ideal for remote, battery-powered deployments. WiFi consumes too much power, BLE has limited range, and cellular networks require more power and subscription costs.
+:::
+
+### Question 4
+What does "duty cycling" refer to in sensor network power management?
+
+A) The frequency of sensor calibration  
+B) The ratio of active time to sleep time  
+C) The rotation schedule for sensor maintenance  
+D) The lifetime of the sensor battery
+
+::: {.callout-note collapse="true"}
+## Answer
+**B) The ratio of active time to sleep time**
+
+Duty cycling is a power management strategy where sensors alternate between active (measuring/transmitting) and sleep modes. A 1% duty cycle means the sensor is active 1% of the time and sleeping 99%, dramatically extending battery life.
+:::
+
+### Question 5
+Which quality control check would identify a sensor reading of -10°C in a tropical rainforest?
+
+A) Rate-of-change test  
+B) Range check  
+C) Cross-sensitivity test  
+D) Statistical outlier detection
+
+::: {.callout-note collapse="true"}
+## Answer
+**B) Range check**
+
+Range checks flag physically impossible or highly improbable values based on known constraints. A negative temperature in the tropics violates expected ranges and would be immediately flagged.
+:::
+
+### Question 6
+True or False: Electrochemical sensors measure gas concentrations by detecting changes in light absorption.
+
+::: {.callout-note collapse="true"}
+## Answer
+**False**
+
+Electrochemical sensors measure gas concentrations through redox reactions that generate electrical current proportional to analyte concentration. Optical sensors measure light absorption, scattering, or fluorescence.
+:::
+
+### Question 7
+What is the primary cause of "drift" in environmental sensors?
+
+A) Sudden calibration changes  
+B) Wireless interference  
+C) Gradual degradation over time  
+D) Power supply fluctuations
+
+::: {.callout-note collapse="true"}
+## Answer
+**C) Gradual degradation over time**
+
+Drift refers to the slow change in sensor response due to aging, fouling, chemical degradation, or environmental exposure. This requires periodic recalibration to maintain accuracy.
+:::
+
+### Question 8
+In Inverse Distance Weighting (IDW) interpolation, what does the "power" parameter control?
+
+A) The total number of interpolation points  
+B) How much weight nearby sensors receive  
+C) The accuracy of the interpolation  
+D) The computational speed
+
+::: {.callout-note collapse="true"}
+## Answer
+**B) How much weight nearby sensors receive**
+
+The power parameter (typically 2-4) determines how rapidly influence decreases with distance. Higher power values give more weight to nearby sensors and less to distant ones, creating sharper gradients in the interpolated surface.
+:::
+
+### Question 9
+Which of the following is NOT a typical application of water quality sensor networks?
+
+A) Harmful algal bloom detection  
+B) Hypoxia monitoring  
+C) Soil moisture measurement  
+D) Pollution source tracking
+
+::: {.callout-note collapse="true"}
+## Answer
+**C) Soil moisture measurement**
+
+Soil moisture is measured by soil sensor networks, not water quality networks. Water quality networks focus on parameters like dissolved oxygen, pH, turbidity, temperature, and nutrient concentrations in aquatic systems.
+:::
+
+### Question 10
+True or False: Edge computing in sensor networks refers to processing data at the sensor node or gateway rather than in the cloud.
+
+::: {.callout-note collapse="true"}
+## Answer
+**True**
+
+Edge computing moves data processing closer to the data source (the "edge" of the network) rather than transmitting all raw data to centralized cloud servers. This reduces latency, bandwidth requirements, and costs while enabling real-time decision-making.
+:::
+
+## References
+
+::: {#refs}
+:::
