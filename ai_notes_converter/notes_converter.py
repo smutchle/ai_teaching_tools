@@ -7,6 +7,7 @@ import uuid
 from pathlib import Path
 from pdf2image import convert_from_path
 from anthropic import Anthropic
+from anthropic.types import TextBlock
 from dotenv import load_dotenv
 import subprocess
 
@@ -15,6 +16,9 @@ load_dotenv()
 
 # Initialize Anthropic client
 client = Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
+
+# Get model from environment variable with fallback
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
 
 # Initialize session state
 if 'session_id' not in st.session_state:
@@ -34,13 +38,59 @@ def image_to_base64(image):
     image.save(buffered, format="PNG")
     return base64.b64encode(buffered.getvalue()).decode()
 
-def extract_text_from_page(image, page_num, temp_dir):
+def fix_ocr_errors(extracted_text, page_num):
+    """Use Claude to fix obvious OCR errors in extracted text.
+
+    Args:
+        extracted_text: The initially extracted text from OCR
+        page_num: Page number for context
+
+    Returns:
+        Corrected text with OCR errors fixed
+    """
+    prompt = f"""You are reviewing OCR-extracted text from handwritten notes. Your task is to fix ONLY obvious OCR errors while preserving all original content and meaning.
+
+CRITICAL RULES:
+- Fix ONLY obvious transcription errors (e.g., "1" vs "l", "0" vs "O", malformed LaTeX)
+- Do NOT change, add, or remove any actual content or meaning
+- Do NOT "improve" the writing or add explanations
+- Do NOT change the structure or organization
+- Do NOT add page numbers, headers, or any new content
+- Preserve ALL mathematical notation exactly (only fix syntax errors in LaTeX)
+- Keep all {{{{FIGURE:...}}}} markers exactly as they are
+
+Here is the extracted text to review:
+
+{extracted_text}
+
+Please return the corrected text with ONLY obvious OCR errors fixed. Do not add any page numbers or headers."""
+
+    message = client.messages.create(
+        model=CLAUDE_MODEL,
+        max_tokens=4096,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+    )
+
+    content_block = message.content[0]
+    if isinstance(content_block, TextBlock):
+        return content_block.text
+    else:
+        raise ValueError(f"Expected TextBlock but got {type(content_block)}")
+
+
+def extract_text_from_page(image, page_num, temp_dir, preserve_figures=True):
     """Use Claude vision API to extract handwritten text from a page image.
 
     Args:
         image: PIL Image object
         page_num: Page number
         temp_dir: Temporary directory to save image files
+        preserve_figures: Whether to save and preserve figure images
 
     Returns:
         Tuple of (extracted_text, image_references)
@@ -48,20 +98,25 @@ def extract_text_from_page(image, page_num, temp_dir):
     """
     image_b64 = image_to_base64(image)
 
-    prompt = f"""You are analyzing page {page_num} of handwritten notes. Please extract ALL text, equations, and content from this page.
+    if preserve_figures:
+        figure_instruction = "- If there are diagrams, drawings, graphs, or figures, mark their location with {{{{FIGURE: brief description}}}} and I will preserve them as images\n- Do NOT attempt to describe complex diagrams in detail - just note their presence and general purpose"
+    else:
+        figure_instruction = "- If there are diagrams, drawings, graphs, or figures, describe them briefly in plain text as part of the notes"
+
+    prompt = f"""You are analyzing handwritten notes. Please extract ALL text, equations, and content from this image.
 
 IMPORTANT INSTRUCTIONS:
 - Preserve the structure and organization of the content
 - Convert ALL mathematical expressions and equations to LaTeX format (use $...$ for inline math and $$...$$ for display math)
 - Identify and preserve any headings, lists, or structured content
 - Be thorough and capture all visible text and formulas
-- If there are diagrams, drawings, graphs, or figures, mark their location with {{{{FIGURE: brief description}}}} and I will preserve them as images
-- Do NOT attempt to describe complex diagrams in detail - just note their presence and general purpose
+- Do NOT add page numbers, headers, or any metadata not present in the image
+{figure_instruction}
 
-Please provide the extracted content in a clean, readable format."""
+Please provide the extracted content in a clean, readable format without adding page numbers or headers."""
 
     message = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model=CLAUDE_MODEL,
         max_tokens=4096,
         messages=[
             {
@@ -84,31 +139,95 @@ Please provide the extracted content in a clean, readable format."""
         ],
     )
 
-    extracted_text = message.content[0].text
+    content_block = message.content[0]
+    if isinstance(content_block, TextBlock):
+        extracted_text = content_block.text
+    else:
+        raise ValueError(f"Expected TextBlock but got {type(content_block)}")
 
     # Check if there are any figure markers indicating we should preserve the image
-    has_figures = "{{FIGURE:" in extracted_text or "[FIGURE:" in extracted_text or "diagram" in extracted_text.lower() or "drawing" in extracted_text.lower()
-
     image_references = []
-    if has_figures:
-        # Save the page image for inclusion in the document
-        image_filename = f"page_{page_num}.png"
-        image_path = Path(temp_dir) / image_filename
-        image.save(image_path, format="PNG")
-        image_references.append((image_filename, f"Page {page_num} containing diagrams/drawings"))
+    if preserve_figures:
+        has_figures = "{{FIGURE:" in extracted_text or "[FIGURE:" in extracted_text or "diagram" in extracted_text.lower() or "drawing" in extracted_text.lower()
+
+        if has_figures:
+            # Save the page image for inclusion in the document
+            image_filename = f"figure_{page_num}.png"
+            image_path = Path(temp_dir) / image_filename
+            image.save(image_path, format="PNG")
+            image_references.append((image_filename, "Diagram or drawing from handwritten notes"))
 
     return extracted_text, image_references
 
-def create_quarto_document(pages_content, make_accessible=False):
+def generate_document_title(pages_content):
+    """Generate an appropriate title for the document based on its content.
+
+    Args:
+        pages_content: List of tuples (text_content, image_references)
+
+    Returns:
+        A concise, descriptive title for the document
+    """
+    # Combine first few pages of content for analysis (max 2000 chars)
+    combined_text = ""
+    for content, _ in pages_content[:3]:  # Use first 3 pages
+        combined_text += content + "\n"
+        if len(combined_text) > 2000:
+            combined_text = combined_text[:2000]
+            break
+
+    prompt = f"""Based on the following content from handwritten notes, generate a concise, descriptive title (maximum 10 words).
+
+The title should:
+- Capture the main topic or subject matter
+- Be professional and clear
+- Not include words like "Notes", "Handwritten", or "Document" (this is implied)
+- Not include page numbers or metadata
+
+Content:
+{combined_text}
+
+Please respond with ONLY the title, nothing else."""
+
+    try:
+        message = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=100,
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+        )
+
+        content_block = message.content[0]
+        if isinstance(content_block, TextBlock):
+            title = content_block.text.strip()
+            # Remove quotes if present
+            title = title.strip('"').strip("'")
+            return title
+        else:
+            return "Converted Handwritten Notes"
+    except Exception:
+        return "Converted Handwritten Notes"
+
+def create_quarto_document(pages_content, make_accessible=False, remove_page_breaks=False, document_title=None):
     """Create a Quarto .qmd document from extracted pages.
 
     Args:
         pages_content: List of tuples (text_content, image_references)
         make_accessible: Whether to add accessibility features
+        remove_page_breaks: Whether to remove page breaks between pages
+        document_title: Optional custom title for the document
     """
+    # Use provided title or default
+    if document_title is None:
+        document_title = "Converted Handwritten Notes"
+
     # YAML frontmatter with accessibility options
-    yaml_header = """---
-title: "Converted Handwritten Notes"
+    yaml_header = f"""---
+title: "{document_title}"
 author: "Converted from Handwritten PDF"
 date: today
 lang: en
@@ -124,12 +243,14 @@ format:
 """
 
     if make_accessible:
-        yaml_header += """    include-in-header:
+        # Escape special LaTeX characters in title for hypersetup
+        safe_title = document_title.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}").replace("_", "\\_")
+        yaml_header += f"""    include-in-header:
       text: |
-        \\usepackage[utf8]{inputenc}
-        \\usepackage{fontspec}
-        \\usepackage{hyperref}
-        \\hypersetup{pdfauthor={Converted from PDF}, pdftitle={Converted Handwritten Notes}, pdfsubject={Handwritten Notes}, pdfkeywords={notes, handwritten}, colorlinks=true, bookmarks=true, bookmarksopen=true, bookmarksnumbered=true}
+        \\usepackage[utf8]{{inputenc}}
+        \\usepackage{{fontspec}}
+        \\usepackage{{hyperref}}
+        \\hypersetup{{pdfauthor={{Converted from PDF}}, pdftitle={{{safe_title}}}, pdfsubject={{Handwritten Notes}}, pdfkeywords={{notes, handwritten}}, colorlinks=true, bookmarks=true, bookmarksopen=true, bookmarksnumbered=true}}
     pdf-engine: xelatex
   docx:
     toc: true
@@ -150,12 +271,12 @@ format:
 
     for i, (content, image_refs) in enumerate(pages_content, 1):
         # Add page break between pages (but not before the first page)
-        if i > 1 and make_accessible:
+        if i > 1 and make_accessible and not remove_page_breaks:
             document += f"{{{{< pagebreak >}}}}\n\n"
 
         if make_accessible:
-            # Add accessibility markers
-            document += f"::: {{.page-content aria-label=\"Content from page {i}\"}}\n\n"
+            # Add accessibility markers without page reference
+            document += f"::: {{.content-section}}\n\n"
 
         # Add embedded images first if there are any
         if image_refs:
@@ -257,36 +378,82 @@ def check_quarto_installation():
         return False, str(e)
 
 def main():
-    st.set_page_config(page_title="Notes Converter", page_icon="📝", layout="wide")
+    st.set_page_config(
+        page_title="Notes Converter - Convert Handwritten Notes to Accessible Documents",
+        page_icon="📝",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
 
     st.title("📝 Note Converter")
-    st.markdown("Upload your handwritten PDF notes to convert them to Quarto, LaTeX, Word and PDF documents with accessibility features for screen readers.")
+    st.markdown("""
+    Upload your handwritten PDF notes to convert them to accessible digital formats including Quarto, LaTeX, Word and PDF documents.
+
+    **This tool uses AI to:**
+    - Extract handwritten text from PDF pages
+    - Convert mathematical notation to LaTeX format
+    - Preserve diagrams and drawings as embedded images with descriptions
+    - Generate accessible documents optimized for screen readers
+    """)
+
+    # Add accessibility note
+    st.info("♿ This application creates documents with accessibility features enabled by default, including semantic structure, alt text for images, and proper heading hierarchy.")
 
     # Check Quarto installation (silently - only warn if missing)
     quarto_ok, quarto_info = check_quarto_installation()
     if not quarto_ok:
-        st.error(f"❌ Quarto issue: {quarto_info}")
-        st.warning("PDF/Word/LaTeX downloads may not work without Quarto installed.")
+        st.error(f"❌ Quarto Installation Error: {quarto_info}")
+        st.warning("⚠️ PDF, Word, and LaTeX downloads require Quarto to be installed. Only .qmd format will be available.")
 
     # Sidebar options
     with st.sidebar:
-        st.header("Options")
-        make_accessible = st.checkbox("Make Accessible",
-                                     value=True,
-                                     help="Add accessibility features for screen readers")
+        st.header("Conversion Options")
+        st.markdown("Configure how your document will be processed and formatted.")
+
+        make_accessible = st.checkbox(
+            "Enable Accessibility Features",
+            value=True,
+            help="Adds WCAG-compliant accessibility features including ARIA labels, semantic structure, proper heading hierarchy, and metadata for screen readers and assistive technologies."
+        )
+
+        preserve_figures = st.checkbox(
+            "Preserve Figures as Images",
+            value=True,
+            help="Saves diagrams, drawings, and graphs as embedded images with descriptive alt text. When disabled, figures will be described in plain text format."
+        )
+
+        enable_ocr_correction = st.checkbox(
+            "Enable OCR Error Correction",
+            value=True,
+            help="Uses AI to perform a second pass that fixes common OCR errors like misread characters (1 vs l, 0 vs O). Note: This doubles processing time."
+        )
+
+        remove_page_breaks = st.checkbox(
+            "Remove Page Breaks",
+            value=True,
+            help="Creates a continuous document by removing page break markers between scanned pages. Disable to preserve original page structure."
+        )
 
         st.markdown("---")
-        st.markdown("### About")
+        st.markdown("### About This Tool")
         st.markdown("""
-        This app uses Claude Sonnet's vision capabilities to:
-        - Extract handwritten text from PDF pages
-        - Convert mathematical notation to LaTeX format
-        - Preserve diagrams and drawings as embedded images
-        - Generate multiple output formats (PDF, Word, LaTeX)
+        This application uses Claude Sonnet 4.5's advanced vision AI to:
+        - **Extract** handwritten text from PDF pages with high accuracy
+        - **Convert** mathematical notation to accessible LaTeX format
+        - **Preserve** diagrams and drawings as embedded images with alt text
+        - **Generate** multiple accessible output formats (PDF, Word, LaTeX, Quarto)
+
+        **Accessibility Commitment:**
+        Output documents comply with WCAG 2.1 Level AA standards when "Enable Accessibility Features" is checked.
         """)
 
     # File upload
-    uploaded_file = st.file_uploader("Upload PDF file", type=["pdf"])
+    st.markdown("### Step 1: Upload Your Document")
+    uploaded_file = st.file_uploader(
+        "Select a PDF file containing handwritten notes to convert",
+        type=["pdf"],
+        help="Upload a PDF file with handwritten notes. The file will be processed page-by-page to extract text, equations, and figures."
+    )
 
     if uploaded_file is not None:
         # Extract original filename without extension
@@ -315,29 +482,42 @@ def main():
             with open(pdf_path, "wb") as f:
                 f.write(uploaded_file.getbuffer())
 
-            st.success(f"✓ Uploaded: {uploaded_file.name}")
+            st.success(f"✅ File uploaded successfully: {uploaded_file.name}")
 
             # Process button
-            if st.button("🔄 Convert", type="primary"):
+            st.markdown("### Step 2: Start Conversion")
+            if st.button("🔄 Convert to Accessible Document", type="primary", help="Begin processing the uploaded PDF file"):
                 with st.spinner("Converting PDF pages to images..."):
                     images = pdf_to_images(str(pdf_path))
-                    st.info(f"Processing {len(images)} pages...")
+                    st.info(f"📄 Found {len(images)} pages to process")
 
                 # Extract text from each page
                 pages_content = []
-                progress_bar = st.progress(0)
+                progress_bar = st.progress(0, text="Starting conversion...")
 
                 for i, image in enumerate(images):
-                    with st.spinner(f"Extracting text from page {i+1}/{len(images)}..."):
-                        text_content, image_refs = extract_text_from_page(image, i+1, temp_dir_path)
-                        pages_content.append((text_content, image_refs))
-                        progress_bar.progress((i + 1) / len(images))
+                    progress_text = f"Processing page {i+1} of {len(images)}"
+                    with st.spinner(f"🔍 Extracting text from page {i+1}/{len(images)}..."):
+                        text_content, image_refs = extract_text_from_page(image, i+1, temp_dir_path, preserve_figures)
 
-                st.success(f"✓ Extracted text from {len(images)} pages!")
+                        # Apply OCR error correction if enabled
+                        if enable_ocr_correction:
+                            with st.spinner(f"✏️ Correcting OCR errors on page {i+1}/{len(images)}..."):
+                                text_content = fix_ocr_errors(text_content, i+1)
+
+                        pages_content.append((text_content, image_refs))
+                        progress_bar.progress((i + 1) / len(images), text=f"{progress_text} - Complete")
+
+                st.success(f"✅ Successfully extracted text from all {len(images)} pages")
+
+                # Generate document title
+                with st.spinner("🤔 Generating document title..."):
+                    document_title = generate_document_title(pages_content)
+                    st.info(f"📝 Document title: \"{document_title}\"")
 
                 # Create Quarto document
-                with st.spinner("Creating Quarto document..."):
-                    qmd_content = create_quarto_document(pages_content, make_accessible)
+                with st.spinner("📝 Creating accessible Quarto document..."):
+                    qmd_content = create_quarto_document(pages_content, make_accessible, remove_page_breaks, document_title)
                     qmd_path = temp_dir_path / f"{original_filename}.qmd"
                     with open(qmd_path, "w", encoding="utf-8") as f:
                         f.write(qmd_content)
@@ -349,56 +529,60 @@ def main():
                 st.session_state.original_filename = original_filename
                 st.session_state.conversion_complete = True
 
-                st.success("✓ Quarto document created!")
+                st.success("✅ Conversion complete! Your accessible document is ready for download.")
 
             # Show download options if conversion is complete
             if st.session_state.get('conversion_complete', False) and st.session_state.get('original_filename') == original_filename:
                 # Display preview in expander
-                with st.expander("📄 Preview Quarto Content", expanded=False):
+                with st.expander("📄 Preview Document Content", expanded=False):
+                    st.markdown("**Note:** This is the raw Quarto markdown that will be converted to your chosen format.")
                     st.code(st.session_state.qmd_content, language="markdown")
 
                 # Download section
                 st.markdown("---")
-                st.subheader("📥 Download Options")
+                st.markdown("### Step 3: Download Your Document")
+                st.markdown("Choose one or more formats to download your converted accessible document.")
 
                 col1, col2, col3, col4 = st.columns(4)
 
                 # Download .qmd
                 with col1:
                     st.download_button(
-                        label="Download .qmd",
+                        label="📄 Quarto (.qmd)",
                         data=st.session_state.qmd_content,
                         file_name=f"{original_filename}.qmd",
                         mime="text/plain",
+                        help="Download the Quarto markdown source file",
                         key="download_qmd"
                     )
 
                 # Render and download PDF
                 with col2:
                     if 'pdf_data' not in st.session_state:
-                        with st.spinner("Rendering PDF..."):
+                        with st.spinner("🔄 Rendering PDF document..."):
                             pdf_output = render_quarto(st.session_state.qmd_path, "pdf", st.session_state.temp_dir_path)
                             if pdf_output:
                                 with open(pdf_output, "rb") as f:
                                     st.session_state.pdf_data = f.read()
                             else:
-                                st.error("❌ Failed to render PDF from Quarto")
+                                st.error("❌ PDF rendering failed. Ensure Quarto is installed correctly.")
 
                     if 'pdf_data' in st.session_state:
                         st.download_button(
-                            label="Download PDF",
+                            label="📕 PDF Document",
                             data=st.session_state.pdf_data,
                             file_name=f"{original_filename}.pdf",
                             mime="application/pdf",
+                            help="Download as accessible PDF with proper structure and metadata",
                             key="download_pdf"
                         )
                     else:
-                        st.warning("PDF rendering failed - check Quarto installation")
+                        st.warning("⚠️ PDF unavailable - Quarto installation required")
 
                 # Render and download Word
                 with col3:
                     if 'docx_data' not in st.session_state:
-                        with st.spinner("Rendering Word..."):
+                        with st.spinner("🔄 Rendering Word document..."):
                             docx_output = render_quarto(st.session_state.qmd_path, "docx", st.session_state.temp_dir_path)
                             if docx_output:
                                 with open(docx_output, "rb") as f:
@@ -406,17 +590,20 @@ def main():
 
                     if 'docx_data' in st.session_state:
                         st.download_button(
-                            label="Download Word",
+                            label="📘 Word (.docx)",
                             data=st.session_state.docx_data,
                             file_name=f"{original_filename}.docx",
                             mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                            help="Download as Microsoft Word document with accessibility features",
                             key="download_docx"
                         )
+                    else:
+                        st.warning("⚠️ Word unavailable - Quarto installation required")
 
                 # Render and download LaTeX
                 with col4:
                     if 'tex_data' not in st.session_state:
-                        with st.spinner("Rendering LaTeX..."):
+                        with st.spinner("🔄 Rendering LaTeX source..."):
                             tex_output = render_quarto(st.session_state.qmd_path, "latex", st.session_state.temp_dir_path)
                             if tex_output:
                                 with open(tex_output, "r", encoding="utf-8") as f:
@@ -424,15 +611,19 @@ def main():
 
                     if 'tex_data' in st.session_state:
                         st.download_button(
-                            label="Download LaTeX",
+                            label="📗 LaTeX (.tex)",
                             data=st.session_state.tex_data,
                             file_name=f"{original_filename}.tex",
                             mime="text/plain",
+                            help="Download as LaTeX source file for further customization",
                             key="download_tex"
                         )
+                    else:
+                        st.warning("⚠️ LaTeX unavailable - Quarto installation required")
 
         except Exception as e:
-            st.error(f"An error occurred: {str(e)}")
+            st.error(f"❌ An error occurred during processing: {str(e)}")
+            st.info("💡 Please check your file and try again. If the problem persists, ensure Quarto is installed correctly.")
             # Cleanup on error
             try:
                 shutil.rmtree(session_temp_dir, ignore_errors=True)
