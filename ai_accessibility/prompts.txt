@@ -1,0 +1,9 @@
+create a streamlit app that converts .html, .md, .tex, .pdf, .pptx or .qmd files to
+ WCAG 2.1 Level AA accessible forms.  assume pdf documents do not require OCR.
+ allow the user to upload one or more documents at a time.  output in the 
+ same format as they upload. if multiple documents, download as ZIP with converted documents.
+ use anaconda genai environment for work.  
+
+ CRITICAL: Do not change the content of documents except for accessibility changes.
+ 
+ ask clarifying questions.

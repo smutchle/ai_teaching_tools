@@ -1,0 +1,5 @@
+# Additional dependencies for WCAG Accessibility Converter
+# Most dependencies already in genai environment
+
+python-pptx>=0.6.21    # PowerPoint manipulation
+markdown>=3.4          # Markdown parsing

@@ -1,0 +1,71 @@
+\documentclass[12pt]{article}
+\usepackage[tagged]{accessibility}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+  pdflang=en,
+  pdfusetitle,
+  bookmarks=true
+}
+\begin{document}
+
+\title{Climate Change Report}
+\author{Research Team}
+\maketitle
+
+\section{Introduction}
+
+Climate change is one of the most pressing issues. More information can be found \href{https://climate.nasa.gov}{NASA Climate Change Portal}.
+
+\subsection{Background}
+
+The temperature has increased by \textbf{\textcolor{red}{1.5°C}} since pre-industrial times.
+
+\begin{center}
+\pdftooltip{\includegraphics[width=0.6\textwidth]{temperature_graph.png}}{Graph showing temperature changes over time}
+\end{center}
+
+\section{Data Analysis}
+
+Below is the data from our study:
+
+\begin{table}[h]
+\begin{tabular}{|c|c|c|}
+\hline
+Year & Temperature (°C) & CO2 Levels (ppm) \\
+\hline
+2010 & 14.5 & 350 \\
+\hline
+2015 & 15.2 & 380 \\
+\hline
+2020 & 16.1 & 410 \\
+\hline
+\end{tabular}
+\caption{Global temperature and atmospheric CO2 concentration measurements from 2010 to 2020 showing concurrent increases in both variables.}
+\end{table}
+
+The equation for temperature change is:
+
+$$T(t) = T_0 + \alpha t$$
+
+\section{Results}
+
+Click \href{https://example.com/data.pdf}{Download Data PDF} for the full dataset.
+
+\textbf{\textcolor{blue}{Important finding:}} The rate of change has accelerated.
+
+\subsection{Statistical Analysis}
+
+\begin{figure}[h]
+\centering
+\pdftooltip{\includegraphics[width=0.7\textwidth]{correlation_plot.png}}{Scatter plot showing correlation between variables with data points and trend line}
+\caption{Correlation matrix heatmap showing pairwise Pearson correlation coefficients between variables, with color intensity indicating the strength and direction of linear relationships.}
+\end{figure}
+
+\section{Conclusion}
+
+Immediate action is required. See page 45 of the reference document for more details.
+
+\end{document}

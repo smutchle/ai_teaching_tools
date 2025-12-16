@@ -1,0 +1,95 @@
+---
+title: "Climate Change Report"
+author: "Research Team"
+format: html
+lang: en
+---
+
+## Introduction
+
+Climate change is one of the most pressing issues. More information can be found [NASA climate resources](https://climate.nasa.gov).
+
+### Background
+
+The temperature has increased by <span style="color:red;"><strong>1.5°C</strong></span> since pre-industrial times.
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-cap: "Global temperature trends show a steady increase from 14.5°C in 2010 to 16.1°C in 2020, with a minor decline in 2015."
+#| fig-alt: "Line chart showing global temperature trends from 2010 to 2020, with temperature in degrees Celsius on the y-axis ranging from approximately 14.5 to 16.1 degrees. The red line with black points demonstrates a general upward trend in temperatures over the decade, rising from 14.5°C in 2010 to 16.1°C in 2020, with minor fluctuations including a slight dip in 2014."
+library(ggplot2)
+
+# Create temperature plot
+temp_data <- data.frame(
+  year = 2010:2020,
+  temp = c(14.5, 14.7, 14.9, 15.1, 15.0, 15.2, 15.4, 15.6, 15.8, 16.0, 16.1)
+)
+
+ggplot(temp_data, aes(x = year, y = temp)) +
+  geom_line(color = "red", size = 1.5) +
+  geom_point(size = 3) +
+  theme_minimal()
+```
+
+## Data Analysis
+
+Below is the data from our study:
+
+```{r}
+#| echo: false
+#| tbl-cap: "Annual trends in two measured variables across three time points from 2010 to 2020."
+library(knitr)
+
+data <- data.frame(
+  c(2010, 2015, 2020),
+  c(14.5, 15.2, 16.1),
+  c(350, 380, 410)
+)
+
+kable(data)
+```
+
+The equation for temperature change is:
+
+$$T(t) = T_0 + \alpha t$$
+
+## Results
+
+Click [data PDF file](https://example.com/data.pdf) for the full dataset.
+
+<span style="color:blue;"><strong>Important finding:</strong></span> The rate of change has accelerated.
+
+### Statistical Analysis
+
+```{r}
+#| echo: false
+#| warning: false
+#| fig-cap: "Scatterplot showing a positive linear relationship between two normally distributed variables with a fitted regression line and confidence interval."
+#| fig-alt: "A scatter plot showing a positive linear relationship between two variables (x and y), with 100 data points displayed as semi-transparent dots and a blue linear regression line with a confidence interval band overlaid on the data."
+
+# Create correlation plot
+set.seed(123)
+cor_data <- data.frame(
+  x = rnorm(100),
+  y = rnorm(100)
+)
+cor_data$y <- cor_data$y + 0.7 * cor_data$x
+
+ggplot(cor_data, aes(x = x, y = y)) +
+  geom_point(alpha = 0.6) +
+  geom_smooth(method = "lm", se = TRUE, color = "blue") +
+  theme_minimal()
+```
+
+## Conclusion
+
+Immediate action is required. See section 3.2 above for more details.
+
+### Key Findings
+
+- Finding 1
+- Finding 2  
+- Finding 3
+
+![Bar chart showing data visualization](chart.png){fig-alt="Bar chart showing data visualization"}
