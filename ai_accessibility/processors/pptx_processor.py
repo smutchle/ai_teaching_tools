@@ -346,9 +346,10 @@ class PowerPointProcessor(BaseProcessor):
                     for paragraph in shape.text_frame.paragraphs:
                         for run in paragraph.runs:
                             # Check if run has color but no other distinguishing format
-                            if run.font.color and run.font.color.rgb:
-                                # Get RGB as hex
-                                try:
+                            try:
+                                # Check if color exists and has rgb property
+                                if run.font.color and hasattr(run.font.color, 'rgb') and run.font.color.rgb:
+                                    # Get RGB as hex
                                     color = run.font.color.rgb
                                     # Check if it's a non-black/white color (indicating emphasis)
                                     if color and str(color) not in ['000000', 'FFFFFF', '000', 'FFF']:
@@ -366,8 +367,8 @@ class PowerPointProcessor(BaseProcessor):
                                                     description=f"Color-only emphasis on slide {slide_num}: '{text}'",
                                                     suggestion="Add bold, italic, or underline in addition to color"
                                                 ))
-                                except Exception:
-                                    pass
+                            except Exception:
+                                pass
 
     def _check_ambiguous_references(self, prs: Presentation):
         """Check for ambiguous page/visual-only references in slides."""
