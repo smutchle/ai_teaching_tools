@@ -34,7 +34,6 @@ load_dotenv()
 # Page configuration
 st.set_page_config(
     page_title="WCAG Accessibility Converter",
-    page_icon="♿",
     layout="wide",
 )
 
@@ -133,7 +132,7 @@ def display_report(report: AccessibilityReport, filename: str):
 
 
 def main():
-    st.title("♿ WCAG 2.1 AA Accessibility Converter")
+    st.title("WCAG 2.1 AA Accessibility Converter")
 
     st.markdown("""
     Convert your documents to WCAG 2.1 Level AA accessible forms.
