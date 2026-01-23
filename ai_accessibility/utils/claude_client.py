@@ -121,8 +121,14 @@ Respond in JSON format:
         )
 
         import json
+        import re
         try:
-            return json.loads(response.content[0].text)
+            response_text = response.content[0].text
+            # Strip markdown code blocks if present
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                response_text = json_match.group(1)
+            return json.loads(response_text)
         except json.JSONDecodeError:
             return {"issues": [], "is_valid": True, "summary": "Could not parse response"}
 
@@ -262,8 +268,14 @@ Respond in JSON format:
         )
 
         import json
+        import re
         try:
-            return json.loads(response.content[0].text)
+            response_text = response.content[0].text
+            # Strip markdown code blocks if present
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                response_text = json_match.group(1)
+            return json.loads(response_text)
         except json.JSONDecodeError:
             return {"issues": [], "score": 0, "summary": "Could not parse response"}
 
@@ -322,8 +334,14 @@ Respond in JSON format:
         )
 
         import json
+        import re
         try:
-            return json.loads(response.content[0].text)
+            response_text = response.content[0].text
+            # Strip markdown code blocks if present
+            json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
+            if json_match:
+                response_text = json_match.group(1)
+            return json.loads(response_text)
         except json.JSONDecodeError:
             return {
                 "alt_text": "Image description unavailable",
