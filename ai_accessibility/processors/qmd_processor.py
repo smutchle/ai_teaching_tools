@@ -380,7 +380,10 @@ class QMDProcessor(MarkdownProcessor):
                 # Add toc-title for screen readers
                 for i, line in enumerate(lines):
                     if 'toc:' in line and 'true' in line.lower():
-                        lines.insert(i + 1, '  toc-title: "Table of Contents"')
+                        # Match the indentation of the toc: line
+                        indent = len(line) - len(line.lstrip())
+                        indent_str = ' ' * indent
+                        lines.insert(i + 1, f'{indent_str}toc-title: "Table of Contents"')
                         self.report.add_fix("Added toc-title for accessibility")
                         break
 
