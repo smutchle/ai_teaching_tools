@@ -148,6 +148,17 @@ def main():
     - And more...
     """)
 
+    # Prominent warning about PDFs
+    st.warning("""
+    ⚠️ **IMPORTANT: PDF Accessibility Warning**
+
+    **PDF is an output format.** Adding accessibility to PDF is generally not a good idea and is likely to fail.
+
+    **Instead:** Update your source material (e.g., .PPTX, .MD, .QMD, .TEX) with this tool and then re-render to PDF.
+
+    This approach ensures better accessibility compliance and avoids the limitations of trying to retrofit accessibility into already-compiled PDF documents.
+    """)
+
     # Check for API key
     api_key = os.getenv("CLAUDE_API_KEY")
     if not api_key:

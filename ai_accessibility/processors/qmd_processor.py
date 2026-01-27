@@ -1,14 +1,75 @@
-"""Quarto Markdown (QMD) accessibility processor."""
+"""Quarto Markdown (QMD) accessibility processor.
+
+Integrates validation logic from quarto-wcag-compliance skill scripts:
+- check_quarto_accessibility.py - Pre-render validation
+- validate_contrast.py - Color contrast checking
+- fix_unicode.py - pdflatex Unicode compatibility
+"""
 
 import re
-from typing import Optional
+import math
+from typing import Optional, Dict, List, Tuple
 from .markdown_processor import MarkdownProcessor
 from utils.accessibility import AccessibilityIssue, Severity
 from utils.claude_client import ClaudeClient
 
 
+# Unicode to ASCII replacements for pdflatex compatibility
+# From quarto-wcag-compliance skill: fix_unicode.py
+UNICODE_REPLACEMENTS: Dict[str, str] = {
+    # Checkmarks and crosses
+    '❌': 'X', '✗': 'X', '✘': 'X',
+    '✓': '+', '✔': '+',
+    '☑': '[X]', '☐': '[ ]',
+    # Colored circles/indicators
+    '🟢': '[OK]', '🟡': '[WARN]', '🔴': '[ERROR]',
+    '⚫': '[*]', '⚪': '[ ]', '🔵': '[INFO]',
+    # Warning/info symbols
+    '⚠️': 'WARNING:', '⚠': 'WARNING:',
+    '❗': '!', '❓': '?',
+    '💡': 'TIP:', '📝': 'NOTE:', '📌': '*',
+    'ℹ️': 'INFO:', 'ℹ': 'INFO:',
+    # Arrows
+    '→': '->', '←': '<-', '↔': '<->',
+    '⇒': '=>', '⇐': '<=', '⇔': '<=>',
+    '↑': '^', '↓': 'v',
+    # Smart quotes (common from Word/Google Docs)
+    '"': '"', '"': '"', ''': "'", ''': "'",
+    '«': '"', '»': '"',
+    # Dashes
+    '—': '--', '–': '-', '−': '-',
+    # Other punctuation
+    '…': '...', '•': '*', '·': '*',
+    '○': 'o', '●': '*', '◦': 'o',
+    '◆': '*', '◇': 'o', '★': '*', '☆': '*',
+    # Math symbols
+    '×': 'x', '÷': '/', '±': '+/-',
+    '≤': '<=', '≥': '>=', '≠': '!=', '≈': '~=',
+    '∞': 'infinity',
+    # Misc
+    '©': '(c)', '®': '(R)', '™': '(TM)',
+    '°': ' degrees', '€': 'EUR', '£': 'GBP', '¥': 'JPY',
+}
+
+# Named colors to hex mapping for contrast checking
+# From quarto-wcag-compliance skill: validate_contrast.py
+NAMED_COLORS: Dict[str, str] = {
+    'black': '#000000', 'white': '#FFFFFF',
+    'red': '#FF0000', 'green': '#008000', 'blue': '#0000FF',
+    'navy': '#000080', 'gray': '#808080', 'grey': '#808080',
+    'silver': '#C0C0C0', 'maroon': '#800000', 'purple': '#800080',
+    'fuchsia': '#FF00FF', 'lime': '#00FF00', 'olive': '#808000',
+    'yellow': '#FFFF00', 'aqua': '#00FFFF', 'teal': '#008080',
+    'orange': '#FFA500',
+}
+
+
 class QMDProcessor(MarkdownProcessor):
-    """Processor for Quarto Markdown documents."""
+    """Processor for Quarto Markdown documents.
+
+    Integrates validation from quarto-wcag-compliance skill for comprehensive
+    WCAG 2.1 AA accessibility checking and fixing.
+    """
 
     def __init__(self, claude_client: Optional[ClaudeClient] = None):
         super().__init__(claude_client)
@@ -16,9 +77,184 @@ class QMDProcessor(MarkdownProcessor):
     def get_file_extension(self) -> str:
         return ".qmd"
 
+    # =========================================================================
+    # Color Contrast Utilities (from validate_contrast.py)
+    # =========================================================================
+
+    def _hex_to_rgb(self, hex_color: str) -> Tuple[int, int, int]:
+        """Convert hex color to RGB tuple."""
+        hex_color = hex_color.lstrip('#')
+        if len(hex_color) == 3:
+            hex_color = ''.join([c * 2 for c in hex_color])
+        if len(hex_color) != 6:
+            raise ValueError(f"Invalid hex color: #{hex_color}")
+        return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+    def _relative_luminance(self, rgb: Tuple[int, int, int]) -> float:
+        """Calculate relative luminance per WCAG 2.1."""
+        def channel_luminance(value: int) -> float:
+            srgb = value / 255
+            if srgb <= 0.03928:
+                return srgb / 12.92
+            return math.pow((srgb + 0.055) / 1.055, 2.4)
+        r, g, b = rgb
+        return 0.2126 * channel_luminance(r) + 0.7152 * channel_luminance(g) + 0.0722 * channel_luminance(b)
+
+    def _contrast_ratio(self, color1: str, color2: str) -> float:
+        """Calculate contrast ratio between two colors."""
+        rgb1 = self._hex_to_rgb(color1)
+        rgb2 = self._hex_to_rgb(color2)
+        lum1 = self._relative_luminance(rgb1)
+        lum2 = self._relative_luminance(rgb2)
+        lighter = max(lum1, lum2)
+        darker = min(lum1, lum2)
+        return (lighter + 0.05) / (darker + 0.05)
+
+    def _normalize_color(self, color: str) -> str:
+        """Normalize color to hex format."""
+        color = color.lower().strip()
+        if color in NAMED_COLORS:
+            return NAMED_COLORS[color]
+        if color.startswith('#'):
+            return color.upper()
+        return color
+
+    def _check_color_contrast(self, content: str) -> None:
+        """Check color definitions in QMD for WCAG AA contrast compliance."""
+        # Patterns for colors in YAML/CSS
+        color_patterns = [
+            (r'color:\s*["\']?(#[0-9A-Fa-f]{3,6})["\']?', 'text color'),
+            (r'linkcolor:\s*([a-zA-Z]+|#[0-9A-Fa-f]{3,6})', 'link color'),
+            (r'urlcolor:\s*([a-zA-Z]+|#[0-9A-Fa-f]{3,6})', 'URL color'),
+            (r'background(?:-color)?:\s*(#[0-9A-Fa-f]{3,6})', 'background'),
+        ]
+
+        lines = content.split('\n')
+        for i, line in enumerate(lines):
+            for pattern, color_type in color_patterns:
+                match = re.search(pattern, line, re.IGNORECASE)
+                if match:
+                    color = self._normalize_color(match.group(1))
+                    if color.startswith('#'):
+                        # Check against white background (common default)
+                        try:
+                            ratio = self._contrast_ratio(color, '#FFFFFF')
+                            if ratio < 4.5:
+                                self.report.add_issue(AccessibilityIssue(
+                                    wcag_criterion="1.4.3",
+                                    severity=Severity.WARNING,
+                                    description=f"Low contrast {color_type}: {color} has {ratio:.1f}:1 ratio (need 4.5:1)",
+                                    location=f"Line {i+1}"
+                                ))
+                        except ValueError:
+                            pass  # Skip invalid colors
+
+    # =========================================================================
+    # Unicode Fixing (from fix_unicode.py)
+    # =========================================================================
+
+    def _find_unicode_chars(self, content: str) -> List[Tuple[str, int, str]]:
+        """Find non-ASCII characters that may cause pdflatex errors."""
+        issues = []
+        lines = content.split('\n')
+        for line_num, line in enumerate(lines, 1):
+            for i, char in enumerate(line):
+                if ord(char) > 127 and char in UNICODE_REPLACEMENTS:
+                    start = max(0, i - 10)
+                    end = min(len(line), i + 11)
+                    context = line[start:end]
+                    issues.append((char, line_num, context))
+        return issues
+
+    def _fix_unicode_chars(self, content: str) -> str:
+        """Replace Unicode characters with ASCII equivalents for pdflatex."""
+        count = 0
+        for old, new in UNICODE_REPLACEMENTS.items():
+            if old in content:
+                occurrences = content.count(old)
+                content = content.replace(old, new)
+                count += occurrences
+
+        if count > 0:
+            self.report.add_fix(f"Replaced {count} Unicode character(s) with ASCII equivalents for PDF compatibility")
+
+        return content
+
+    def _check_unicode_warnings(self, content: str) -> None:
+        """Check for Unicode characters that may cause pdflatex errors (warning only)."""
+        problematic_chars = {
+            '\u274c': 'cross mark',       # ❌
+            '\u2713': 'checkmark',        # ✓
+            '\u2714': 'checkmark',        # ✔
+            '\U0001F7E2': 'green circle', # 🟢
+            '\U0001F7E1': 'yellow circle',# 🟡
+            '\U0001F534': 'red circle',   # 🔴
+            '\u26a0': 'warning sign',     # ⚠
+            '\U0001F4A1': 'lightbulb',    # 💡
+            '\U0001F4DD': 'memo',         # 📝
+            '\u201c': 'left smart quote', # "
+            '\u201d': 'right smart quote',# "
+            '\u2018': 'left smart quote', # '
+            '\u2019': 'right smart quote',# '
+            '\u2014': 'em dash',          # —
+            '\u2013': 'en dash',          # –
+            '\u2026': 'ellipsis',         # …
+        }
+
+        found_chars = set()
+        lines = content.split('\n')
+        for i, line in enumerate(lines):
+            for char, name in problematic_chars.items():
+                if char in line and char not in found_chars:
+                    found_chars.add(char)
+                    self.report.add_issue(AccessibilityIssue(
+                        wcag_criterion="PDF-COMPAT",
+                        severity=Severity.INFO,
+                        description=f"Unicode '{char}' ({name}) replaced for pdflatex compatibility",
+                        location=f"Line {i+1}"
+                    ))
+
+    # =========================================================================
+    # Enhanced Link Text Checking (from check_quarto_accessibility.py)
+    # =========================================================================
+
+    def _check_link_text_quality(self, content: str) -> None:
+        """Enhanced link text validation from skill."""
+        lines = content.split('\n')
+        link_pattern = re.compile(r'\[([^\]]+)\]\(([^)]+)\)')
+
+        bad_link_texts = [
+            'click here', 'here', 'read more', 'more', 'link',
+            'this', 'this link', 'learn more', 'details'
+        ]
+
+        for i, line in enumerate(lines):
+            for match in link_pattern.finditer(line):
+                link_text = match.group(1).strip().lower()
+                if link_text in bad_link_texts:
+                    self.report.add_issue(AccessibilityIssue(
+                        wcag_criterion="2.4.4",
+                        severity=Severity.ERROR,
+                        description=f"Non-descriptive link text: '{match.group(1)}'",
+                        location=f"Line {i+1}",
+                        suggestion="Use descriptive text that indicates the link destination"
+                    ))
+                elif len(link_text) < 3:
+                    self.report.add_issue(AccessibilityIssue(
+                        wcag_criterion="2.4.4",
+                        severity=Severity.WARNING,
+                        description=f"Link text may be too brief: '{match.group(1)}'",
+                        location=f"Line {i+1}"
+                    ))
+
     def process(self, content: bytes, filename: str = "") -> bytes:
         """
         Process QMD for WCAG 2.1 AA accessibility.
+
+        Integrates validation logic from quarto-wcag-compliance skill:
+        - Unicode fixing for pdflatex compatibility
+        - Color contrast validation (WCAG 1.4.3)
+        - Enhanced link text checking (WCAG 2.4.4)
 
         Args:
             content: QMD content as bytes
@@ -31,6 +267,13 @@ class QMDProcessor(MarkdownProcessor):
 
         qmd_str = content.decode('utf-8', errors='replace')
 
+        # =====================================================================
+        # Pre-processing: Fix Unicode for pdflatex compatibility
+        # (from quarto-wcag-compliance skill: fix_unicode.py)
+        # =====================================================================
+        self._check_unicode_warnings(qmd_str)  # Report what will be fixed
+        qmd_str = self._fix_unicode_chars(qmd_str)
+
         # Separate YAML frontmatter
         frontmatter, body = self._split_frontmatter(qmd_str)
 
@@ -38,7 +281,16 @@ class QMDProcessor(MarkdownProcessor):
         if frontmatter:
             frontmatter = self._process_frontmatter(frontmatter)
 
+        # =====================================================================
+        # Validation: Color contrast checking
+        # (from quarto-wcag-compliance skill: validate_contrast.py)
+        # =====================================================================
+        if frontmatter:
+            self._check_color_contrast(frontmatter)
+
+        # =====================================================================
         # Apply standard Markdown fixes to body
+        # =====================================================================
         body = self._fix_heading_hierarchy(body)
         body = self._add_image_alt_text(body)
         body = self._fix_link_text(body)
@@ -48,6 +300,12 @@ class QMDProcessor(MarkdownProcessor):
         body = self._add_math_descriptions(body)
         body = self._fix_ambiguous_references(body)
         body = self._check_document_structure(body)
+
+        # =====================================================================
+        # Enhanced validation: Link text quality
+        # (from quarto-wcag-compliance skill: check_quarto_accessibility.py)
+        # =====================================================================
+        self._check_link_text_quality(body)
 
         # Apply QMD-specific code chunk accessibility
         body = self._fix_quarto_code_chunks(body)
