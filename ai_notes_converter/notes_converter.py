@@ -396,13 +396,18 @@ def autotag_pdf_with_adobe(pdf_bytes):
     Returns:
         Tagged PDF bytes, or original bytes if tagging fails
     """
-    from adobe.pdfservices.operation.auth.service_principal_credentials import ServicePrincipalCredentials
-    from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
-    from adobe.pdfservices.operation.pdf_services import PDFServices
-    from adobe.pdfservices.operation.pdf_services_media_type import PDFServicesMediaType
-    from adobe.pdfservices.operation.pdfjobs.jobs.autotag_pdf_job import AutotagPDFJob
-    from adobe.pdfservices.operation.pdfjobs.params.autotag_pdf.autotag_pdf_params import AutotagPDFParams
-    from adobe.pdfservices.operation.pdfjobs.result.autotag_pdf_result import AutotagPDFResult
+    try:
+        from adobe.pdfservices.operation.auth.service_principal_credentials import ServicePrincipalCredentials
+        from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
+        from adobe.pdfservices.operation.pdf_services import PDFServices
+        from adobe.pdfservices.operation.pdf_services_media_type import PDFServicesMediaType
+        from adobe.pdfservices.operation.pdfjobs.jobs.autotag_pdf_job import AutotagPDFJob
+        from adobe.pdfservices.operation.pdfjobs.params.autotag_pdf.autotag_pdf_params import AutotagPDFParams
+        from adobe.pdfservices.operation.pdfjobs.result.autotag_pdf_result import AutotagPDFResult
+    except ImportError as e:
+        logger.warning(f"Adobe PDF Services SDK not available: {e}")
+        st.warning("Adobe Auto-Tag unavailable (SDK not installed). Returning untagged PDF.")
+        return pdf_bytes
 
     try:
         credentials = ServicePrincipalCredentials(

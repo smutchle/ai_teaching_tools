@@ -40,14 +40,14 @@ st.set_page_config(
 
 # Supported file types and their processors
 # Note: PDFs use Adobe Auto-Tag API by default for production-grade accessibility
-# Falls back to basic PDFProcessor if Adobe credentials not configured
+# Falls back to basic PDFProcessor if Adobe credentials/SDK not available
 FILE_PROCESSORS = {
     '.html': HTMLProcessor,
     '.htm': HTMLProcessor,
     '.md': MarkdownProcessor,
     '.markdown': MarkdownProcessor,
     '.tex': LaTeXProcessor,
-    '.pdf': AdobeAutoTagPDFProcessor,  # Adobe Auto-Tag for full WCAG compliance
+    '.pdf': AdobeAutoTagPDFProcessor if AdobeAutoTagPDFProcessor is not None else PDFProcessor,
     '.pptx': PowerPointProcessor,
     '.qmd': QMDProcessor,
 }
@@ -62,7 +62,7 @@ def get_processor_for_file(filename: str, claude_client: ClaudeClient):
 
     if processor_class:
         # Special handling for PDF processor - use Adobe Auto-Tag if credentials available
-        if processor_class == AdobeAutoTagPDFProcessor:
+        if AdobeAutoTagPDFProcessor is not None and processor_class == AdobeAutoTagPDFProcessor:
             try:
                 return AdobeAutoTagPDFProcessor(claude_client)
             except EnvironmentError as e:
@@ -71,6 +71,12 @@ def get_processor_for_file(filename: str, claude_client: ClaudeClient):
                     "⚠️ Adobe PDF Services credentials not configured. "
                     "Using basic PDF processor. For full WCAG compliance with auto-tagging, "
                     "configure Adobe PDF Services API credentials."
+                )
+                return PDFProcessor(claude_client)
+            except Exception as e:
+                st.warning(
+                    f"⚠️ Adobe Auto-Tag processor failed to initialize: {e}. "
+                    "Using basic PDF processor."
                 )
                 return PDFProcessor(claude_client)
 

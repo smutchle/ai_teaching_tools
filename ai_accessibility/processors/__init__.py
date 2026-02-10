@@ -6,7 +6,10 @@ from .markdown_processor import MarkdownProcessor
 from .qmd_processor import QMDProcessor
 from .latex_processor import LaTeXProcessor
 from .pdf_processor import PDFProcessor
-from .pdf_adobe_autotag_processor import AdobeAutoTagPDFProcessor
+try:
+    from .pdf_adobe_autotag_processor import AdobeAutoTagPDFProcessor
+except ImportError:
+    AdobeAutoTagPDFProcessor = None
 from .pdf_to_qmd_processor import PDFToQMDProcessor
 from .pptx_processor import PowerPointProcessor
 
