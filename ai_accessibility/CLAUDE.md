@@ -22,7 +22,13 @@ pip install -r requirements.txt
 ```
 CLAUDE_API_KEY=your_api_key_here
 CLAUDE_MODEL=claude-sonnet-4-5
+
+# Adobe PDF Services API (for Auto-Tag functionality)
+PDF_SERVICES_CLIENT_ID=your_adobe_client_id_here
+PDF_SERVICES_CLIENT_SECRET=your_adobe_client_secret_here
 ```
+
+Get Adobe PDF Services credentials at: https://developer.adobe.com/document-services/docs/overview/pdf-services-api/
 
 ## Common Commands
 
@@ -30,8 +36,10 @@ CLAUDE_MODEL=claude-sonnet-4-5
 
 **Two versions available:**
 
-1. **Standard Version** ([ai_access_app.py](ai_access_app.py)) - Attempts direct PDF/UA tagging
+1. **Standard Version** ([ai_access_app.py](ai_access_app.py)) - Uses Adobe Auto-Tag API for PDFs (with fallback)
 2. **Quarto Edition** ([ai_access_app_qmd.py](ai_access_app_qmd.py)) - Converts PDFs to Quarto Markdown
+
+**Note**: Standard version now uses Adobe PDF Services Auto-Tag API by default for production-grade PDF accessibility. Falls back to basic tagging if Adobe credentials not configured.
 
 ```bash
 # Run standard Streamlit app (default port 8501)
@@ -73,15 +81,16 @@ python test_raw_response.py
 
 ```
 processors/
-├── base.py                    # BaseProcessor (ABC)
-├── html_processor.py          # HTML/HTM files
-├── markdown_processor.py      # Markdown files
-├── qmd_processor.py           # Quarto Markdown files
-├── latex_processor.py         # LaTeX files
-├── pdf_processor.py           # PDF files (direct PDF/UA approach)
-├── pdf_to_qmd_processor.py    # PDF→QMD converter (Quarto approach)
-├── pdf_advanced_tagging.py    # PDF/UA tagging utilities
-└── pptx_processor.py          # PowerPoint files
+├── base.py                         # BaseProcessor (ABC)
+├── html_processor.py               # HTML/HTM files
+├── markdown_processor.py           # Markdown files
+├── qmd_processor.py                # Quarto Markdown files
+├── latex_processor.py              # LaTeX files
+├── pdf_processor.py                # PDF files (basic PDF/UA approach)
+├── pdf_adobe_autotag_processor.py  # PDF files (Adobe Auto-Tag API) - DEFAULT
+├── pdf_to_qmd_processor.py         # PDF→QMD converter (Quarto approach)
+├── pdf_advanced_tagging.py         # PDF/UA tagging utilities
+└── pptx_processor.py               # PowerPoint files
 ```
 
 **Each processor**:
@@ -189,17 +198,25 @@ class NewFormatProcessor(BaseProcessor):
 - Marks decorative images with empty alt=""
 - Complex images get both alt text and long descriptions
 
-**PDF Processing - Two Approaches**:
+**PDF Processing - Three Approaches**:
 
-1. **Direct PDF/UA Approach** ([pdf_processor.py](processors/pdf_processor.py)):
-   - Generates AI alt text for ALL images
-   - Attempts to embed alt text in PDF structure
-   - Creates basic StructTreeRoot
-   - Sets document metadata and language
-   - **Limitation**: PyMuPDF cannot create full PDF/UA structure trees (marked content sequences, parent trees, semantic tagging)
-   - Alt text is generated but may not be embedded in PAC-compliant structure
+1. **Adobe Auto-Tag API** ([pdf_adobe_autotag_processor.py](processors/pdf_adobe_autotag_processor.py)) - **DEFAULT & RECOMMENDED**:
+   - **Uses Adobe PDF Services Auto-Tag API for production-grade accessibility**
+   - Automatically tags PDF content with proper semantic structure (H1-H6, P, L, Table, Figure)
+   - Creates proper parent-child relationships in structure tree
+   - Establishes logical reading order using Adobe Sensei AI
+   - Generates XLSX accessibility report with detailed tagging information
+   - Optionally adds AI-generated alt text to images using Claude
+   - **Full PDF/UA compliance** - proper StructTreeRoot, marked content, role mapping
+   - **Requirements**: Adobe PDF Services API credentials
+   - **Limitations**:
+     - Files up to 100 MB
+     - Non-scanned PDFs up to 200 pages, scanned PDFs up to 100 pages
+     - Rate limit: 25 requests/minute
+     - Alt text for images not included (handled separately with Claude AI)
+   - **Fallback**: Automatically falls back to basic PDF processor if credentials not configured
 
-2. **PDF→QMD→PDF Approach** ([pdf_to_qmd_processor.py](processors/pdf_to_qmd_processor.py)) - **Recommended**:
+2. **PDF→QMD→PDF Approach** ([pdf_to_qmd_processor.py](processors/pdf_to_qmd_processor.py)):
    - Extracts text and images from PDF
    - Detects headings by font size
    - Generates AI alt text for all images
@@ -210,8 +227,17 @@ class NewFormatProcessor(BaseProcessor):
    - **Requires**: Quarto installed (https://quarto.org)
    - **Limitation**: PDF→QMD conversion is lossy (tables, multi-column layouts may need manual fixes)
 
+3. **Basic PDF/UA Approach** ([pdf_processor.py](processors/pdf_processor.py)) - Fallback only:
+   - Generates AI alt text for ALL images
+   - Attempts to embed alt text in PDF structure
+   - Creates basic StructTreeRoot
+   - Sets document metadata and language
+   - **Limitation**: PyMuPDF cannot create full PDF/UA structure trees (marked content sequences, parent trees, semantic tagging)
+   - Alt text is generated but may not be embedded in PAC-compliant structure
+   - **Use only when**: Adobe API not available and Quarto not suitable
+
 **Which approach to use:**
-- For creating **accessible PDFs** that pass PAC validation: Use Quarto Edition (PDF→QMD→PDF automatic)
-- For creating **accessible HTML** from PDFs: Manually render the QMD with `quarto render file.qmd --to html`
-- For quick metadata fixes only: Use standard edition, but understand structure tree limitations
-- **Note**: Quarto Edition requires Quarto to be installed on the system
+- **Default**: Adobe Auto-Tag API (automatic if credentials configured) - Best for production PDF/UA compliance
+- **Alternative**: PDF→QMD→PDF for editable intermediate format or when Adobe API unavailable
+- **Fallback**: Basic PDF processor when neither Adobe nor Quarto available
+- **For accessible HTML from PDFs**: Use PDF→QMD approach, then `quarto render file.qmd --to html`

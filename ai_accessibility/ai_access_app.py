@@ -23,6 +23,7 @@ from processors import (
     QMDProcessor,
     LaTeXProcessor,
     PDFProcessor,
+    AdobeAutoTagPDFProcessor,
     PowerPointProcessor,
 )
 from utils.claude_client import ClaudeClient
@@ -38,13 +39,15 @@ st.set_page_config(
 )
 
 # Supported file types and their processors
+# Note: PDFs use Adobe Auto-Tag API by default for production-grade accessibility
+# Falls back to basic PDFProcessor if Adobe credentials not configured
 FILE_PROCESSORS = {
     '.html': HTMLProcessor,
     '.htm': HTMLProcessor,
     '.md': MarkdownProcessor,
     '.markdown': MarkdownProcessor,
     '.tex': LaTeXProcessor,
-    '.pdf': PDFProcessor,
+    '.pdf': AdobeAutoTagPDFProcessor,  # Adobe Auto-Tag for full WCAG compliance
     '.pptx': PowerPointProcessor,
     '.qmd': QMDProcessor,
 }
@@ -56,7 +59,21 @@ def get_processor_for_file(filename: str, claude_client: ClaudeClient):
     """Get the appropriate processor for a file based on extension."""
     ext = Path(filename).suffix.lower()
     processor_class = FILE_PROCESSORS.get(ext)
+
     if processor_class:
+        # Special handling for PDF processor - use Adobe Auto-Tag if credentials available
+        if processor_class == AdobeAutoTagPDFProcessor:
+            try:
+                return AdobeAutoTagPDFProcessor(claude_client)
+            except EnvironmentError as e:
+                # Adobe credentials not configured, fall back to basic PDF processor
+                st.warning(
+                    "⚠️ Adobe PDF Services credentials not configured. "
+                    "Using basic PDF processor. For full WCAG compliance with auto-tagging, "
+                    "configure Adobe PDF Services API credentials."
+                )
+                return PDFProcessor(claude_client)
+
         return processor_class(claude_client)
     return None
 
@@ -146,17 +163,6 @@ def main():
     - Table accessibility enhancements
     - Document structure validation
     - And more...
-    """)
-
-    # Prominent warning about PDFs
-    st.warning("""
-    ⚠️ **IMPORTANT: PDF Accessibility Warning**
-
-    **PDF is an output format.** Adding accessibility to PDF is generally not a good idea and is likely to fail.
-
-    **Instead:** Update your source material (e.g., .PPTX, .MD, .QMD, .TEX) with this tool and then re-render to PDF.
-
-    This approach ensures better accessibility compliance and avoids the limitations of trying to retrofit accessibility into already-compiled PDF documents.
     """)
 
     # Check for API key
