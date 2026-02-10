@@ -4,12 +4,15 @@ import base64
 import tempfile
 import shutil
 import uuid
+import logging
 from pathlib import Path
 from pdf2image import convert_from_path
 from anthropic import Anthropic
 from anthropic.types import TextBlock
 from dotenv import load_dotenv
 import subprocess
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables
 load_dotenv()
@@ -377,6 +380,76 @@ def check_quarto_installation():
     except Exception as e:
         return False, str(e)
 
+def check_adobe_credentials():
+    """Check if Adobe PDF Services credentials are configured."""
+    client_id = os.getenv('PDF_SERVICES_CLIENT_ID')
+    client_secret = os.getenv('PDF_SERVICES_CLIENT_SECRET')
+    return bool(client_id and client_secret)
+
+
+def autotag_pdf_with_adobe(pdf_bytes):
+    """Apply Adobe PDF Services Auto-Tag API to add accessibility tags to a PDF.
+
+    Args:
+        pdf_bytes: Raw PDF content as bytes
+
+    Returns:
+        Tagged PDF bytes, or original bytes if tagging fails
+    """
+    from adobe.pdfservices.operation.auth.service_principal_credentials import ServicePrincipalCredentials
+    from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
+    from adobe.pdfservices.operation.pdf_services import PDFServices
+    from adobe.pdfservices.operation.pdf_services_media_type import PDFServicesMediaType
+    from adobe.pdfservices.operation.pdfjobs.jobs.autotag_pdf_job import AutotagPDFJob
+    from adobe.pdfservices.operation.pdfjobs.params.autotag_pdf.autotag_pdf_params import AutotagPDFParams
+    from adobe.pdfservices.operation.pdfjobs.result.autotag_pdf_result import AutotagPDFResult
+
+    try:
+        credentials = ServicePrincipalCredentials(
+            client_id=os.getenv('PDF_SERVICES_CLIENT_ID'),
+            client_secret=os.getenv('PDF_SERVICES_CLIENT_SECRET')
+        )
+
+        pdf_services = PDFServices(credentials=credentials)
+
+        input_asset = pdf_services.upload(
+            input_stream=pdf_bytes,
+            mime_type=PDFServicesMediaType.PDF
+        )
+
+        autotag_params = AutotagPDFParams(
+            generate_report=True,
+            shift_headings=False
+        )
+
+        autotag_job = AutotagPDFJob(
+            input_asset=input_asset,
+            autotag_pdf_params=autotag_params
+        )
+
+        location = pdf_services.submit(autotag_job)
+        pdf_services_response = pdf_services.get_job_result(location, AutotagPDFResult)
+
+        result_asset = pdf_services_response.get_result().get_tagged_pdf()
+        stream_asset = pdf_services.get_content(result_asset)
+        return stream_asset.get_input_stream()
+
+    except (ServiceApiException, ServiceUsageException) as e:
+        logger.error(f"Adobe PDF Services API error: {e}")
+        st.warning(f"Adobe Auto-Tag failed (API error): {e}. Returning untagged PDF.")
+        return pdf_bytes
+
+    except SdkException as e:
+        logger.error(f"Adobe SDK error: {e}")
+        st.warning(f"Adobe Auto-Tag failed (SDK error): {e}. Returning untagged PDF.")
+        return pdf_bytes
+
+    except Exception as e:
+        logger.error(f"Unexpected error during Adobe Auto-Tag: {e}", exc_info=True)
+        st.warning(f"Adobe Auto-Tag failed: {e}. Returning untagged PDF.")
+        return pdf_bytes
+
+
 def main():
     st.set_page_config(
         page_title="Notes Converter - Convert Handwritten Notes to Accessible Documents",
@@ -433,6 +506,18 @@ def main():
             value=True,
             help="Creates a continuous document by removing page break markers between scanned pages. Disable to preserve original page structure."
         )
+
+        # Adobe Auto-Tag option
+        adobe_available = check_adobe_credentials()
+        enable_autotag = st.checkbox(
+            "Adobe PDF Auto-Tag",
+            value=adobe_available,
+            disabled=not adobe_available,
+            help="Uses Adobe PDF Services API to add production-grade accessibility tags (PDF/UA) to the rendered PDF. "
+                 "Requires PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env file."
+        )
+        if not adobe_available:
+            st.caption("Adobe credentials not configured. Set PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env")
 
         st.markdown("---")
         st.markdown("### About This Tool")
@@ -563,7 +648,11 @@ def main():
                             pdf_output = render_quarto(st.session_state.qmd_path, "pdf", st.session_state.temp_dir_path)
                             if pdf_output:
                                 with open(pdf_output, "rb") as f:
-                                    st.session_state.pdf_data = f.read()
+                                    pdf_bytes = f.read()
+                                if enable_autotag:
+                                    with st.spinner("🏷️ Applying Adobe Auto-Tag for PDF/UA accessibility..."):
+                                        pdf_bytes = autotag_pdf_with_adobe(pdf_bytes)
+                                st.session_state.pdf_data = pdf_bytes
                             else:
                                 st.error("❌ PDF rendering failed. Ensure Quarto is installed correctly.")
 

@@ -21,4 +21,10 @@ cd $AI_BASE_DIR/course_creator
 cd $AI_BASE_DIR/ai_dataset_generator
 ./run_in_background.sh
 
+cd $AI_BASE_DIR/ai_accessibility
+./run_in_background.sh
+
+cd $AI_BASE_DIR/ai_notes_converter
+./run_in_background.sh
+
 cd $CURRENT_DIR

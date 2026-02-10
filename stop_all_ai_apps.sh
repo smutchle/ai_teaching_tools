@@ -7,6 +7,7 @@ targets=(
   "viz_builder.py"
   "app_dataset.py"
   "notes_converter.py"
+  "ai_accessibility.py"
 )
 
 echo "Searching for processes to terminate..."
