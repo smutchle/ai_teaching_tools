@@ -103,6 +103,17 @@ def process_file(uploaded_file, claude_client: ClaudeClient) -> tuple[bytes, Acc
         report = processor.get_report()
         return processed_content, report, None
     except Exception as e:
+        # Last-resort fallback: if the chosen processor raises unexpectedly,
+        # try the basic PDFProcessor for PDFs so the file is not lost.
+        ext = Path(filename).suffix.lower()
+        if ext == ".pdf" and not isinstance(processor, PDFProcessor):
+            try:
+                st.warning(f"Primary processor failed ({e}). Retrying with basic PDF processor.")
+                fallback = PDFProcessor(claude_client)
+                processed_content = fallback.process(content, filename)
+                return processed_content, fallback.get_report(), None
+            except Exception as e2:
+                return None, None, f"Error processing {filename}: {str(e2)}"
         return None, None, f"Error processing {filename}: {str(e)}"
 
 

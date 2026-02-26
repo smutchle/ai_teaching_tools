@@ -18,6 +18,7 @@ from adobe.pdfservices.operation.pdfjobs.params.autotag_pdf.autotag_pdf_params i
 from adobe.pdfservices.operation.pdfjobs.result.autotag_pdf_result import AutotagPDFResult
 
 from .base import BaseProcessor
+from .pdf_processor import PDFProcessor
 from utils.accessibility import AccessibilityIssue, Severity
 from utils.claude_client import ClaudeClient
 
@@ -202,8 +203,7 @@ class AdobeAutoTagPDFProcessor(BaseProcessor):
                 suggestion="Check Adobe PDF Services credentials and API status. "
                           "Verify file size (<100MB) and page count (<200 pages)."
             ))
-            # Return original content if Adobe API fails
-            return content
+            return self._fallback_process(content, filename)
 
         except SdkException as e:
             error_msg = f"Adobe SDK error: {str(e)}"
@@ -214,7 +214,7 @@ class AdobeAutoTagPDFProcessor(BaseProcessor):
                 description=error_msg,
                 suggestion="Check pdfservices-sdk installation and environment configuration"
             ))
-            return content
+            return self._fallback_process(content, filename)
 
         except Exception as e:
             error_msg = f"Unexpected error during Adobe Auto-Tag processing: {str(e)}"
@@ -225,6 +225,30 @@ class AdobeAutoTagPDFProcessor(BaseProcessor):
                 description=error_msg,
                 suggestion="Review error logs and check PDF file integrity"
             ))
+            return self._fallback_process(content, filename)
+
+    def _fallback_process(self, content: bytes, filename: str) -> bytes:
+        """Fall back to basic PDFProcessor when Adobe Auto-Tag is unavailable or fails."""
+        logger.info("Falling back to basic PDF processor")
+        self.report.add_warning(
+            "Adobe Auto-Tag failed. Falling back to basic PDF accessibility processing. "
+            "Full PDF/UA structural tagging was not applied."
+        )
+        try:
+            fallback = PDFProcessor(self.claude_client)
+            result = fallback.process(content, filename)
+            # Merge fallback report into this report
+            fb_report = fallback.get_report()
+            for fix in fb_report.fixes_applied:
+                self.report.add_fix(f"[Fallback] {fix}")
+            for issue in fb_report.issues:
+                self.report.add_issue(issue)
+            for warning in fb_report.warnings:
+                self.report.add_warning(f"[Fallback] {warning}")
+            return result
+        except Exception as e:
+            logger.error(f"Fallback PDF processor also failed: {e}", exc_info=True)
+            self.report.add_warning(f"Fallback processing also failed: {e}. Returning original content.")
             return content
 
     def _save_accessibility_report(self, report_bytes: bytes, original_filename: str):
