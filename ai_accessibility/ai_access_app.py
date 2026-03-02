@@ -84,7 +84,7 @@ def get_processor_for_file(filename: str, claude_client: ClaudeClient):
     return None
 
 
-def process_file(uploaded_file, claude_client: ClaudeClient) -> tuple[bytes, AccessibilityReport, str]:
+def process_file(uploaded_file, claude_client: ClaudeClient) -> tuple[bytes | None, AccessibilityReport | None, str | None]:
     """
     Process a single file for accessibility.
 
@@ -181,6 +181,21 @@ def main():
     - Document structure validation
     - And more...
     """)
+
+    # PDF disclaimer
+    st.warning(
+        "**PDF Output Disclaimer:** PDF is an output format. Generating tags to achieve full "
+        "WCAG compliance requires using the **Auto-tagging feature in Adobe Acrobat Pro (paid version)**. "
+        "The best option is to convert your original content (HTML, Markdown, etc.) using this tool "
+        "and then print/export it to PDF after conversion.\n\n"
+        "**How to Auto-Tag a PDF in Adobe Acrobat Pro:**\n\n"
+        "1. Open your PDF in **Adobe Acrobat Pro**.\n"
+        "2. Go to **All Tools** (or **Tools** panel) and select **Prepare for Accessibility**.\n"
+        "3. Click **Autotag Document** — Acrobat will automatically add structural tags.\n"
+        "4. *(Optional)* Click **Check for Accessibility** to run a full WCAG audit and review any remaining issues.\n"
+        "5. Use the **Accessibility Tags** panel to manually correct any mis-tagged elements if needed.\n"
+        "6. Save the file — the tags are now embedded in the PDF."
+    )
 
     # Check for API key
     api_key = os.getenv("CLAUDE_API_KEY")
