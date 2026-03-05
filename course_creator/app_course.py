@@ -1153,7 +1153,7 @@ General Formatting Notes:
 *   Use emoji to spice up the document
 *   IMPORTANT: When creating markdown lists of any kind, always have a blank line right before the list starts so it will render correctly in quarto.
 *   IMPORTANT: All code markdown sections should be folded (closed) by default 
-*   IMPORTANT: The yaml header should only include title, subtitle and bibliography settings.  The bibliography file name should be the same as the Quarto document name but with .bib.
+*   IMPORTANT: The yaml header should only include title, subtitle and bibliography settings.  The bibliography file name should be the same as the Quarto document name but with .bib. The bibliography filename should be commented out by default.
 *   IMPORTANT: The document should start at the ## heading level (2 has marks)
 """
     st.session_state.instructions = st.text_area(
