@@ -46,28 +46,401 @@ OLLAMA_MODELS = parse_models("OLLAMA_MODEL")
 # Store configs in a dictionary for easier access
 PROVIDER_CONFIG = {
     "Anthropic": {"api_key": ANTHROPIC_API_KEY, "models": ANTHROPIC_MODELS},
-    "OpenAI": {"api_key": OPENAI_API_KEY, "models": OPENAI_MODELS},
-    "Google": {"api_key": GOOGLE_API_KEY, "models": GOOGLE_MODELS}, # Added Google config
+    # "OpenAI": {"api_key": OPENAI_API_KEY, "models": OPENAI_MODELS},
+    # "Google": {"api_key": GOOGLE_API_KEY, "models": GOOGLE_MODELS}, # Added Google config
     "Ollama": {"endpoint": OLLAMA_END_POINT, "models": OLLAMA_MODELS},
 }
 
 # --- Streamlit Page Setup ---
-st.set_page_config(layout="wide", initial_sidebar_state="collapsed")
+_logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.jpg")
+try:
+    from PIL import Image as _PILImage
+    _page_icon = _PILImage.open(_logo_path) if os.path.exists(_logo_path) else "📚"
+except ImportError:
+    _page_icon = "📚"
+
+st.set_page_config(layout="wide", initial_sidebar_state="collapsed", page_title="AI Course Builder", page_icon=_page_icon)
+
+# Load logo as base64 for embedding in the header
+def _load_logo_b64():
+    if os.path.exists(_logo_path):
+        with open(_logo_path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    return None
+
+_LOGO_B64 = _load_logo_b64()
 
 # Custom CSS
 st.markdown(
     """
 <style>
-    .reportview-container .main .block-container {
-        max-width: 1280px;
-        padding-top: 2rem;
-        padding-right: 2rem;
-        padding-left: 2rem;
-        padding-bottom: 2rem;
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@400;500;600;700&display=swap');
+
+    /* ── Root Variables ── */
+    :root {
+        --bg-deep:    #0b0e1a;
+        --bg-base:    #111626;
+        --bg-surface: #181e30;
+        --bg-card:    #1e2638;
+        --bg-hover:   #242d42;
+        --accent:     #d4a437;
+        --accent-dim: #8a6820;
+        --accent-glow:#f0c458;
+        --teal:       #4ab8b0;
+        --teal-dim:   #2a7c76;
+        --text-hi:    #eef2f8;
+        --text-mid:   #a8b4cc;
+        --text-lo:    #5c6880;
+        --border:     #2a3249;
+        --border-hi:  #3a4560;
+        --success:    #4caf82;
+        --error:      #e05c6a;
+        --warn:       #e0943a;
+        --radius-sm:  6px;
+        --radius-md:  10px;
+        --radius-lg:  16px;
+        --shadow-sm:  0 1px 4px rgba(0,0,0,0.4);
+        --shadow-md:  0 4px 16px rgba(0,0,0,0.5);
     }
-    [title="Show password text"] { /* Hide the eye icon for password */
-        display: none;
+
+    /* ── Global Reset ── */
+    html, body, .stApp {
+        background-color: var(--bg-deep) !important;
+        color: var(--text-hi) !important;
+        font-family: 'Syne', sans-serif !important;
     }
+
+    /* ── Main Content Area ── */
+    .main .block-container {
+        max-width: 1340px !important;
+        padding: 0 2rem 3rem !important;
+        background-color: transparent !important;
+    }
+
+    /* ── App Header ── */
+    .app-header {
+        display: flex;
+        align-items: center;
+        gap: 18px;
+        padding: 28px 0 20px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 28px;
+    }
+    .app-header img {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--radius-md);
+        object-fit: cover;
+        filter: brightness(1.1) contrast(1.1);
+        box-shadow: 0 0 24px rgba(212,164,55,0.25);
+    }
+    .app-header-text h1 {
+        font-family: 'Cormorant Garamond', serif !important;
+        font-size: 2.4rem !important;
+        font-weight: 600 !important;
+        color: var(--text-hi) !important;
+        margin: 0 0 2px !important;
+        letter-spacing: 0.01em;
+        line-height: 1.1;
+    }
+    .app-header-text p {
+        font-family: 'Syne', sans-serif;
+        font-size: 0.88rem;
+        color: var(--text-lo);
+        margin: 0;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+    }
+    .app-header-badge {
+        margin-left: auto;
+        background: linear-gradient(135deg, var(--accent-dim), var(--accent));
+        color: var(--bg-deep);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-family: 'Syne', sans-serif;
+    }
+
+    /* ── Headings ── */
+    h1, h2, h3, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
+        font-family: 'Cormorant Garamond', serif !important;
+        color: var(--text-hi) !important;
+        letter-spacing: 0.01em;
+    }
+    h1 { font-size: 2.1rem !important; font-weight: 600 !important; }
+    h2 { font-size: 1.6rem !important; font-weight: 500 !important; color: var(--text-mid) !important; }
+    h3 { font-size: 1.3rem !important; font-weight: 500 !important; }
+
+    [data-testid="stHeadingWithActionElements"] h2,
+    [data-testid="stHeadingWithActionElements"] h3 {
+        font-family: 'Cormorant Garamond', serif !important;
+        color: var(--text-hi) !important;
+    }
+
+    /* ── Tabs ── */
+    [data-testid="stTabs"] { background: transparent !important; }
+    [data-testid="stTabsTablist"] {
+        background: var(--bg-surface) !important;
+        border-radius: var(--radius-md) var(--radius-md) 0 0 !important;
+        border-bottom: 1px solid var(--border) !important;
+        padding: 0 8px !important;
+        gap: 0 !important;
+    }
+    [data-testid="stTab"] {
+        background: transparent !important;
+        color: var(--text-lo) !important;
+        font-family: 'Syne', sans-serif !important;
+        font-size: 0.92rem !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.06em !important;
+        text-transform: uppercase !important;
+        padding: 12px 20px !important;
+        border: none !important;
+        border-bottom: 2px solid transparent !important;
+        transition: color 0.2s, border-color 0.2s !important;
+    }
+    [data-testid="stTab"]:hover {
+        color: var(--text-mid) !important;
+        border-bottom-color: var(--border-hi) !important;
+        background: rgba(255,255,255,0.03) !important;
+    }
+    [data-testid="stTab"][aria-selected="true"] {
+        color: var(--accent-glow) !important;
+        border-bottom-color: var(--accent) !important;
+        background: transparent !important;
+    }
+    [data-testid="stTabPanel"] {
+        background: var(--bg-surface) !important;
+        border: 1px solid var(--border) !important;
+        border-top: none !important;
+        border-radius: 0 0 var(--radius-md) var(--radius-md) !important;
+        padding: 28px !important;
+    }
+
+    /* ── Buttons ── */
+    .stButton > button {
+        background: linear-gradient(135deg, #1e2638, #2a3454) !important;
+        color: var(--text-mid) !important;
+        border: 1px solid var(--border-hi) !important;
+        border-radius: var(--radius-sm) !important;
+        font-family: 'Syne', sans-serif !important;
+        font-size: 0.92rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.08em !important;
+        text-transform: uppercase !important;
+        padding: 8px 18px !important;
+        transition: all 0.2s ease !important;
+        box-shadow: var(--shadow-sm) !important;
+    }
+    .stButton > button:hover {
+        background: linear-gradient(135deg, #2a3454, #323e60) !important;
+        color: var(--text-hi) !important;
+        border-color: var(--accent-dim) !important;
+        box-shadow: 0 0 12px rgba(212,164,55,0.15), var(--shadow-sm) !important;
+        transform: translateY(-1px) !important;
+    }
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, var(--accent-dim), var(--accent)) !important;
+        color: var(--bg-deep) !important;
+        border-color: var(--accent) !important;
+    }
+    .stButton > button[kind="primary"]:hover {
+        background: linear-gradient(135deg, var(--accent), var(--accent-glow)) !important;
+        box-shadow: 0 0 20px rgba(212,164,55,0.35), var(--shadow-sm) !important;
+    }
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, var(--teal-dim), var(--teal)) !important;
+        color: var(--bg-deep) !important;
+        border: none !important;
+        border-radius: var(--radius-sm) !important;
+        font-family: 'Syne', sans-serif !important;
+        font-size: 0.8rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.06em !important;
+        padding: 8px 18px !important;
+        transition: all 0.2s ease !important;
+    }
+    .stDownloadButton > button:hover {
+        box-shadow: 0 0 16px rgba(74,184,176,0.3) !important;
+        transform: translateY(-1px) !important;
+    }
+
+    /* ── Text Inputs & Text Areas ── */
+    .stTextInput > div > div > input,
+    .stTextArea > div > div > textarea,
+    .stNumberInput > div > div > input {
+        background: var(--bg-card) !important;
+        color: var(--text-hi) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-sm) !important;
+        font-family: 'Syne', sans-serif !important;
+        font-size: 1rem !important;
+        padding: 10px 14px !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+    }
+    .stTextInput > div > div > input:focus,
+    .stTextArea > div > div > textarea:focus,
+    .stNumberInput > div > div > input:focus {
+        border-color: var(--accent-dim) !important;
+        box-shadow: 0 0 0 2px rgba(212,164,55,0.12) !important;
+        outline: none !important;
+    }
+    .stTextInput label, .stTextArea label, .stNumberInput label,
+    .stSelectbox label, .stFileUploader label, .stCheckbox label {
+        font-family: 'Syne', sans-serif !important;
+        font-size: 0.88rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.08em !important;
+        text-transform: uppercase !important;
+        color: var(--text-lo) !important;
+        margin-bottom: 6px !important;
+    }
+
+    /* ── Selectbox ── */
+    .stSelectbox > div > div {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--text-hi) !important;
+    }
+    .stSelectbox > div > div:hover { border-color: var(--border-hi) !important; }
+    [data-testid="stSelectboxVirtualDropdown"] {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-hi) !important;
+        border-radius: var(--radius-sm) !important;
+    }
+
+    /* ── Data Editor / Tables ── */
+    [data-testid="stDataEditor"], .stDataFrame {
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-md) !important;
+        overflow: hidden !important;
+        background: var(--bg-card) !important;
+    }
+    [data-testid="stDataEditor"] th {
+        background: var(--bg-surface) !important;
+        color: var(--text-lo) !important;
+        font-family: 'Syne', sans-serif !important;
+        font-size: 0.82rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.1em !important;
+        text-transform: uppercase !important;
+        border-bottom: 1px solid var(--border) !important;
+    }
+    [data-testid="stDataEditor"] td {
+        background: var(--bg-card) !important;
+        color: var(--text-mid) !important;
+        border-bottom: 1px solid var(--border) !important;
+    }
+
+    /* ── Info / Warning / Error / Success Boxes ── */
+    [data-testid="stInfo"] {
+        background: rgba(74,184,176,0.08) !important;
+        border: 1px solid var(--teal-dim) !important;
+        border-left: 3px solid var(--teal) !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--teal) !important;
+    }
+    [data-testid="stSuccess"], .stSuccess {
+        background: rgba(76,175,130,0.08) !important;
+        border: 1px solid #2a6648 !important;
+        border-left: 3px solid var(--success) !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--success) !important;
+    }
+    [data-testid="stWarning"], .stWarning {
+        background: rgba(224,148,58,0.08) !important;
+        border: 1px solid #7a5020 !important;
+        border-left: 3px solid var(--warn) !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--warn) !important;
+    }
+    [data-testid="stError"], .stError {
+        background: rgba(224,92,106,0.08) !important;
+        border: 1px solid #7a2030 !important;
+        border-left: 3px solid var(--error) !important;
+        border-radius: var(--radius-sm) !important;
+        color: var(--error) !important;
+    }
+
+    /* ── File Uploader ── */
+    [data-testid="stFileUploader"] > div {
+        background: var(--bg-card) !important;
+        border: 1.5px dashed var(--border-hi) !important;
+        border-radius: var(--radius-md) !important;
+        transition: border-color 0.2s, background 0.2s !important;
+    }
+    [data-testid="stFileUploader"] > div:hover {
+        border-color: var(--accent-dim) !important;
+        background: var(--bg-hover) !important;
+    }
+
+    /* ── Progress Bar ── */
+    [data-testid="stProgressBar"] > div > div {
+        background: linear-gradient(90deg, var(--accent-dim), var(--accent-glow)) !important;
+        border-radius: 4px !important;
+    }
+    [data-testid="stProgressBar"] > div {
+        background: var(--bg-card) !important;
+        border-radius: 4px !important;
+    }
+
+    /* ── Form ── */
+    [data-testid="stForm"] {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-md) !important;
+        padding: 20px !important;
+    }
+
+    /* ── Code Blocks ── */
+    [data-testid="stCode"] {
+        background: var(--bg-deep) !important;
+        border: 1px solid var(--border) !important;
+        border-radius: var(--radius-sm) !important;
+    }
+    pre code { font-size: 0.92rem !important; color: var(--text-mid) !important; }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--accent-dim); }
+
+    /* ── Download Links (CSV) ── */
+    .stMarkdown a {
+        color: var(--teal) !important;
+        text-decoration: none !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        transition: color 0.15s !important;
+    }
+    .stMarkdown a:hover { color: var(--accent-glow) !important; text-decoration: underline !important; }
+
+    /* ── Sidebar ── */
+    [data-testid="stSidebar"] {
+        background: var(--bg-surface) !important;
+        border-right: 1px solid var(--border) !important;
+    }
+
+    /* ── Number Input Arrows ── */
+    .stNumberInput > div > div > div > button {
+        background: var(--bg-card) !important;
+        border-color: var(--border) !important;
+        color: var(--text-mid) !important;
+    }
+    .stNumberInput > div > div > div > button:hover {
+        background: var(--bg-hover) !important;
+        border-color: var(--accent-dim) !important;
+        color: var(--accent-glow) !important;
+    }
+
+    /* ── Misc ── */
+    hr { border-color: var(--border) !important; opacity: 1 !important; margin: 20px 0 !important; }
+    [title="Show password text"] { display: none; }
 </style>
 """,
     unsafe_allow_html=True,
@@ -76,7 +449,7 @@ st.markdown(
 # --- Helper Functions ---
 
 def upload_lectures():
-    uploaded_file = st.file_uploader("Upload Lectures CSV", type="csv")
+    uploaded_file = st.file_uploader("Upload Modules CSV", type="csv")
     if uploaded_file is not None:
         try:
             df = pd.read_csv(uploaded_file)
@@ -87,7 +460,7 @@ def upload_lectures():
 
             df["selected"] = False
             st.session_state.lecture_df = df
-            st.success("Lectures uploaded successfully!")
+            st.success("Modules uploaded successfully!")
         except Exception as e:
             st.error(f"Error uploading file: {str(e)}")
 
@@ -197,13 +570,13 @@ def create_chatbot(chatbot_type, model, api_key_override=None, endpoint_override
 
 def add_new_lecture():
     with st.form(key="add_lecture_form"):
-        new_title = st.text_input("New Lecture Title")
-        new_description = st.text_area("New Lecture Description")
-        submit_button = st.form_submit_button(label="Add New Lecture")
+        new_title = st.text_input("New Module Title")
+        new_description = st.text_area("New Module Description")
+        submit_button = st.form_submit_button(label="Add New Module")
 
     if submit_button:
         if not new_title or not new_description:
-            st.warning("Please provide both a title and description for the new lecture.")
+            st.warning("Please provide both a title and description for the new module.")
             return
         new_lecture = {
             "title": new_title,
@@ -217,7 +590,7 @@ def add_new_lecture():
                 [st.session_state.lecture_df, pd.DataFrame([new_lecture])],
                 ignore_index=True,
             )
-        st.success(f"Lecture '{new_title}' added.")
+        st.success(f"Module '{new_title}' added.")
         st.rerun()
 
 
@@ -226,12 +599,12 @@ def add_new_topic():
         if "lecture_df" in st.session_state and not st.session_state.lecture_df.empty:
             lectures = st.session_state.lecture_df["title"].unique()
             if len(lectures) > 0:
-                new_lecture = st.selectbox("Select Lecture", lectures)
+                new_lecture = st.selectbox("Select Module", lectures)
             else:
-                st.warning("No lectures available to add topics to. Please add or generate lectures first.")
-                new_lecture = None # Indicate no lecture available
+                st.warning("No modules available to add topics to. Please add or generate modules first.")
+                new_lecture = None # Indicate no module available
         else:
-            st.warning("No lectures available. Please add or generate lectures first.")
+            st.warning("No modules available. Please add or generate modules first.")
             new_lecture = None # Indicate no lecture available
 
         new_title = st.text_input("New Topic Title")
@@ -254,7 +627,7 @@ def add_new_topic():
             st.session_state.topics_df = pd.concat(
                 [st.session_state.topics_df, pd.DataFrame([new_topic])], ignore_index=True
             )
-        st.success(f"Topic '{new_title}' added to lecture '{new_lecture}'.")
+        st.success(f"Topic '{new_title}' added to module '{new_lecture}'.")
         st.rerun()
 
 
@@ -315,7 +688,7 @@ def generate_lectures(
         st.code(response, language='text')
         return None
     except Exception as e:
-        st.error(f"An unexpected error occurred during lecture generation: {e}")
+        st.error(f"An unexpected error occurred during module generation: {e}")
         st.text("Raw response received (if available):")
         st.code(response or "Response not captured.", language='text')
         return None
@@ -331,7 +704,7 @@ def generate_topics(chatbot, lectures, min_topics, max_topics):
     status_text = st.empty()
 
     for i, lecture in enumerate(lectures):
-        status_text.text(f"Generating topics for lecture {i+1}/{total_lectures}: {lecture['title']}...")
+        status_text.text(f"Generating topics for module {i+1}/{total_lectures}: {lecture['title']}...")
         prompt = f"""
         Generate a list of {min_topics} to {max_topics} key topics for the following lecture:
         Lecture Title: {lecture['title']}
@@ -371,12 +744,12 @@ def generate_topics(chatbot, lectures, min_topics, max_topics):
             lecture_topics = parsed_response
 
         except (json.JSONDecodeError, ValueError) as e:
-            st.error(f"Error processing topics for lecture '{lecture['title']}': {e}. Skipping this lecture.")
+            st.error(f"Error processing topics for module '{lecture['title']}': {e}. Skipping this module.")
             st.text("Raw response received:")
             st.code(response or "Response not captured.", language='text')
             lecture_topics = [] # Ensure it's an empty list on error
         except Exception as e:
-             st.error(f"An unexpected error occurred generating topics for lecture '{lecture['title']}': {e}. Skipping.")
+             st.error(f"An unexpected error occurred generating topics for module '{lecture['title']}': {e}. Skipping.")
              st.text("Raw response received (if available):")
              st.code(response or "Response not captured.", language='text')
              lecture_topics = []
@@ -481,7 +854,7 @@ def create_notebook(
         - The YAML header must be exactly:
           ---
           title: "<topic title>"
-          subtitle: "<lecture title>"
+          subtitle: "<module title>"
           format: pptx
           ---
         - The entire response MUST be ONLY the raw text content of the .qmd file.
@@ -560,7 +933,17 @@ def create_notebook(
 
 
 # --- Streamlit App Layout ---
-st.title("📚 Curriculum Generator")
+_logo_html = f'<img src="data:image/jpeg;base64,{_LOGO_B64}" alt="Logo">' if _LOGO_B64 else ''
+st.markdown(f"""
+<div class="app-header">
+    {_logo_html}
+    <div class="app-header-text">
+        <h1>AI Course Builder</h1>
+        <p>AI-Powered Course Design Tool</p>
+    </div>
+    <span class="app-header-badge">Beta</span>
+</div>
+""", unsafe_allow_html=True)
 
 # --- Initialize session state variables ---
 if "lecture_df" not in st.session_state:
@@ -593,17 +976,17 @@ if "ollama_endpoint_input" not in st.session_state:
 
 
 tab_settings, tab_course, tab_lectures, tab_topics, tab_notebooks = st.tabs(
-    ["⚙️ Settings", "📖 Course", "📖 Lectures", "📝 Topics", "💻 Outputs"]
+    ["Settings", "Course", "Modules", "Topics", "Outputs"]
 )
 
 with tab_settings:
-    st.header("⚙️ Settings")
+    st.header("Settings")
 
-    st.subheader("📁 Output Settings")
+    st.subheader("Output Settings")
     notebook_path = st.text_input("Output Path", value=st.session_state.output_path)
     # use_rag = st.checkbox("Use RAG for Course Continuity?", True) # RAG TBD
 
-    st.subheader("🤖 LLM Provider Settings")
+    st.subheader("LLM Provider Settings")
 
     # --- Dynamic LLM Selection ---
     # 1. Select Provider
@@ -684,7 +1067,7 @@ OLLAMA_ENDPOINT_OVERRIDE = st.session_state.ollama_endpoint_input
 
 
 with tab_course:
-    st.subheader("🎓 Course Settings")
+    st.subheader("Course Settings")
     # Use st.session_state to preserve values across tabs/reruns
     st.session_state.course_title = st.text_input(
         "Course Title",
@@ -695,7 +1078,7 @@ with tab_course:
         value=st.session_state.get('course_description', "Covering both theoretical design and practical application of generative AI.")
     )
     st.session_state.lecture_level = st.text_input(
-        "Lecture Level",
+        "Module Level",
         value=st.session_state.get('lecture_level', "graduate")
     )
     st.session_state.examples_programming_language = st.selectbox(
@@ -725,16 +1108,16 @@ with tab_course:
     col1, col2 = st.columns(2)
     with col1:
         st.session_state.num_lectures = st.number_input(
-            "Number of Lectures to Generate",
+            "Number of Modules to Generate",
             value=st.session_state.get('num_lectures', 10), min_value=1, max_value=50
         )
     with col2:
         st.session_state.lecture_length = st.number_input(
-            "Approx. Lecture Length (minutes)",
+            "Approx. Module Length (minutes)",
             value=st.session_state.get('lecture_length', 60), min_value=10, max_value=180
         )
 
-    st.subheader("📝 Output Instructions Template")
+    st.subheader("Output Instructions Template")
     default_instructions = """
 Include the following sections:
 
@@ -781,19 +1164,19 @@ General Formatting Notes:
 
 
 with tab_lectures:
-    st.header("📖 Lectures")
-    st.subheader("📤 Upload Lectures (Optional)")
+    st.header("Modules")
+    st.subheader("Upload Modules (Optional)")
     upload_lectures()
 
-    st.subheader("🤖 Generate Lectures")
-    if st.button("✨ Generate Lectures", key="gen_lectures_btn", disabled=(SELECTED_MODEL is None)):
+    st.subheader("Generate Modules")
+    if st.button("Generate Modules", key="gen_lectures_btn", disabled=(SELECTED_MODEL is None)):
         if not SELECTED_MODEL:
              st.error("Please select a valid model in the Settings tab first.")
         else:
             # Use the centrally managed settings
             chatbot = create_chatbot(CHATBOT_TYPE, SELECTED_MODEL, API_KEY_OVERRIDE, OLLAMA_ENDPOINT_OVERRIDE)
             if chatbot:
-                with st.spinner(f"Generating {st.session_state.num_lectures} lectures using {CHATBOT_TYPE} ({SELECTED_MODEL})..."):
+                with st.spinner(f"Generating {st.session_state.num_lectures} modules using {CHATBOT_TYPE} ({SELECTED_MODEL})..."):
                     lectures = generate_lectures(
                         chatbot,
                         st.session_state.course_title,
@@ -805,23 +1188,23 @@ with tab_lectures:
                     if lectures:
                         # Overwrite or initialize lecture_df
                         df = pd.DataFrame(lectures)
-                        df["selected"] = True # Default generated lectures to selected
+                        df["selected"] = True # Default generated modules to selected
                         st.session_state.lecture_df = df
-                        st.success(f"{len(lectures)} Lectures generated successfully!")
-                        # Clear existing topics if lectures are regenerated
+                        st.success(f"{len(lectures)} Modules generated successfully!")
+                        # Clear existing topics if modules are regenerated
                         if 'topics_df' in st.session_state:
                             st.session_state.topics_df = pd.DataFrame(columns=st.session_state.topics_df.columns)
-                            st.info("Existing topics cleared as lectures were regenerated.")
+                            st.info("Existing topics cleared as modules were regenerated.")
                         st.rerun() # Rerun to update the display immediately
                     else:
                         # Error messages handled within generate_lectures
-                        st.warning("Lecture generation failed. Please check the error messages above and your settings/API key.")
+                        st.warning("Module generation failed. Please check the error messages above and your settings/API key.")
             else:
                  st.error(f"Failed to create chatbot for {CHATBOT_TYPE}. Check settings and API key.")
 
-    # Display and manage lectures
+    # Display and manage modules
     if "lecture_df" in st.session_state and not st.session_state.lecture_df.empty:
-        st.subheader("📋 Manage Lectures")
+        st.subheader("Manage Modules")
 
         col1, col2, col3 = st.columns([1,1,5]) # Add some space
         with col1:
@@ -838,7 +1221,7 @@ with tab_lectures:
             st.session_state.lecture_df,
             column_config={
                 "selected": st.column_config.CheckboxColumn("Select", default=False),
-                "title": st.column_config.TextColumn("Lecture Title", width="medium"),
+                "title": st.column_config.TextColumn("Module Title", width="medium"),
                 "description": st.column_config.TextColumn("Description", width="large"),
             },
             use_container_width=True,
@@ -847,55 +1230,55 @@ with tab_lectures:
             key="lecture_editor"
         )
 
-        # Add new lecture functionality (manual add)
-        st.subheader("➕ Add New Lecture Manually")
+        # Add new module functionality (manual add)
+        st.subheader("Add New Module Manually")
         add_new_lecture()
 
-        # Download link for lectures CSV
+        # Download link for modules CSV
         st.markdown(
             get_table_download_link(
-                st.session_state.lecture_df, "lectures.csv", "📥 Download Lectures as CSV"
+                st.session_state.lecture_df, "modules.csv", "Download Modules as CSV"
             ),
             unsafe_allow_html=True,
         )
     else:
-        st.info("No lectures loaded or generated yet. Use the options above.")
+        st.info("No modules loaded or generated yet. Use the options above.")
 
 
 with tab_topics:
-    st.header("📝 Topics")
-    st.subheader("📤 Upload Topics (Optional)")
+    st.header("Topics")
+    st.subheader("Upload Topics (Optional)")
     upload_topics()
 
-    st.subheader("⚙️ Topic Generation Settings")
+    st.subheader("Topic Generation Settings")
     col1, col2 = st.columns(2)
     with col1:
         st.session_state.min_topics = st.number_input(
-            "Min topics per lecture:", min_value=1, max_value=10,
+            "Min topics per module:", min_value=1, max_value=10,
             value=st.session_state.get('min_topics', 1), step=1
         )
     with col2:
         st.session_state.max_topics = st.number_input(
-            "Max topics per lecture:", min_value=st.session_state.get('min_topics', 1), max_value=30,
+            "Max topics per module:", min_value=st.session_state.get('min_topics', 1), max_value=30,
             value=st.session_state.get('max_topics', 8), step=1
         )
 
-    st.subheader("🤖 Generate Topics for Selected Lectures")
+    st.subheader("Generate Topics for Selected Modules")
     # Check if there are any selected lectures
     lectures_available = "lecture_df" in st.session_state and not st.session_state.lecture_df.empty
     selected_lectures_df = st.session_state.lecture_df[st.session_state.lecture_df["selected"]] if lectures_available else pd.DataFrame()
     disable_gen_topics = selected_lectures_df.empty or (SELECTED_MODEL is None)
 
-    if st.button("✨ Generate Topics", key="gen_topics_btn", disabled=disable_gen_topics):
+    if st.button("Generate Topics", key="gen_topics_btn", disabled=disable_gen_topics):
         if not SELECTED_MODEL:
              st.error("Please select a valid model in the Settings tab first.")
         elif not lectures_available or selected_lectures_df.empty:
-            st.warning("Please select at least one lecture in the 'Lectures' tab before generating topics.")
+            st.warning("Please select at least one module in the 'Modules' tab before generating topics.")
         else:
             selected_lectures_list = selected_lectures_df.to_dict("records")
             chatbot = create_chatbot(CHATBOT_TYPE, SELECTED_MODEL, API_KEY_OVERRIDE, OLLAMA_ENDPOINT_OVERRIDE)
             if chatbot:
-                with st.spinner(f"Generating topics for {len(selected_lectures_list)} selected lecture(s) using {CHATBOT_TYPE} ({SELECTED_MODEL})..."):
+                with st.spinner(f"Generating topics for {len(selected_lectures_list)} selected module(s) using {CHATBOT_TYPE} ({SELECTED_MODEL})..."):
                     # Generate topics only for selected lectures
                     generated_topic_lists = generate_topics(
                         chatbot, selected_lectures_list, st.session_state.min_topics, st.session_state.max_topics
@@ -928,16 +1311,16 @@ with tab_topics:
                              topics_to_keep = existing_topics_df[~existing_topics_df['lecture_title'].isin(lectures_regenerated)]
                              st.session_state.topics_df = pd.concat([topics_to_keep, new_topics_df], ignore_index=True)
 
-                         st.success(f"Generated {len(all_new_topics_list)} topics for the selected lectures.")
+                         st.success(f"Generated {len(all_new_topics_list)} topics for the selected modules.")
                          st.rerun()
                     else:
-                         st.warning("No topics were generated. This might be due to errors during generation for all selected lectures. Check logs above.")
+                         st.warning("No topics were generated. This might be due to errors during generation for all selected modules. Check logs above.")
             else:
                 st.error(f"Failed to create chatbot for {CHATBOT_TYPE}. Check settings and API key.")
 
     # Display and manage topics
     if "topics_df" in st.session_state and not st.session_state.topics_df.empty:
-        st.subheader("📋 Manage Topics")
+        st.subheader("Manage Topics")
 
         col1, col2, col3 = st.columns([1,1,5])
         with col1:
@@ -958,7 +1341,7 @@ with tab_topics:
             st.session_state.topics_df,
             column_config={
                  "selected": st.column_config.CheckboxColumn("Select", default=False),
-                 "lecture_title": st.column_config.TextColumn("Lecture", width="medium", disabled=True),
+                 "lecture_title": st.column_config.TextColumn("Module", width="medium", disabled=True),
                  "topic_title": st.column_config.TextColumn("Topic Title", width="medium"),
                  "topic_description": st.column_config.TextColumn("Description", width="large"),
             },
@@ -969,29 +1352,29 @@ with tab_topics:
         )
 
         # Add new topic functionality (manual add)
-        st.subheader("➕ Add New Topic Manually")
+        st.subheader("Add New Topic Manually")
         add_new_topic()
 
         # Download link for topics CSV
         st.markdown(
             get_table_download_link(
-                st.session_state.topics_df, "topics.csv", "📥 Download Topics as CSV"
+                st.session_state.topics_df, "topics.csv", "Download Topics as CSV"
             ),
             unsafe_allow_html=True,
         )
     else:
-        st.info("No topics loaded or generated yet. Generate topics for selected lectures or upload a CSV.")
+        st.info("No topics loaded or generated yet. Generate topics for selected modules or upload a CSV.")
 
 
 with tab_notebooks:
-    st.header("💻 Outputs")
+    st.header("Outputs")
 
     # Check if topics exist and any are selected
     topics_available = "topics_df" in st.session_state and not st.session_state.topics_df.empty
     selected_topics_df = st.session_state.topics_df[st.session_state.topics_df["selected"]] if topics_available else pd.DataFrame()
     disable_gen_notebooks = selected_topics_df.empty or (SELECTED_MODEL is None)
 
-    if st.button("💾 Create Selected Outputs", key="gen_notebooks_btn", disabled=disable_gen_notebooks):
+    if st.button("Create Selected Outputs", key="gen_notebooks_btn", disabled=disable_gen_notebooks):
         if not SELECTED_MODEL:
              st.error("Please select a valid model in the Settings tab first.")
         elif not topics_available or selected_topics_df.empty:
@@ -1093,7 +1476,7 @@ with tab_notebooks:
                 st.error(f"Failed to create chatbot for {CHATBOT_TYPE}. Output generation cancelled.")
 
     # Display generated notebooks
-    st.subheader("📂 Generated Outputs")
+    st.subheader("Generated Outputs")
     output_dir = notebook_path
     if os.path.exists(output_dir) and os.path.isdir(output_dir):
         try:
@@ -1114,7 +1497,7 @@ with tab_notebooks:
                                 zf.write(fpath, arcname=fname)
                     zip_buffer.seek(0)
                     st.download_button(
-                        label="📦 Download All as ZIP",
+                        label="Download All as ZIP",
                         data=zip_buffer,
                         file_name="notebooks.zip",
                         mime="application/zip",
@@ -1135,7 +1518,7 @@ with tab_notebooks:
                             else:
                                 mime_type = "application/octet-stream"
                             st.download_button(
-                                label=f"⬇️ Download {selected_notebook_file}",
+                                label=f"Download {selected_notebook_file}",
                                 data=fp,
                                 file_name=selected_notebook_file,
                                 mime=mime_type,
