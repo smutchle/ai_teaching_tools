@@ -28,13 +28,13 @@ class AnthropicChatBot:
         retries = 0
         while retries <= self.num_retries:
             try:
-                response = self.client.messages.create(
+                with self.client.messages.stream(
                     model=self.model,
                     max_tokens=self.max_tokens,
                     temperature=self.temperature,
                     messages=messages,
-                )
-                return response
+                ) as stream:
+                    return stream.get_final_message()
             except APIStatusError as e:
                 if e.status_code == 529 and retries < self.num_retries:
                     retries += 1

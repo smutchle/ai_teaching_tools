@@ -3,9 +3,13 @@ import pandas as pd
 import json
 import os
 import shutil
+import uuid
 from dotenv import load_dotenv
 import re
 import base64
+import subprocess
+import zipfile
+import io
 
 # Import necessary chatbot classes
 from OllamaChatBot import OllamaChatBot
@@ -136,6 +140,8 @@ def display_notebook(notebook_path):
             st.code(content, language="json")
         elif notebook_path.endswith(".qmd"):
             st.markdown(f"```markdown\n{content}\n```") # Display Quarto as markdown block
+        elif notebook_path.endswith(".pptx"):
+            st.info("Preview is not available for PowerPoint files. Use the download button below to open in PowerPoint.")
         else:
             st.text(content)
     except FileNotFoundError:
@@ -275,6 +281,7 @@ def generate_lectures(
       {{"title": "Lecture 2: Core Concepts", "description": "Exploring fundamental principles and definitions."}}
     ]
     """
+    response = None
     try:
         response = chatbot.completeAsJSON(prompt) # Use the JSON specific method if available
         # Attempt to parse the response directly as JSON
@@ -310,7 +317,7 @@ def generate_lectures(
     except Exception as e:
         st.error(f"An unexpected error occurred during lecture generation: {e}")
         st.text("Raw response received (if available):")
-        st.code(response if 'response' in locals() else "Response not captured.", language='text')
+        st.code(response or "Response not captured.", language='text')
         return None
 
 
@@ -341,6 +348,7 @@ def generate_topics(chatbot, lectures, min_topics, max_topics):
         ]
         """
         lecture_topics = []
+        response = None
         try:
             response = chatbot.completeAsJSON(prompt) # Use JSON specific method
             parsed_response = json.loads(response)
@@ -365,12 +373,12 @@ def generate_topics(chatbot, lectures, min_topics, max_topics):
         except (json.JSONDecodeError, ValueError) as e:
             st.error(f"Error processing topics for lecture '{lecture['title']}': {e}. Skipping this lecture.")
             st.text("Raw response received:")
-            st.code(response if 'response' in locals() else "Response not captured.", language='text')
+            st.code(response or "Response not captured.", language='text')
             lecture_topics = [] # Ensure it's an empty list on error
         except Exception as e:
              st.error(f"An unexpected error occurred generating topics for lecture '{lecture['title']}': {e}. Skipping.")
              st.text("Raw response received (if available):")
-             st.code(response if 'response' in locals() else "Response not captured.", language='text')
+             st.code(response or "Response not captured.", language='text')
              lecture_topics = []
 
         all_lecture_topics.append(lecture_topics)
@@ -424,7 +432,7 @@ def create_notebook(
         - Include code for installing necessary libraries using '{lib_install_req}' if applicable, placed early in the notebook.
         """
         completion_method = chatbot.completeAsJSON # Expecting direct JSON output
-    else: # Quarto notebook (.qmd)
+    elif notebook_type == "Quarto notebook": # Quarto notebook (.qmd)
         output_requirements = f"""
         Output:
         - Produce a valid Quarto markdown file (.qmd) content.
@@ -439,6 +447,52 @@ def create_notebook(
         - Ensure mathematical equations are correctly formatted using LaTeX (e.g., `$E=mc^2$`).
         - Include code for installing necessary libraries using '{lib_install_req}' if applicable, placed in an appropriate code block near the beginning.
         - Ensure lists in markdown have a blank line before them as requested.
+        """
+        completion_method = chatbot.complete # Expecting raw text output
+    else:  # PowerPoint (pptx) — Quarto presentation format
+        instructions = """
+        Create concise, presentation-ready slide content for a single topic. Follow these guidelines:
+
+        Slide Structure:
+        - Use ## headings to define individual slides (each ## creates a new slide)
+        - Each slide should cover ONE focused idea — do not overload slides with text
+        - Aim for 3–6 bullet points per slide maximum; prefer short, punchy phrases over full sentences
+        - Use ::: incremental ::: blocks for step-by-step builds where appropriate
+
+        Required Slides (in order):
+        1. Title slide (automatically generated from YAML)
+        2. ## Overview — 3–5 bullet points summarising the topic
+        3. ## Background & Theory — split into multiple slides as needed; each covering one concept
+        4. ## Key Formula / Algorithm (if applicable) — one LaTeX equation per slide with a one-line explanation
+        5. ## Practical Example — describe the example setup briefly; code snippet or pseudocode on its own slide
+        6. ## Summary — 3–5 takeaway bullets
+        7. ## Quiz — 3–5 knowledge-check questions, one per slide, with the answer in speaker notes
+
+        Formatting Rules:
+        - Speaker notes go in ::: {.notes} ... ::: blocks under each slide — use these for elaboration
+        - Do NOT write paragraphs of prose on slides; save explanations for speaker notes
+        - Use emoji sparingly to highlight key points (one per slide maximum)
+        - Tables and Mermaid diagrams are welcome on their own slides when they add clarity
+        - All code blocks should be fenced with the appropriate language tag
+        """
+        output_requirements = f"""
+        Output:
+        - Produce a valid Quarto presentation file (.qmd) with `format: pptx` in the YAML header.
+        - The YAML header must be exactly:
+          ---
+          title: "<topic title>"
+          subtitle: "<lecture title>"
+          format: pptx
+          ---
+        - The entire response MUST be ONLY the raw text content of the .qmd file.
+        - Do NOT include ```qmd ... ``` or ```markdown ... ``` markers or any text before or after the .qmd content.
+        - Separate slides using ## headings (second-level headings create new slides in Quarto/Pandoc).
+        - Keep slide content concise — 3–6 bullet points per slide; no paragraphs of prose on slides.
+        - Use ::: {{.notes}} ... ::: blocks for speaker notes where elaboration is needed.
+        - Use standard Markdown bullet points (- item) for lists on slides.
+        - Code examples should use fenced code blocks with the language tag (e.g., ```python ... ```).
+        - Mathematical equations should use LaTeX inline ($...$) or display ($$...$$) notation.
+        - IMPORTANT: When creating markdown lists, always have a blank line before the list starts.
         """
         completion_method = chatbot.complete # Expecting raw text output
 
@@ -467,8 +521,8 @@ def create_notebook(
     try:
         response = completion_method(prompt)
 
-        # Post-processing for Quarto to ensure it's not wrapped in markdown fences
-        if notebook_type == "Quarto notebook":
+        # Post-processing for Quarto-based formats to ensure not wrapped in markdown fences
+        if notebook_type in ("Quarto notebook", "PowerPoint (pptx)"):
              # Use the extraction method if the LLM still wraps it (optional robustness)
              response = chatbot.extract_markdown_content(response, "qmd")
              # Basic check: Does it look like markdown? (Not foolproof)
@@ -525,6 +579,12 @@ if "selected_provider" not in st.session_state:
 if "selected_model" not in st.session_state:
     st.session_state.selected_model = None # Will be set based on provider
 
+if "lecture_level" not in st.session_state:
+    st.session_state.lecture_level = "graduate"
+
+if "output_path" not in st.session_state:
+    st.session_state.output_path = f"/tmp/{uuid.uuid4().hex}"
+
 if "api_key_input" not in st.session_state:
      st.session_state.api_key_input = ""
 
@@ -533,14 +593,14 @@ if "ollama_endpoint_input" not in st.session_state:
 
 
 tab_settings, tab_course, tab_lectures, tab_topics, tab_notebooks = st.tabs(
-    ["⚙️ Settings", "📖 Course", "📖 Lectures", "📝 Topics", "💻 Notebooks"]
+    ["⚙️ Settings", "📖 Course", "📖 Lectures", "📝 Topics", "💻 Outputs"]
 )
 
 with tab_settings:
     st.header("⚙️ Settings")
 
     st.subheader("📁 Output Settings")
-    notebook_path = st.text_input("Notebook Output Path", value="./output")
+    notebook_path = st.text_input("Output Path", value=st.session_state.output_path)
     # use_rag = st.checkbox("Use RAG for Course Continuity?", True) # RAG TBD
 
     st.subheader("🤖 LLM Provider Settings")
@@ -647,14 +707,17 @@ with tab_course:
         "Libraries to Use (Informational)",
         value=st.session_state.get('libraries_used', "Use appropriate libraries like scikit-learn, PyTorch, TensorFlow, tidyverse, etc.")
     )
+    NOTEBOOK_TYPES = ["Quarto notebook", "Jupyter notebook", "PowerPoint (pptx)"]
     st.session_state.notebook_type = st.selectbox(
-        "Notebook type",
-        ["Quarto notebook", "Jupyter notebook"],
-        index=["Quarto notebook", "Jupyter notebook"].index(st.session_state.get('notebook_type', 'Quarto notebook'))
+        "Output type",
+        NOTEBOOK_TYPES,
+        index=NOTEBOOK_TYPES.index(st.session_state.get('notebook_type', 'Quarto notebook'))
     )
 
     if st.session_state.notebook_type == "Jupyter notebook":
         extension = "ipynb"
+    elif st.session_state.notebook_type == "PowerPoint (pptx)":
+        extension = "pptx"
     else:
         extension = "qmd"
     st.session_state.extension = extension # Store for later use
@@ -671,7 +734,7 @@ with tab_course:
             value=st.session_state.get('lecture_length', 60), min_value=10, max_value=180
         )
 
-    st.subheader("📝 Notebook Instructions Template")
+    st.subheader("📝 Output Instructions Template")
     default_instructions = """
 Include the following sections:
 
@@ -711,7 +774,7 @@ General Formatting Notes:
 *   IMPORTANT: The document should start at the ## heading level (2 has marks)
 """
     st.session_state.instructions = st.text_area(
-        "Notebook Instructions (can use placeholders like {course_title}, {examples_programming_language}, {libraries_used})",
+        "Output Instructions (can use placeholders like {course_title}, {examples_programming_language}, {libraries_used})",
         value=st.session_state.get('instructions', default_instructions),
         height=450
     )
@@ -737,7 +800,7 @@ with tab_lectures:
                         st.session_state.course_description,
                         st.session_state.num_lectures,
                         st.session_state.lecture_length,
-                        st.session_state.lecture_level,
+                        st.session_state.get('lecture_level', 'graduate'),
                     )
                     if lectures:
                         # Overwrite or initialize lecture_df
@@ -921,18 +984,18 @@ with tab_topics:
 
 
 with tab_notebooks:
-    st.header("💻 Notebooks")
+    st.header("💻 Outputs")
 
     # Check if topics exist and any are selected
     topics_available = "topics_df" in st.session_state and not st.session_state.topics_df.empty
     selected_topics_df = st.session_state.topics_df[st.session_state.topics_df["selected"]] if topics_available else pd.DataFrame()
     disable_gen_notebooks = selected_topics_df.empty or (SELECTED_MODEL is None)
 
-    if st.button("💾 Create Selected Notebooks", key="gen_notebooks_btn", disabled=disable_gen_notebooks):
+    if st.button("💾 Create Selected Outputs", key="gen_notebooks_btn", disabled=disable_gen_notebooks):
         if not SELECTED_MODEL:
              st.error("Please select a valid model in the Settings tab first.")
         elif not topics_available or selected_topics_df.empty:
-            st.warning("Please select at least one topic in the 'Topics' tab before generating notebooks.")
+            st.warning("Please select at least one topic in the 'Topics' tab before generating outputs.")
         else:
             selected_topics_list = selected_topics_df.to_dict("records")
             # Prepare context: all topics grouped by lecture (could be large)
@@ -944,7 +1007,7 @@ with tab_notebooks:
             if chatbot:
                 os.makedirs(notebook_path, exist_ok=True)
                 num_selected = len(selected_topics_list)
-                st.info(f"Starting generation of {num_selected} notebook(s)...")
+                st.info(f"Starting generation of {num_selected} output(s)...")
                 progress_bar = st.progress(0)
                 status_text = st.empty()
                 success_count = 0
@@ -957,7 +1020,7 @@ with tab_notebooks:
                     filename = f"{i:02d}_{safe_title}.{st.session_state.extension}"
                     filepath = os.path.join(notebook_path, filename)
 
-                    status_text.text(f"({i}/{num_selected}) Generating notebook: {filename}...")
+                    status_text.text(f"({i}/{num_selected}) Generating output: {filename}...")
 
                     # Skip if file already exists? Add a checkbox for overwrite? For now, let's overwrite.
                     # if os.path.exists(filepath):
@@ -990,30 +1053,47 @@ with tab_notebooks:
 
                     if nb_content:
                         try:
-                            with open(filepath, "w", encoding="utf-8") as f:
-                                f.write(nb_content)
-                            # st.success(f"({i}/{num_selected}) Created notebook: {filename}") # Make output less verbose
-                            success_count += 1
+                            if st.session_state.notebook_type == "PowerPoint (pptx)":
+                                # Save .qmd source, then render to .pptx
+                                qmd_filename = f"{i:02d}_{safe_title}.qmd"
+                                qmd_filepath = os.path.join(notebook_path, qmd_filename)
+                                with open(qmd_filepath, "w", encoding="utf-8") as f:
+                                    f.write(nb_content)
+                                status_text.text(f"({i}/{num_selected}) Rendering {qmd_filename} to PowerPoint...")
+                                render_result = subprocess.run(
+                                    ["quarto", "render", qmd_filepath, "--to", "pptx"],
+                                    capture_output=True,
+                                    text=True,
+                                )
+                                if render_result.returncode != 0:
+                                    st.error(f"Quarto render failed for {qmd_filename}:\n{render_result.stderr}")
+                                    fail_count += 1
+                                else:
+                                    success_count += 1
+                            else:
+                                with open(filepath, "w", encoding="utf-8") as f:
+                                    f.write(nb_content)
+                                success_count += 1
                         except Exception as e:
-                            st.error(f"Error writing notebook file {filename}: {str(e)}")
+                            st.error(f"Error writing output file {filename}: {str(e)}")
                             fail_count += 1
                     else:
                         st.error(
-                            f"Failed to generate content for notebook: {filename} after {max_retries} attempts."
+                            f"Failed to generate content for output: {filename} after {max_retries} attempts."
                         )
                         fail_count += 1
 
                     progress_bar.progress(i / num_selected)
 
-                status_text.success(f"Notebook generation complete. Success: {success_count}, Failed: {fail_count}.")
+                status_text.success(f"Output generation complete. Success: {success_count}, Failed: {fail_count}.")
                 progress_bar.empty() # Remove progress bar
 
 
             else:
-                st.error(f"Failed to create chatbot for {CHATBOT_TYPE}. Notebook generation cancelled.")
+                st.error(f"Failed to create chatbot for {CHATBOT_TYPE}. Output generation cancelled.")
 
     # Display generated notebooks
-    st.subheader("📂 Generated Notebooks")
+    st.subheader("📂 Generated Outputs")
     output_dir = notebook_path
     if os.path.exists(output_dir) and os.path.isdir(output_dir):
         try:
@@ -1024,31 +1104,48 @@ with tab_notebooks:
             ])
 
             if notebooks:
+                # ZIP download for entire output directory
+                try:
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+                        for fname in os.listdir(output_dir):
+                            fpath = os.path.join(output_dir, fname)
+                            if os.path.isfile(fpath):
+                                zf.write(fpath, arcname=fname)
+                    zip_buffer.seek(0)
+                    st.download_button(
+                        label="📦 Download All as ZIP",
+                        data=zip_buffer,
+                        file_name="notebooks.zip",
+                        mime="application/zip",
+                    )
+                except Exception as e:
+                    st.error(f"Error creating ZIP: {e}")
+
+                # Individual file download
                 selected_notebook_file = st.selectbox(
-                    f"Select a {st.session_state.extension} notebook to view/download:", notebooks
+                    f"Select a {st.session_state.extension} file to download:", notebooks
                 )
                 if selected_notebook_file:
                     selected_notebook_path = os.path.join(output_dir, selected_notebook_file)
-
-                    # Display Content
-                    st.write(f"**Preview of `{selected_notebook_file}`:**")
-                    display_notebook(selected_notebook_path)
-
-                    # Download link
                     try:
                         with open(selected_notebook_path, "rb") as fp:
+                            if selected_notebook_file.endswith(".pptx"):
+                                mime_type = "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                            else:
+                                mime_type = "application/octet-stream"
                             st.download_button(
-                                label=f"Download {selected_notebook_file}",
+                                label=f"⬇️ Download {selected_notebook_file}",
                                 data=fp,
                                 file_name=selected_notebook_file,
-                                mime="application/octet-stream" # Generic type, browser might infer
+                                mime=mime_type,
                             )
                     except Exception as e:
-                        st.error(f"Error preparing notebook for download: {e}")
+                        st.error(f"Error preparing file for download: {e}")
 
             else:
-                st.info(f"No notebooks with the extension '.{st.session_state.extension}' found in the output directory: '{output_dir}'. Generate some or check the path/extension setting.")
+                st.info(f"No output files with extension '.{st.session_state.extension}' found in the output directory: '{output_dir}'. Generate some or check the path/extension setting.")
         except Exception as e:
-             st.error(f"Error listing notebooks in '{output_dir}': {e}")
+             st.error(f"Error listing outputs in '{output_dir}': {e}")
     else:
-        st.info(f"Output directory '{output_dir}' not found. Generate notebooks first or check the path in Settings.")
+        st.info(f"Output directory '{output_dir}' not found. Generate outputs first or check the path in Settings.")
