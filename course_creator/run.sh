@@ -7,6 +7,16 @@ if [ -f "$(dirname "$0")/.env" ]; then
   export $(grep -v '^#' "$(dirname "$0")/.env" | xargs) 2>/dev/null || true
 fi
 
+# ── Activate conda environment ────────────────────────────────────────────────
+CONDA_PATH="$HOME/anaconda3"
+if [ -f "$CONDA_PATH/etc/profile.d/conda.sh" ]; then
+  . "$CONDA_PATH/etc/profile.d/conda.sh"
+else
+  echo "Error: conda.sh not found in $CONDA_PATH"
+  exit 1
+fi
+conda activate genai || { echo "Error: Failed to activate conda environment 'genai'"; exit 1; }
+
 NEO4J_CONTAINER="${NEO4J_CONTAINER:-course_creator_neo4j}"
 NEO4J_HTTP_PORT="${NEO4J_HTTP_PORT:-7475}"
 NEO4J_BOLT_PORT="${NEO4J_BOLT_PORT:-7688}"
