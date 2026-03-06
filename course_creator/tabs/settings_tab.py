@@ -6,10 +6,12 @@ from config import PROVIDER_CONFIG, OLLAMA_END_POINT
 def render():
     st.header("Settings")
 
+    # ── Output ────────────────────────────────────────────────────────────────
     st.subheader("Output Settings")
     notebook_path = st.text_input("Output Path", value=st.session_state.output_path)
     st.session_state.output_path = notebook_path
 
+    # ── LLM Provider ──────────────────────────────────────────────────────────
     st.subheader("LLM Provider Settings")
 
     available_providers = list(PROVIDER_CONFIG.keys())

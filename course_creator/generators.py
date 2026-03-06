@@ -1,11 +1,12 @@
 import json
 import re
+from typing import Optional
 
 import nbformat
 import streamlit as st
 
 
-def generate_lectures(chatbot, course_title, course_description, num_lectures, lecture_length, level="graduate"):
+def generate_lectures(chatbot, course_title, course_description, num_lectures, lecture_length, level="graduate", rag_context: Optional[str] = None):
     if not chatbot:
         return None
 
@@ -25,7 +26,7 @@ def generate_lectures(chatbot, course_title, course_description, num_lectures, l
     """
     response = None
     try:
-        response = chatbot.completeAsJSON(prompt)
+        response = chatbot.completeAsJSON(prompt, context=rag_context)
         parsed_response = json.loads(response)
 
         if not isinstance(parsed_response, list):
@@ -61,7 +62,7 @@ def generate_lectures(chatbot, course_title, course_description, num_lectures, l
         return None
 
 
-def generate_topics(chatbot, lectures, min_topics, max_topics):
+def generate_topics(chatbot, lectures, min_topics, max_topics, rag_context: Optional[str] = None):
     if not chatbot:
         return []
 
@@ -91,7 +92,7 @@ def generate_topics(chatbot, lectures, min_topics, max_topics):
         lecture_topics = []
         response = None
         try:
-            response = chatbot.completeAsJSON(prompt)
+            response = chatbot.completeAsJSON(prompt, context=rag_context)
             parsed_response = json.loads(response)
 
             if not isinstance(parsed_response, list):
@@ -140,6 +141,7 @@ def create_notebook(
     examples_programming_language,
     notebook_type,
     libraries_used,
+    rag_context: Optional[str] = None,
 ):
     if not chatbot:
         return None
@@ -170,7 +172,7 @@ def create_notebook(
         - Ensure mathematical equations are correctly formatted using LaTeX within markdown cells (e.g., `$E=mc^2$`).
         - Include code for installing necessary libraries using '{lib_install_req}' if applicable, placed early in the notebook.
         """
-        completion_method = chatbot.completeAsJSON
+        completion_method = lambda p: chatbot.completeAsJSON(p, context=rag_context)
     elif notebook_type == "Quarto notebook":
         output_requirements = f"""
         Output:
@@ -187,7 +189,7 @@ def create_notebook(
         - Include code for installing necessary libraries using '{lib_install_req}' if applicable, placed in an appropriate code block near the beginning.
         - Ensure lists in markdown have a blank line before them as requested.
         """
-        completion_method = chatbot.complete
+        completion_method = lambda p: chatbot.complete(p, context=rag_context)
     else:  # PowerPoint (pptx) — Quarto presentation format
         instructions = """
         Create concise, presentation-ready slide content for a single topic. Follow these guidelines:
@@ -233,7 +235,7 @@ def create_notebook(
         - Mathematical equations should use LaTeX inline ($...$) or display ($$...$$) notation.
         - IMPORTANT: When creating markdown lists, always have a blank line before the list starts.
         """
-        completion_method = chatbot.complete
+        completion_method = lambda p: chatbot.complete(p, context=rag_context)
 
     prompt = f"""
     Task: Create a detailed {notebook_type} about a specific topic within a lecture.

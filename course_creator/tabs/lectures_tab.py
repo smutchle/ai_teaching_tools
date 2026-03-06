@@ -3,6 +3,7 @@ import streamlit as st
 
 from chatbot_factory import create_chatbot
 from generators import generate_lectures
+from rag.session_rag import get_session_rag_context
 from ui_components import (
     add_new_lecture,
     get_table_download_link,
@@ -35,6 +36,8 @@ def render():
                     f"Generating {st.session_state.num_lectures} modules using "
                     f"{st.session_state.selected_provider} ({selected_model})..."
                 ):
+                    rag_query = f"Course: {st.session_state.course_title}. {st.session_state.course_description}"
+                    rag_context = get_session_rag_context(rag_query)
                     lectures = generate_lectures(
                         chatbot,
                         st.session_state.course_title,
@@ -42,6 +45,7 @@ def render():
                         st.session_state.num_lectures,
                         st.session_state.lecture_length,
                         st.session_state.get('lecture_level', 'graduate'),
+                        rag_context=rag_context,
                     )
                     if lectures:
                         df = pd.DataFrame(lectures)

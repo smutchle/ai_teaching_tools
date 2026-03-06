@@ -8,6 +8,11 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 OLLAMA_END_POINT = os.getenv("OLLAMA_END_POINT", "http://localhost:11434")
 
+# Neo4j config (dedicated instance for this project)
+NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7688")
+NEO4J_USER = os.getenv("NEO4J_USER", "neo4j")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "course_creator")
+
 
 def parse_models(env_var):
     models = os.getenv(env_var)

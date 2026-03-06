@@ -8,6 +8,7 @@ import streamlit as st
 from config import PROVIDER_CONFIG, OLLAMA_END_POINT
 from styles import inject_css
 import tabs.settings_tab as settings_tab
+import tabs.materials_tab as materials_tab
 import tabs.course_tab as course_tab
 import tabs.lectures_tab as lectures_tab
 import tabs.topics_tab as topics_tab
@@ -79,13 +80,26 @@ if "api_key_input" not in st.session_state:
 if "ollama_endpoint_input" not in st.session_state:
     st.session_state.ollama_endpoint_input = PROVIDER_CONFIG["Ollama"]["endpoint"]
 
+# RAG session state
+if "rag_mode" not in st.session_state:
+    st.session_state["rag_mode"] = "None"
+if "rag_token_budget" not in st.session_state:
+    st.session_state["rag_token_budget"] = 20_000
+if "rag_top_k" not in st.session_state:
+    st.session_state["rag_top_k"] = 8
+if "rag_db_ready" not in st.session_state:
+    st.session_state["rag_db_ready"] = False
+
 # --- Tabs ---
-tab_settings, tab_course, tab_lectures, tab_topics, tab_notebooks = st.tabs(
-    ["Settings", "Course", "Modules", "Topics", "Outputs"]
+tab_settings, tab_materials, tab_course, tab_lectures, tab_topics, tab_notebooks = st.tabs(
+    ["Settings", "Materials", "Course", "Modules", "Topics", "Outputs"]
 )
 
 with tab_settings:
     settings_tab.render()
+
+with tab_materials:
+    materials_tab.render()
 
 with tab_course:
     course_tab.render()

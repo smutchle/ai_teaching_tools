@@ -9,6 +9,7 @@ import streamlit as st
 
 from chatbot_factory import create_chatbot
 from generators import create_notebook
+from rag.session_rag import get_session_rag_context
 
 
 def render():
@@ -57,6 +58,9 @@ def render():
 
                     status_text.text(f"({i}/{num_selected}) Generating output: {filename}...")
 
+                    rag_query = f"{topic['lecture_title']}: {topic['topic_title']}. {topic['topic_description']}"
+                    rag_context = get_session_rag_context(rag_query)
+
                     nb_content = None
                     max_retries = 3
                     try_num = 1
@@ -73,6 +77,7 @@ def render():
                             st.session_state.examples_programming_language,
                             st.session_state.notebook_type,
                             st.session_state.libraries_used,
+                            rag_context=rag_context,
                         )
                         if nb_content is None:
                             st.warning(f"Attempt {try_num} failed for {filename}. Retrying...")

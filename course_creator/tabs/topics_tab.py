@@ -3,6 +3,7 @@ import streamlit as st
 
 from chatbot_factory import create_chatbot
 from generators import generate_topics
+from rag.session_rag import get_session_rag_context
 from ui_components import (
     add_new_topic,
     get_table_download_link,
@@ -58,9 +59,14 @@ def render():
                     f"Generating topics for {len(selected_lectures_list)} selected module(s) using "
                     f"{st.session_state.selected_provider} ({selected_model})..."
                 ):
+                    rag_query = " ".join(
+                        f"{l['title']}: {l['description']}" for l in selected_lectures_list[:3]
+                    )
+                    rag_context = get_session_rag_context(rag_query)
                     generated_topic_lists = generate_topics(
                         chatbot, selected_lectures_list,
                         st.session_state.min_topics, st.session_state.max_topics,
+                        rag_context=rag_context,
                     )
 
                     all_new_topics_list = []
