@@ -7,7 +7,7 @@ if [ -f "$(dirname "$0")/.env" ]; then
 fi
 
 # ── Activate conda environment ────────────────────────────────────────────────
-CONDA_PATH="$HOME/anaconda3"
+CONDA_PATH="/opt/anaconda3"
 if [ -f "$CONDA_PATH/etc/profile.d/conda.sh" ]; then
   . "$CONDA_PATH/etc/profile.d/conda.sh"
 else
