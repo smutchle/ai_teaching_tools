@@ -22,7 +22,7 @@ model_list:
   - model_name: glm-4.7-flash
     litellm_params:
       model: openai/glm-4.7-flash:latest
-      api_base: http://ads1.datasci.vt.edu:11434/v1
+      api_base: http://localhost:11434/v1
       api_key: ollama
 
 litellm_settings:
