@@ -437,11 +437,18 @@ def autotag_pdf_with_adobe(pdf_bytes):
 
         result_asset = pdf_services_response.get_result().get_tagged_pdf()
         stream_asset = pdf_services.get_content(result_asset)
-        return stream_asset.get_input_stream()
+        result_stream = stream_asset.get_input_stream()
+        if isinstance(result_stream, bytes):
+            return result_stream
+        return result_stream.read()
 
     except (ServiceApiException, ServiceUsageException) as e:
-        logger.error(f"Adobe PDF Services API error: {e}")
-        st.warning(f"Adobe Auto-Tag failed (API error): {e}. Returning untagged PDF.")
+        error_str = str(e)
+        if "QUOTA_EXCEEDED" in error_str or "quota" in error_str.lower():
+            logger.info(f"Adobe Auto-Tag skipped: quota exhausted")
+        else:
+            logger.error(f"Adobe PDF Services API error: {e}")
+            st.warning(f"Adobe Auto-Tag failed (API error): {e}. Returning untagged PDF.")
         return pdf_bytes
 
     except SdkException as e:
@@ -656,7 +663,11 @@ def main():
                                     pdf_bytes = f.read()
                                 if enable_autotag:
                                     with st.spinner("🏷️ Applying Adobe Auto-Tag for PDF/UA accessibility..."):
-                                        pdf_bytes = autotag_pdf_with_adobe(pdf_bytes)
+                                        try:
+                                            pdf_bytes = autotag_pdf_with_adobe(pdf_bytes)
+                                        except Exception as e:
+                                            logger.error(f"Adobe Auto-Tag failed unexpectedly: {e}", exc_info=True)
+                                            st.warning(f"⚠️ Adobe Auto-Tag failed: {e}. PDF saved without accessibility tags.")
                                 st.session_state.pdf_data = pdf_bytes
                             else:
                                 st.error("❌ PDF rendering failed. Ensure Quarto is installed correctly.")
