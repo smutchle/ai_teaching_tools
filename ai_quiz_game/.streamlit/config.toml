@@ -1,0 +1,7 @@
+[server]
+headless = true
+port = 8543
+enableWebsocketCompression = false
+
+[browser]
+gatherUsageStats = false
