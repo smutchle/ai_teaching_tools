@@ -1,9 +1,9 @@
 #!/bin/bash
 
-AI_BASE_DIR=`pwd`
-CURRENT_DIR=`pwd`
+AI_BASE_DIR="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)"
 
-eval "$(conda shell.bash hook)"
+export PATH="/opt/anaconda3/bin:$PATH"
+eval "$(/opt/anaconda3/bin/conda shell.bash hook)"
 conda activate genai
 
 cd $AI_BASE_DIR/ai_notes_converter
@@ -24,4 +24,3 @@ cd $AI_BASE_DIR/ai_dataset_generator
 cd $AI_BASE_DIR/ai_accessibility
 ./run_in_background.sh
 
-cd $CURRENT_DIR
