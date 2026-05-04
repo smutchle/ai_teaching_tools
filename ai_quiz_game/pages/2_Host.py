@@ -8,6 +8,7 @@ from utils.quiz_state import (
     READING_DURATION,
     create_session,
     get_leaderboard,
+    list_quizzes,
     load_bank,
     load_session,
     quiz_exists,
@@ -43,9 +44,23 @@ if "host_quiz_id" not in st.session_state:
     st.session_state.host_quiz_id = None
 
 if not st.session_state.host_quiz_id:
-    qid_input = st.text_input("Enter Quiz Code", max_chars=8, placeholder="6-digit code")
-    if st.button("Load Quiz", type="primary"):
-        qid = qid_input.strip()
+    quizzes = list_quizzes()
+    options = [
+        f"{q['title']}  ({q['quiz_id']}, {q['total_questions']} questions)"
+        for q in quizzes
+    ]
+    id_by_label = {label: q["quiz_id"] for label, q in zip(options, quizzes)}
+
+    selection = st.selectbox(
+        "Pick an existing quiz or type a 6-digit code",
+        options,
+        index=None,
+        placeholder="Select a quiz or type a code…",
+        accept_new_options=True,
+    )
+
+    if st.button("Load Quiz", type="primary", disabled=not selection):
+        qid = id_by_label.get(selection, (selection or "").strip())
         if not quiz_exists(qid):
             st.error("Quiz not found. Double-check the code.")
         else:

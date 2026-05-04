@@ -60,6 +60,23 @@ def bank_path(quiz_id):
     return DATA_DIR / f"quiz_{quiz_id}_bank.json"
 
 
+def list_quizzes():
+    """Return list of quiz summary dicts sorted by title."""
+    quizzes = []
+    for p in DATA_DIR.glob("quiz_*_bank.json"):
+        try:
+            with open(p) as f:
+                data = json.load(f)
+            quizzes.append({
+                "quiz_id": data["quiz_id"],
+                "title": data.get("title", "(untitled)"),
+                "total_questions": len(data.get("questions", [])),
+            })
+        except Exception:
+            pass
+    return sorted(quizzes, key=lambda x: x["title"].lower())
+
+
 def session_path(quiz_id):
     return DATA_DIR / f"session_{quiz_id}.json"
 
