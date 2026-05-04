@@ -6,6 +6,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 
 from utils.quiz_state import (
+    READING_DURATION,
     add_participant,
     calculate_points,
     create_session,
@@ -54,8 +55,12 @@ def inject_answer_colors(colors: list[str], shapes: list[str]) -> None:
                 const btns = Array.from(doc.querySelectorAll('button')).filter(b =>
                     shapes.some(s => b.innerText.trim().startsWith(s))
                 );
-                btns.slice(0, 4).forEach((btn, i) => {{
-                    btn.style.setProperty('background-color', colors[i], 'important');
+                btns.forEach(btn => {{
+                    const shapeIdx = shapes.findIndex(
+                        s => btn.innerText.trim().startsWith(s)
+                    );
+                    if (shapeIdx < 0) return;
+                    btn.style.setProperty('background-color', colors[shapeIdx], 'important');
                     btn.style.setProperty('color', 'white', 'important');
                     btn.style.setProperty('border', 'none', 'important');
                     btn.style.setProperty('min-height', '80px', 'important');
@@ -106,7 +111,7 @@ pid = st.session_state.participant_id
 # =============================================================================
 if not st.session_state.joined:
     if st.button("← Back to Home"):
-        st.switch_page("Home.py")
+        st.switch_page("ai_quiz_game_app.py")
 
     st.title("🙋 Join a Quiz")
 
@@ -195,28 +200,64 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
+# Single placeholder that owns the dynamic game UI. Re-rendering into this
+# st.empty() each rerun guarantees the prior state's widgets are wiped — no
+# leftover answer tiles bleeding from one question into the next.
+main = st.empty()
+
 # =============================================================================
 # LOBBY WAIT
 # =============================================================================
 if status == "lobby":
-    st.markdown("""
-    <div style="text-align:center; padding:60px 20px; background:#1a1a2e; border-radius:14px;">
-        <div style="font-size:3em; margin-bottom:12px;">⏳</div>
-        <h2 style="color:white; margin:0;">Waiting for the host to start…</h2>
-        <p style="color:#888; margin-top:8px;">Get ready! The quiz is about to begin.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    with main.container():
+        st.markdown("""
+        <div style="text-align:center; padding:60px 20px; background:#1a1a2e; border-radius:14px;">
+            <div style="font-size:3em; margin-bottom:12px;">⏳</div>
+            <h2 style="color:white; margin:0;">Waiting for the host to start…</h2>
+            <p style="color:#888; margin-top:8px;">Get ready! The quiz is about to begin.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
-    participants = session.get("participants", {})
-    if participants:
-        avatars = "  ".join(p["emoji"] for p in participants.values())
-        st.markdown(
-            f"<p style='font-size:2em; text-align:center; margin-top:16px;'>{avatars}</p>",
-            unsafe_allow_html=True,
-        )
-        st.caption(f"{len(participants)} player(s) in the lobby")
+        participants = session.get("participants", {})
+        if participants:
+            avatars = "  ".join(p["emoji"] for p in participants.values())
+            st.markdown(
+                f"<p style='font-size:2em; text-align:center; margin-top:16px;'>{avatars}</p>",
+                unsafe_allow_html=True,
+            )
+            st.caption(f"{len(participants)} player(s) in the lobby")
 
     time.sleep(2)
+    st.rerun()
+
+# =============================================================================
+# READING (question shown, answers hidden)
+# =============================================================================
+elif status == "reading":
+    question = questions[q_idx]
+    elapsed = time.time() - session["reading_start_time"]
+    remaining = max(0.0, READING_DURATION - elapsed)
+    seconds = int(remaining) + (1 if remaining > int(remaining) else 0)
+    progress_pct = int(q_idx / len(questions) * 100)
+
+    main.markdown(
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;">'
+        f'<div style="flex:1;color:#aaa;font-size:0.95em;">Q{q_idx + 1} of {len(questions)} — Read carefully…'
+        '<div style="background:#262730;height:6px;border-radius:3px;margin-top:4px;overflow:hidden;">'
+        f'<div style="background:#1368ce;height:100%;width:{progress_pct}%;"></div>'
+        '</div></div>'
+        '<div style="background:#1368ce;padding:8px 14px;border-radius:8px;min-width:55px;text-align:center;">'
+        f'<span style="color:white;font-size:1.8em;font-weight:bold;">{seconds}</span>'
+        '</div></div>'
+        '<div style="background:#1a1a2e;padding:28px;border-radius:12px;margin:10px 0;'
+        'text-align:center;min-height:80px;">'
+        f'<h2 style="color:white;margin:0;line-height:1.3;">{question["question"]}</h2>'
+        '<p style="color:#888;margin-top:14px;">Answers appear when the timer ends.</p>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
+
+    time.sleep(1)
     st.rerun()
 
 # =============================================================================
@@ -227,98 +268,107 @@ elif status == "question":
     elapsed = time.time() - session["question_start_time"]
     remaining = max(0.0, time_per_q - elapsed)
     already_answered = str(q_idx) in p_data.get("answers", {})
+    clicked = None
+    submit_multi = False
 
-    # Progress + timer
-    p_col, t_col = st.columns([5, 1])
-    with p_col:
-        st.progress(q_idx / len(questions), text=f"Q{q_idx + 1} of {len(questions)}")
-    with t_col:
-        t_color = "#26890c" if remaining > 5 else "#e21b3c"
+    with main.container():
+        # Progress + timer
+        p_col, t_col = st.columns([5, 1])
+        with p_col:
+            st.progress(q_idx / len(questions), text=f"Q{q_idx + 1} of {len(questions)}")
+        with t_col:
+            t_color = "#26890c" if remaining > 5 else "#e21b3c"
+            st.markdown(f"""
+            <div style="background:{t_color}; padding:8px; border-radius:8px; text-align:center;">
+                <span style="color:white; font-size:1.8em; font-weight:bold;">{int(remaining)}</span>
+            </div>
+            """, unsafe_allow_html=True)
+
+        # Question card
         st.markdown(f"""
-        <div style="background:{t_color}; padding:8px; border-radius:8px; text-align:center;">
-            <span style="color:white; font-size:1.8em; font-weight:bold;">{int(remaining)}</span>
+        <div style="background:#1a1a2e; padding:20px; border-radius:12px; margin:10px 0;
+                     text-align:center; min-height:80px; display:flex; align-items:center;
+                     justify-content:center;">
+            <h2 style="color:white; margin:0; line-height:1.3;">{question['question']}</h2>
         </div>
         """, unsafe_allow_html=True)
 
-    # Question card
-    st.markdown(f"""
-    <div style="background:#1a1a2e; padding:20px; border-radius:12px; margin:10px 0;
-                 text-align:center; min-height:80px; display:flex; align-items:center;
-                 justify-content:center;">
-        <h2 style="color:white; margin:0; line-height:1.3;">{question['question']}</h2>
-    </div>
-    """, unsafe_allow_html=True)
+        if question.get("multiple_select") and not already_answered and remaining > 0:
+            st.info("⚠️ Multiple correct answers — select all that apply, then submit.")
 
-    if question.get("multiple_select"):
-        st.info("⚠️ Multiple correct answers — select all that apply, then submit.")
+        # ── Already answered ──
+        if already_answered:
+            submitted = p_data["answers"][str(q_idx)]
+            pts = submitted["points"]
+            picks = ", ".join(
+                f"{SHAPES[i]} {question['answers'][i]}"
+                for i in submitted["answer_indices"]
+            )
+            st.markdown(f"""
+            <div style="background:#1a1a2e; padding:24px; border-radius:12px;
+                         text-align:center; margin:10px 0;">
+                <div style="font-size:2.4em;">✅</div>
+                <h3 style="color:white; margin:6px 0;">Answer submitted</h3>
+                <p style="color:#aaa; margin:0;">Your pick: <strong style="color:white;">{picks}</strong></p>
+                <p style="color:gold; font-weight:bold; margin-top:8px;">+{pts} pts pending</p>
+                <p style="color:#888; margin-top:14px; font-size:0.9em;">Waiting for the host…</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-    # ── Already answered ──
-    if already_answered:
-        submitted = p_data["answers"][str(q_idx)]
-        pts = submitted["points"]
-        st.success(f"✅ Answer submitted! +{pts} pts  —  Waiting for host…")
-        c1, c2 = st.columns(2)
-        for i, (ans, color, shape) in enumerate(zip(question["answers"], COLORS, SHAPES)):
-            col = c1 if i % 2 == 0 else c2
-            selected = i in submitted["answer_indices"]
-            border = "3px solid white" if selected else "none"
-            with col:
-                st.markdown(f"""
-                <div style="background:{color}; opacity:0.7; padding:18px; border-radius:10px;
-                             margin:5px; color:white; border:{border}; text-align:center;">
-                    <strong style="font-size:1.2em;">{shape}</strong><br/>{ans}
-                </div>
-                """, unsafe_allow_html=True)
+        # ── Time's up but no answer ──
+        elif remaining <= 0:
+            st.warning("⏰ Time's up!")
 
-    # ── Time's up but no answer ──
-    elif remaining <= 0:
-        st.warning("⏰ Time's up!")
-
-    # ── Active answering ──
-    else:
-        if question.get("multiple_select"):
-            # Checkboxes + submit button
-            c1, c2 = st.columns(2)
-            for i, (ans, color, shape) in enumerate(zip(question["answers"], COLORS, SHAPES)):
-                col = c1 if i % 2 == 0 else c2
-                with col:
-                    st.markdown(f"""
-                    <div style="background:{color}; padding:4px 10px; border-radius:6px 6px 0 0;
-                                 margin-bottom:-2px;">
-                        <span style="color:white; font-weight:bold; font-size:1.2em;">{shape}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    st.checkbox(ans, key=f"ms_{q_idx}_{i}")
-
-            selected_multi = [
-                i for i in range(4) if st.session_state.get(f"ms_{q_idx}_{i}", False)
-            ]
-            if selected_multi:
-                if st.button("✅ Submit Answers", type="primary", use_container_width=True):
-                    time_taken = time.time() - session["question_start_time"]
-                    correct_set = set(question["correct_indices"])
-                    is_correct = set(selected_multi) == correct_set
-                    pts = calculate_points(time_taken, time_per_q) if is_correct else 0
-                    submit_answer(quiz_id, pid, selected_multi, time_taken, pts)
-                    st.rerun()
+        # ── Active answering ──
         else:
-            # Single-answer buttons — rendered first, then JS colors them
-            c1, c2 = st.columns(2)
-            clicked = None
-            for i, (ans, shape) in enumerate(zip(question["answers"], SHAPES)):
-                col = c1 if i % 2 == 0 else c2
-                with col:
-                    if st.button(f"{shape}  {ans}", key=f"ans_{q_idx}_{i}",
-                                 use_container_width=True):
-                        clicked = i
-            inject_answer_colors(COLORS, SHAPES)
-            if clicked is not None:
-                time_taken = time.time() - session["question_start_time"]
-                correct_set = set(question["correct_indices"])
-                is_correct = clicked in correct_set
-                pts = calculate_points(time_taken, time_per_q) if is_correct else 0
-                submit_answer(quiz_id, pid, [clicked], time_taken, pts)
-                st.rerun()
+            if question.get("multiple_select"):
+                c1, c2 = st.columns(2)
+                for i, (ans, color, shape) in enumerate(zip(question["answers"], COLORS, SHAPES)):
+                    col = c1 if i % 2 == 0 else c2
+                    with col:
+                        st.markdown(f"""
+                        <div style="background:{color}; padding:4px 10px; border-radius:6px 6px 0 0;
+                                     margin-bottom:-2px;">
+                            <span style="color:white; font-weight:bold; font-size:1.2em;">{shape}</span>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.checkbox(ans, key=f"ms_{q_idx}_{i}")
+
+                selected_multi = [
+                    i for i in range(4) if st.session_state.get(f"ms_{q_idx}_{i}", False)
+                ]
+                if selected_multi:
+                    if st.button("✅ Submit Answers", type="primary", use_container_width=True):
+                        submit_multi = True
+            else:
+                c1, c2 = st.columns(2)
+                for i, (ans, shape) in enumerate(zip(question["answers"], SHAPES)):
+                    col = c1 if i % 2 == 0 else c2
+                    with col:
+                        if st.button(f"{shape}  {ans}", key=f"ans_{q_idx}_{i}",
+                                     use_container_width=True):
+                            clicked = i
+                inject_answer_colors(COLORS, SHAPES)
+
+    # Process answer submissions outside the container (so the rerun-triggered
+    # render uses a fresh container, not the old one).
+    if submit_multi:
+        selected_multi = [
+            i for i in range(4) if st.session_state.get(f"ms_{q_idx}_{i}", False)
+        ]
+        time_taken = time.time() - session["question_start_time"]
+        correct_set = set(question["correct_indices"])
+        is_correct = set(selected_multi) == correct_set
+        pts = calculate_points(time_taken, time_per_q) if is_correct else 0
+        submit_answer(quiz_id, pid, selected_multi, time_taken, pts)
+        st.rerun()
+    if clicked is not None:
+        time_taken = time.time() - session["question_start_time"]
+        correct_set = set(question["correct_indices"])
+        is_correct = clicked in correct_set
+        pts = calculate_points(time_taken, time_per_q) if is_correct else 0
+        submit_answer(quiz_id, pid, [clicked], time_taken, pts)
+        st.rerun()
 
     time.sleep(1)
     st.rerun()
@@ -331,68 +381,95 @@ elif status == "answer_reveal":
     correct_set = set(question["correct_indices"])
     my_answer = p_data.get("answers", {}).get(str(q_idx))
 
+    # Build the entire reveal view as a single HTML string and render it via
+    # main.markdown() — exactly one element in the placeholder, so the next
+    # state transition replaces it cleanly with no residue.
     if my_answer:
         my_set = set(my_answer["answer_indices"])
         is_correct = my_set == correct_set
         pts_earned = my_answer["points"]
         if is_correct:
-            st.markdown(f"""
-            <div style="background:#26890c; padding:18px; border-radius:12px;
-                         text-align:center; margin-bottom:16px;">
-                <h2 style="color:white; margin:0;">✅ Correct!  +{pts_earned} pts</h2>
-            </div>
-            """, unsafe_allow_html=True)
+            banner = (
+                '<div style="background:#26890c;padding:18px;border-radius:12px;'
+                'text-align:center;margin-bottom:16px;">'
+                f'<h2 style="color:white;margin:0;">✅ Correct! +{pts_earned} pts</h2>'
+                '</div>'
+            )
         else:
-            st.markdown("""
-            <div style="background:#e21b3c; padding:18px; border-radius:12px;
-                         text-align:center; margin-bottom:16px;">
-                <h2 style="color:white; margin:0;">❌ Not quite right</h2>
-            </div>
-            """, unsafe_allow_html=True)
+            banner = (
+                '<div style="background:#e21b3c;padding:18px;border-radius:12px;'
+                'text-align:center;margin-bottom:16px;">'
+                '<h2 style="color:white;margin:0;">❌ Not quite right</h2>'
+                '</div>'
+            )
     else:
-        st.warning("⏰ You didn't answer in time — 0 pts")
+        banner = (
+            '<div style="background:#f59f00;padding:14px;border-radius:10px;'
+            'text-align:center;margin-bottom:16px;color:white;font-weight:bold;">'
+            "⏰ You didn't answer in time — 0 pts"
+            '</div>'
+        )
 
-    # Show correct answers
-    st.markdown("**Correct answer(s):**")
-    c1, c2 = st.columns(2)
+    tiles_html = []
     for i, (ans, color, shape) in enumerate(zip(question["answers"], COLORS, SHAPES)):
-        col = c1 if i % 2 == 0 else c2
         is_right = i in correct_set
         opacity = "1.0" if is_right else "0.35"
-        border = "3px solid #FFD700" if is_right else "none"
+        border = "3px solid #FFD700" if is_right else "1px solid transparent"
         check = " ✓" if is_right else ""
-        with col:
-            st.markdown(f"""
-            <div style="background:{color}; padding:14px; border-radius:10px; margin:5px;
-                         color:white; opacity:{opacity}; border:{border}; text-align:center;">
-                <strong>{shape}</strong>&nbsp;{ans}{check}
-            </div>
-            """, unsafe_allow_html=True)
+        tiles_html.append(
+            f'<div style="background:{color};padding:14px;border-radius:10px;'
+            f'color:white;opacity:{opacity};border:{border};text-align:center;">'
+            f'<strong>{shape}</strong>&nbsp;{ans}{check}</div>'
+        )
+    tiles_section = (
+        '<div style="font-weight:bold;margin:6px 0;color:white;">Correct answer(s):</div>'
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">'
+        + "".join(tiles_html) +
+        '</div>'
+    )
 
+    expl_html = ""
     if question.get("explanation"):
-        st.info(f"💡 {question['explanation']}")
+        expl_html = (
+            '<div style="background:#1c2733;border-left:4px solid #4fc3f7;'
+            'padding:12px;border-radius:6px;margin-top:12px;color:#cde;">'
+            f'💡 {question["explanation"]}'
+            '</div>'
+        )
 
-    # Mini leaderboard
     session_fresh = load_session(quiz_id)
     lb = get_leaderboard(session_fresh, top_n=5)
+    lb_html = ""
     if lb:
-        st.markdown("**Top 5:**")
+        rows = ""
         for rank, p in enumerate(lb, 1):
             is_me = p["name"] == name
             bg = "#2d2d5e" if is_me else "#1a1a2e"
-            st.markdown(f"""
-            <div style="display:flex; align-items:center; padding:8px; background:{bg};
-                         border-radius:8px; margin:3px 0;
-                         {'border:1px solid #4fc3f7;' if is_me else ''}">
-                <span style="width:30px; font-weight:bold; color:#aaa;">#{rank}</span>
-                <span style="font-size:1.3em; margin:0 8px;">{p['emoji']}</span>
-                <span style="color:white; flex:1;">{p['name']}</span>
-                <span style="color:gold; font-weight:bold;">{p['score']:,}</span>
-            </div>
-            """, unsafe_allow_html=True)
+            border_str = "border:1px solid #4fc3f7;" if is_me else ""
+            rows += (
+                f'<div style="display:flex;align-items:center;padding:8px;background:{bg};'
+                f'border-radius:8px;margin:3px 0;{border_str}">'
+                f'<span style="width:30px;font-weight:bold;color:#aaa;">#{rank}</span>'
+                f'<span style="font-size:1.3em;margin:0 8px;">{p["emoji"]}</span>'
+                f'<span style="color:white;flex:1;">{p["name"]}</span>'
+                f'<span style="color:gold;font-weight:bold;">{p["score"]:,}</span>'
+                '</div>'
+            )
+        lb_html = (
+            '<div style="font-weight:bold;margin-top:14px;color:white;">Top 5:</div>'
+            + rows
+        )
 
-    st.caption("Waiting for host to continue…")
-    time.sleep(2)
+    waiting_html = (
+        '<div style="color:#888;font-size:0.9em;text-align:center;margin-top:14px;">'
+        'Waiting for host to continue…'
+        '</div>'
+    )
+
+    main.markdown(banner + tiles_section + expl_html + lb_html + waiting_html,
+                  unsafe_allow_html=True)
+
+    time.sleep(1)
     st.rerun()
 
 # =============================================================================
@@ -448,4 +525,4 @@ elif status == "finished":
         for key in ["joined", "participant_quiz_id", "participant_name",
                     "participant_emoji", "selected_emoji"]:
             st.session_state.pop(key, None)
-        st.switch_page("Home.py")
+        st.switch_page("ai_quiz_game_app.py")

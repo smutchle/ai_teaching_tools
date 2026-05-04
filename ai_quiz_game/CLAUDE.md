@@ -12,7 +12,7 @@ bash run.sh
 bash run_in_background.sh
 
 # Stop
-pkill -f "streamlit run Home.py"
+pkill -f "streamlit run ai_quiz_game_app.py"
 ```
 
 Always use the `genai` conda environment. Both run scripts activate it via `conda activate genai`. Port is **8543**.
@@ -24,7 +24,7 @@ conda run -n genai python -m py_compile <file.py>
 
 ## Architecture
 
-This is a Streamlit multipage app. `Home.py` is the entry point; pages live in `pages/`. Shared logic lives in `utils/`.
+This is a Streamlit multipage app. `ai_quiz_game_app.py` is the entry point; pages live in `pages/`. Shared logic lives in `utils/`.
 
 ### Two-tier data model
 

@@ -9,6 +9,8 @@ from filelock import FileLock
 DATA_DIR = Path(__file__).parent.parent / "data"
 DATA_DIR.mkdir(exist_ok=True)
 
+READING_DURATION = 10
+
 
 def generate_quiz_id():
     return "".join(random.choices(string.digits, k=6))

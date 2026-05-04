@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import re
 
 import anthropic
@@ -50,6 +51,8 @@ def _build_prompt(n: int, instructions: str, text: str) -> str:
         f"Each element must follow this schema:\n{_SCHEMA_EXAMPLE}\n\n"
         f"Rules:\n"
         f"- Exactly 4 answer options per question.\n"
+        f"- Each answer option must be SHORT — fewer than 10 words. Prefer single terms, names, or brief phrases. "
+        f"Rephrase or shorten content as needed to keep options concise, while keeping them unambiguous.\n"
         f"- correct_indices: 0-based indices of correct answers.\n"
         f"- Set multiple_select: true only when more than one answer is correct.\n"
         f"- Vary difficulty across questions.\n"
@@ -57,6 +60,22 @@ def _build_prompt(n: int, instructions: str, text: str) -> str:
         f"Supplemental instructions: {instructions}\n\n"
         f"Material:\n{text}"
     )
+
+
+def _shuffle_answer_positions(q: dict) -> None:
+    """Randomly permute answer order in-place; update correct_indices to match.
+    LLMs strongly bias toward putting the correct answer at index 0 — this
+    redistributes positions uniformly without touching any text."""
+    answers = q["answers"]
+    correct = q["correct_indices"]
+    n = len(answers)
+    perm = list(range(n))
+    random.shuffle(perm)
+    inverse = [0] * n
+    for new_idx, old_idx in enumerate(perm):
+        inverse[old_idx] = new_idx
+    q["answers"] = [answers[old_idx] for old_idx in perm]
+    q["correct_indices"] = sorted(inverse[c] for c in correct if 0 <= c < n)
 
 
 def _parse_questions(raw: str) -> list:
@@ -75,6 +94,7 @@ def _parse_questions(raw: str) -> list:
             ):
                 q.setdefault("multiple_select", len(q["correct_indices"]) > 1)
                 q.setdefault("explanation", "")
+                _shuffle_answer_positions(q)
                 validated.append(q)
         return validated
     except (json.JSONDecodeError, TypeError):

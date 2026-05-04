@@ -30,7 +30,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 if st.button("← Back to Home"):
-    st.switch_page("Home.py")
+    st.switch_page("ai_quiz_game_app.py")
 
 st.title("⚙️ Setup")
 

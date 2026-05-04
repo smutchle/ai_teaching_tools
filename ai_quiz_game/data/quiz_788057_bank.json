@@ -1,0 +1,469 @@
+{
+  "quiz_id": "788057",
+  "title": "Final Review",
+  "time_per_question": 20,
+  "questions": [
+    {
+      "question": "What are the four pillars described as defining effective data science communication?",
+      "answers": [
+        "Storytelling, Visuals, Logic, Rapport",
+        "Influence, Trust, Structure, Delivery",
+        "Clarity, Brevity, Precision, Empathy",
+        "Empathy, Passion, Preparation, Technique"
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multiple_select": false,
+      "explanation": "The four pillars explicitly named are Empathy, Passion, Preparation, and Technique \u2014 referred to as the PEPT framework."
+    },
+    {
+      "question": "What technique involves imagining a project has already failed to address risks?",
+      "answers": [
+        "Pre-Mortem Technique",
+        "Failure Mode Review",
+        "Post-Mortem Analysis",
+        "Risk Escalation Framework"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "The Pre-Mortem Technique is as a way to proactively address potential failure points."
+    },
+    {
+      "question": "What structured method is recommended for answering behavioral interview questions?",
+      "answers": [
+        "Pyramid Principle",
+        "SBI Model",
+        "STAR Method",
+        "SCQA Framework"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "The STAR Method (Situation, Task, Action, Result) is a story structure for interviews."
+    },
+    {
+      "question": "What is identified as the 'master key' for creating psychological safety?",
+      "answers": [
+        "Consistency",
+        "Active listening",
+        "Empathy",
+        "Transparency"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "Chapter 18 is titled 'Empathy Is the Master Key' when discussing psychological safety and creating space for quiet voices."
+    },
+    {
+      "question": "What principle states that proactively revealing model limitations builds credibility?",
+      "answers": [
+        "Transparency First Principle",
+        "Pre-emptive Skepticism Management",
+        "Proactive Disclosure Principle",
+        "Credibility Through Honesty"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "The Proactive Disclosure Principle as a communication approach for bias and fairness discussions."
+    },
+    {
+      "question": "What is the 'illusion of communication' as described in the context of data science?",
+      "answers": [
+        "Assuming visualizations always convey meaning",
+        "Believing communication occurred just because something was said",
+        "Believing your model is accurate when it isn't",
+        "Overestimating stakeholder technical knowledge"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "The illusion of communication is believing that because you said something, it was understood. Real communication is about what the other person understood, not what was said."
+    },
+    {
+      "question": "What is the recommended executive communication formula?",
+      "answers": [
+        "Context + Data + Recommendation",
+        "Problem + Analysis + Solution",
+        "Findings + Method + Next Steps",
+        "Insight + Impact + Ask"
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multiple_select": false,
+      "explanation": "The executive communication formula is Insight + Impact + Ask: start with the insight, connect to strategic priority, quantify impact, make a clear recommendation, then invite questions."
+    },
+    {
+      "question": "How are Extraverts described in terms of information processing?",
+      "answers": [
+        "They prefer written pre-reads",
+        "They think out loud and process through discussion",
+        "They need time after meetings to respond",
+        "They process internally before speaking"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "Extraverts think out loud, process through discussion, prefer collaborative meetings, and gain energy from interaction."
+    },
+    {
+      "question": "When presenting to an Introvert, what is the recommended approach?",
+      "answers": [
+        "Use interactive visualizations",
+        "Lead with the strategic vision",
+        "Build in discussion time during the meeting",
+        "Send materials in advance for reflection"
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multiple_select": false,
+      "explanation": "Introverts prefer written pre-reads and need time to reflect. Sending materials in advance lets them come to the meeting with prepared thoughts."
+    },
+    {
+      "question": "What kills credibility with an Analyst (NT) type?",
+      "answers": [
+        "Saying 'trust me' without showing reasoning",
+        "Providing too much data",
+        "Focusing on human impact",
+        "Offering multiple options instead of one recommendation"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "Analysts respect expertise and logic. Saying 'trust me' without showing your reasoning chain damages credibility with NT types."
+    },
+    {
+      "question": "What is the primary warning about using techniques without empathy?",
+      "answers": [
+        "They become unreliable",
+        "They confuse non-technical audiences",
+        "They lose analytical rigor",
+        "They become manipulative"
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multiple_select": false,
+      "explanation": "Techniques without empathy are described as manipulative, while techniques without preparation are unreliable. All four PEPT pillars must work together."
+    },
+    {
+      "question": "What does Preparation specifically mean in the PEPT framework?",
+      "answers": [
+        "Knowing your audience, anticipating objections, and rehearsing delivery",
+        "Cleaning and validating data thoroughly",
+        "Selecting the right statistical model for the problem",
+        "Building detailed slide decks with all findings"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "Preparation means knowing your audience, anticipating objections, structuring your message, and rehearsing until delivery feels natural."
+    },
+    {
+      "question": "What is the recommended approach when presenting to an Explorer (SP) type?",
+      "answers": [
+        "Get to the point quickly and show practical impact",
+        "Connect data to people impact and team harmony",
+        "Lead with historical precedent and proven methods",
+        "Provide detailed documentation and risk analysis"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "Explorers are driven by action and practical impact. To influence them, get to the point quickly, show practical impact, offer flexible options, and make it interactive."
+    },
+    {
+      "question": "Which of Cialdini's principles involves returning favors?",
+      "answers": [
+        "Consistency",
+        "Authority",
+        "Unity",
+        "Reciprocity"
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multiple_select": false,
+      "explanation": "Reciprocity is the principle that people feel obligated to return favors, even when the original favor was unsolicited."
+    },
+    {
+      "question": "What is the key phrase associated with the Authority principle?",
+      "answers": [
+        "Based on research from [credible source]\u2026",
+        "We both care about\u2026",
+        "This aligns with our commitment to\u2026",
+        "This opportunity is time-sensitive because\u2026"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "The Authority principle uses phrases like 'Based on research from [credible source]\u2026' or 'Industry leaders like [Company] have shown\u2026' to establish credibility."
+    },
+    {
+      "question": "What technique does the Consistency principle suggest to build commitment?",
+      "answers": [
+        "Highlight limited-time competitive windows",
+        "Reference published external research",
+        "Start with small commitments before requesting larger ones",
+        "Use 'we' language and shared goals"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "Consistency can be used incrementally by getting stakeholders to agree to a pilot before asking for full deployment, building on smaller prior commitments."
+    },
+    {
+      "question": "According to Social Identity Theory, what pronoun shift increases receptiveness?",
+      "answers": [
+        "From 'they' to 'you'",
+        "From 'we' to 'I'",
+        "From 'you' to 'they'",
+        "From 'I' to 'we'"
+      ],
+      "correct_indices": [
+        3
+      ],
+      "multiple_select": false,
+      "explanation": "Social Identity Theory shows that shifting from 'I' to 'we' is psychologically powerful because it frames recommendations as collaborative rather than one-sided."
+    },
+    {
+      "question": "Which Cialdini principle involves highlighting a closing window for Q1 implementation?",
+      "answers": [
+        "Consistency",
+        "Scarcity",
+        "Unity",
+        "Reciprocity"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "Scarcity highlights the closing window for Q1 implementation, motivating action by emphasizing limited time or opportunity."
+    },
+    {
+      "question": "Which influence style draws on Reciprocity and Consistency principles?",
+      "answers": [
+        "Assertive and Expertise-Based",
+        "Cooperative and Collaborative",
+        "Emotional and Personal",
+        "Logical and Rational"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "The Cooperative and Collaborative style draws on Reciprocity and Consistency, focusing on consensus and win-win solutions."
+    },
+    {
+      "question": "What does the pre-mortem technique primarily help teams do?",
+      "answers": [
+        "Train stakeholders in data literacy",
+        "Document wins after project completion",
+        "Anticipate and address objections proactively",
+        "Build emotional rapport with stakeholders"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "The pre-mortem converts potential objections from ambushes into anticipated discussions by forcing the team to think like the audience before presenting."
+    },
+    {
+      "question": "What is the correct order of the 'pace then lead' technique?",
+      "answers": [
+        "Match their reality, then guide to your perspective",
+        "Ask for a favor, then share evidence",
+        "Present your solution, then acknowledge concerns",
+        "Label their emotion, then offer compromise"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "Pace then lead means first matching the skeptic's communication style and acknowledging their concerns, then guiding the conversation toward your perspective."
+    },
+    {
+      "question": "The 'Feel, Felt, Found' technique connects to which Cialdini principle?",
+      "answers": [
+        "Authority",
+        "Social Proof",
+        "Scarcity",
+        "Reciprocity"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "The Feel, Felt, Found technique connects directly to Cialdini's Social Proof principle by telling a story about people who had the same concern and came out the other side."
+    },
+    {
+      "question": "Which type of skeptic is primarily protecting territory or influence?",
+      "answers": [
+        "Experiential Skeptic",
+        "Political Skeptic",
+        "Rational Skeptic",
+        "Technical Skeptic"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "Political Skeptics are protecting territory, influence, or identity, and need to feel included and assured that your work enhances rather than threatens their position."
+    },
+    {
+      "question": "Why does admitting limitations upfront increase stakeholder trust?",
+      "answers": [
+        "It signals deference to stakeholder expertise",
+        "It reduces the scope of the project",
+        "It demonstrates intellectual honesty and preempts gotcha moments",
+        "It lowers expectations so results seem better"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "Proactively acknowledging weaknesses shows intellectual honesty, signals critical thinking about one's own work, and converts a weakness into a credibility asset."
+    },
+    {
+      "question": "Which Cialdini principle involves tying a proposal to a company's stated digital transformation goals?",
+      "answers": [
+        "Consistency",
+        "Unity",
+        "Authority",
+        "Social Proof"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "Consistency involves tying the proposal to the company's stated goals, leveraging people's desire to follow through on their commitments."
+    },
+    {
+      "question": "What is the 'Golden Rule' when dealing with difficult people?",
+      "answers": [
+        "Always document interactions in writing",
+        "Always escalate to senior leadership",
+        "Always provide a face-saving exit",
+        "Always defer to the difficult person's position"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "The Golden Rule is: always provide a face-saving exit, because when someone feels cornered, they fight harder. You give them a dignified way to back down."
+    },
+    {
+      "question": "What is 'The Pivot' technique used for?",
+      "answers": [
+        "Switching from data to anecdotal evidence",
+        "Acknowledging a point then redirecting without confrontation",
+        "Changing the meeting agenda mid-discussion",
+        "Moving from emotional to rational arguments"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "The Pivot involves acknowledging their point, then redirecting without direct confrontation, using phrases like 'You raise a valid concern. Another factor here is\u2026'"
+    },
+    {
+      "question": "In the Scaffolding technique for gradient boosting, what is Layer 1 of the explanation?",
+      "answers": [
+        "Predicting the average price for every house",
+        "Building a second model to predict residuals",
+        "Connecting residuals to gradient calculus",
+        "Measuring how wrong the naive model is"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "Layer 1 is The Naive Baseline: predicting the average price of $350,000 for every single house, regardless of features. It is obviously wrong but a starting point everyone can understand."
+    },
+    {
+      "question": "What does the Pyramid Principle state about idea placement?",
+      "answers": [
+        "Build suspense before revealing answers",
+        "Most important idea goes first",
+        "Evidence precedes conclusions",
+        "Group ideas by chronological order"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "The core rule of the Pyramid Principle is that the most important idea goes first, always, with every supporting idea answering 'why?' or 'how?' about the idea above it."
+    },
+    {
+      "question": "What is the apex of the Pyramid Principle called?",
+      "answers": [
+        "Key line",
+        "Governing thought",
+        "Complication",
+        "Supporting evidence"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "At the top of the pyramid sits a single sentence called the governing thought \u2014 the one idea that the entire argument supports."
+    },
+    {
+      "question": "What does MECE stand for?",
+      "answers": [
+        "Measured Evidence, Clear Explanation",
+        "Mutually Exclusive, Collectively Exhaustive",
+        "Mutually Exhaustive, Clearly Enumerated",
+        "Most Effective Communication Elements"
+      ],
+      "correct_indices": [
+        1
+      ],
+      "multiple_select": false,
+      "explanation": "MECE stands for Mutually Exclusive and Collectively Exhaustive \u2014 meaning each item belongs to exactly one group with no overlaps, and the groups together cover everything with no gaps."
+    },
+    {
+      "question": "Why must bar charts always start at zero?",
+      "answers": [
+        "To follow color guidelines",
+        "To save chart space",
+        "To show honest proportions",
+        "To reduce cognitive load"
+      ],
+      "correct_indices": [
+        2
+      ],
+      "multiple_select": false,
+      "explanation": "A bar chart not starting at zero can make small differences appear enormous. Starting at zero shows honest proportions."
+    },
+    {
+      "question": "What slide title style is recommended over topic titles?",
+      "answers": [
+        "Insight titles",
+        "Category titles",
+        "Keyword titles",
+        "Descriptive titles"
+      ],
+      "correct_indices": [
+        0
+      ],
+      "multiple_select": false,
+      "explanation": "Slide titles should state the insight (e.g., 'Sales Grew 40% Last Quarter') rather than a topic (e.g., 'Quarterly Sales Data'), so the takeaway is clear even without reading the chart."
+    }
+  ]
+}
