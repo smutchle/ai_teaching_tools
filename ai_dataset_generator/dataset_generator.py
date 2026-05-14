@@ -17,7 +17,7 @@ class DatasetGenerator:
     def __init__(self, dataset: Dataset):
         """
         Initialize generator with Dataset specification.
-        
+
         Args:
             dataset: Dataset object containing specifications
         """
@@ -26,6 +26,11 @@ class DatasetGenerator:
         self.data = {}
         self.categorical_features = set()
         self.datetime_features = set()
+        # Pre-binning decile indices (0-9) for each categorical feature, captured
+        # before the values are overwritten with string labels. Exposed in the
+        # target expression namespace under the categorical feature's name so
+        # expressions can reference categorical predictors as numeric 0-9.
+        self.categorical_deciles = {}
         
     def generate(self) -> Path:
         """
@@ -476,18 +481,28 @@ class DatasetGenerator:
         for feature in self.dataset.features:
             if feature['data_type'] != 'categorical':
                 continue
-            
+
             name = feature['name']
             categories = feature['categories']
             values = self.data[name]
-            
+
             # Convert to deciles
             try:
                 decile_labels = pd.qcut(values, q=10, labels=False, duplicates='drop')
             except ValueError:
                 # If all values are the same, assign to middle category
                 decile_labels = np.full(len(values), 4)
-            
+
+            # Preserve decile indices (0-9) so the target expression can reference
+            # this categorical predictor as numeric. NaNs are filled with the
+            # middle decile (4.5 -> 4) so eval doesn't propagate NaN.
+            decile_array = np.array(
+                [float(lbl) if lbl is not None and not (isinstance(lbl, float) and np.isnan(lbl)) else 4.0
+                 for lbl in decile_labels],
+                dtype=float,
+            )
+            self.categorical_deciles[name] = decile_array
+
             # Map deciles to categories
             categorical_values = []
             for label in decile_labels:
@@ -495,7 +510,7 @@ class DatasetGenerator:
                     categorical_values.append(categories[int(label)])
                 else:
                     categorical_values.append(None)
-            
+
             self.data[name] = categorical_values
     
     def _apply_missing_data(self):
@@ -535,13 +550,18 @@ class DatasetGenerator:
         seasonality_multipliers = target.get('seasonality_multipliers', [])
         
         # Create namespace with feature data and numpy
-        # Only include non-categorical, non-datetime features in numeric form
+        # Include numeric features as-is and expose categorical features as their
+        # pre-binning decile index (0-9) so expressions can reference them.
         namespace = {'np': np}
         for feature_name, feature_values in self.data.items():
-            if feature_name not in self.categorical_features and feature_name not in self.datetime_features:
-                # Convert to array, handling NaN values
+            if feature_name in self.datetime_features:
+                continue
+            if feature_name in self.categorical_features:
+                # Use the captured decile index so the expression sees a numeric
+                # representation of the categorical predictor.
+                namespace[feature_name] = self.categorical_deciles[feature_name]
+            else:
                 namespace[feature_name] = np.array(feature_values, dtype=float)
-            # Categorical and datetime features are not added to namespace (can't use in expressions)
         
         # Evaluate expression
         try:

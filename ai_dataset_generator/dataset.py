@@ -308,8 +308,12 @@ class Dataset:
         
         # Filter out known safe names (numpy functions, python keywords)
         safe_names = {
-            'np', 'exp', 'log', 'sqrt', 'sin', 'cos', 'tan', 'abs', 
-            'pow', 'min', 'max', 'sum', 'round', 'floor', 'ceil'
+            'np', 'exp', 'log', 'log1p', 'log2', 'log10', 'sqrt',
+            'sin', 'cos', 'tan', 'sinh', 'cosh', 'tanh', 'abs',
+            'pow', 'min', 'max', 'sum', 'round', 'floor', 'ceil',
+            'where', 'select', 'clip', 'maximum', 'minimum', 'sign',
+            'power', 'expm1', 'logaddexp',
+            'and', 'or', 'not', 'True', 'False', 'None',
         }
         
         invalid_vars = []
