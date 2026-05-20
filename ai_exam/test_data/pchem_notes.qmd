@@ -1,0 +1,158 @@
+---
+title: "Hess's Law, Gibbs Free Energy, and Equilibrium Thermodynamics"
+author: "Converted from Handwritten PDF"
+date: today
+lang: en
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+  pdf:
+    documentclass: article
+    keep-tex: true
+    number-sections: true
+    include-in-header:
+      text: |
+        \usepackage[utf8]{inputenc}
+        \usepackage{fontspec}
+        \usepackage{hyperref}
+        \hypersetup{pdfauthor={Converted from PDF}, pdftitle={Hess's Law, Gibbs Free Energy, and Equilibrium Thermodynamics}, pdfsubject={Handwritten Notes}, pdfkeywords={notes, handwritten}, colorlinks=true, bookmarks=true, bookmarksopen=true, bookmarksnumbered=true}
+    pdf-engine: xelatex
+  docx:
+    toc: true
+    number-sections: true
+---
+
+::: {.content-section}
+
+# Physical Chemistry – Study Sheet
+
+## Hess's Law
+
+$$\Delta H^\circ_{rxn} = \sum \Delta H^\circ_f \text{ (products)} - \sum \Delta H^\circ_f \text{ (reactants)}$$
+
+- $\Delta H^\circ_f$ of any element in standard state $= 0$
+- Flip reaction $\rightarrow$ flip sign of $\Delta H^\circ$
+- Scale reaction by $n$ $\rightarrow$ scale $\Delta H^\circ$ by $n$
+
+## Standard Entropy Change
+
+$$\Delta S^\circ_{rxn} = \sum S^\circ \text{ (products)} - \sum S^\circ \text{ (reactants)}$$
+
+- Units: $\text{J mol}^{-1} \text{K}^{-1}$ $\leftarrow$ watch the J vs kJ mismatch!
+- More moles of gas $\Rightarrow$ $\Delta S^\circ > 0$ (usually)
+
+## Gibbs Free Energy
+
+**Standard Conditions (298 K):**
+
+$$\Delta G^\circ = \Delta H^\circ - T\Delta S^\circ$$
+
+**Non-Standard Conditions:**
+
+$$\Delta G = \Delta G^\circ + RT \ln Q$$
+
+$Q \equiv$ reaction quotient
+
+| $\Delta G$ | Meaning |
+|------------|---------|
+| $< 0$ | spontaneous |
+| $= 0$ | equilibrium |
+| $> 0$ | non-spontaneous |
+
+:::
+
+::: {.content-section}
+
+# Equilibrium Constant
+
+$$\Delta G° = -RT \ln K$$
+
+$$\therefore K = e^{-\Delta G°/RT}$$
+
+- $R = 8.314 \text{ J mol}^{-1} \text{K}^{-1}$
+- $T$ must be in Kelvin
+- $K > 1$: products favored; $K < 1$: reactants favored
+
+---
+
+# Van't Hoff Equation
+
+$$\ln \frac{K_2}{K_1} = -\frac{\Delta H°}{R}\left(\frac{1}{T_2} - \frac{1}{T_1}\right)$$
+
+## La Chatelier Shortcut:
+
+| Reaction Type | Raise T | Lower T |
+|---|---|---|
+| Exothermic ($\Delta H° < 0$) | K decreases | K increases |
+| Endothermic ($\Delta H° > 0$) | K increases | K decreases |
+
+---
+
+# Unit Checklist
+
+| Symbol | Units |
+|---|---|
+| $\Delta H°$ | $\text{kJ mol}^{-1}$ |
+| $\Delta S°$ | $\text{J mol}^{-1} \text{K}^{-1}$ (convert to kJ before combining with $\Delta H°$) |
+| $\Delta G°$ | $\text{kJ mol}^{-1}$ |
+| $R$ (with $\Delta G°$) | $8.314 \times 10^{-3} \text{ kJ mol}^{-1} \text{K}^{-1}$ or convert $\Delta G°$ to J |
+| $T$ | Kelvin |
+
+:::
+
+::: {.content-section}
+
+![Diagram or drawing from handwritten notes](figure_3.png){width=100%}
+
+# Workflow
+
+{{FIGURE: Flowchart diagram showing the thermodynamic workflow described below}}
+
+---
+
+**Top Level Inputs:**
+
+| $\Delta H^\circ_f$ tables std enthalpies of formation | $S^\circ$ tables std molar entropies |
+|---|---|
+
+---
+
+**Second Level (Computations):**
+
+- **Hess's Law** — compute $\Delta H^\circ_{rxn}$
+- **Entropy Sum** — compute $\Delta S^\circ_{rxn}$
+
+---
+
+**Third Level (Gibbs std):**
+
+$$\Delta G^\circ = \Delta H^\circ - T\Delta S^\circ \ (298)$$
+
+---
+
+**Fourth Level (Three Branches):**
+
+**Left branch:**
+Non-std $\Delta G$
+$$\Delta G = \Delta G^\circ + RT\ln Q$$
+
+**Middle branch:**
+Equilibrium $K$
+$$K = e^{-\Delta G^\circ/RT}$$
+
+**Right branch:**
+Van Hoff
+$K$ shifts w $T$
+
+---
+
+**Bottom Level:**
+
+**Spontaneity & direction**
+
+$$\Delta G < 0 \rightarrow \text{forward favored}$$
+
+:::
+

@@ -1,0 +1,56 @@
+{
+  "clos": [
+    {
+      "id": "clo_hess",
+      "text": "Apply Hess's law to compute standard enthalpy changes for reactions using tabulated standard enthalpies of formation.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_entropy",
+      "text": "Compute standard entropy changes for reactions using tabulated standard molar entropies and predict the sign from changes in gas-phase moles.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_gibbs_std",
+      "text": "Calculate the standard Gibbs free energy change of a reaction from standard enthalpy and entropy changes and interpret its sign for spontaneity.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_gibbs_nonstd",
+      "text": "Compute non-standard Gibbs free energy using the reaction quotient and interpret deviations from standard conditions.",
+      "bloom_level": "analyze",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_keq",
+      "text": "Relate the equilibrium constant to the standard Gibbs free energy change and predict whether products or reactants are favored.",
+      "bloom_level": "analyze",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_vant_hoff",
+      "text": "Use the van't Hoff equation to predict how the equilibrium constant changes with temperature for endothermic and exothermic reactions.",
+      "bloom_level": "analyze",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_units",
+      "text": "Carry out thermodynamic calculations with consistent units, correctly converting between J and kJ and using temperature in Kelvin.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    }
+  ],
+  "topics": [
+    {"id": "topic_hess",         "name": "Hess's law and standard enthalpies of formation", "weight": 0.15},
+    {"id": "topic_entropy",      "name": "Standard entropy change and sign prediction",     "weight": 0.15},
+    {"id": "topic_gibbs_std",    "name": "Standard Gibbs free energy and spontaneity",     "weight": 0.20},
+    {"id": "topic_gibbs_nonstd", "name": "Non-standard Gibbs free energy and the reaction quotient", "weight": 0.15},
+    {"id": "topic_keq",          "name": "Equilibrium constant from Gibbs free energy",   "weight": 0.15},
+    {"id": "topic_vant_hoff",    "name": "Van't Hoff equation and temperature dependence", "weight": 0.10},
+    {"id": "topic_units",        "name": "Unit conventions in thermodynamic calculations", "weight": 0.10}
+  ],
+  "guiding_principles": "Emphasize quantitative reasoning over rote definitions. Items should require students to use formulas, not just recall them. Avoid items that depend on memorizing tabulated values; provide any needed values in the stem. Prefer items that test conceptual understanding alongside calculation: an item that asks students to predict the sign of a quantity before computing it is more valuable than one that asks only for the numeric answer. Penalize unit errors only when units are integral to the construct (e.g., J vs kJ when combining enthalpy and entropy)."
+}

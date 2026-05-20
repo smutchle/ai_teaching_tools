@@ -1,0 +1,153 @@
+{
+  "call_id": "3af27fd5093d",
+  "system": "# Blueprint Architect\n\nYou are the Blueprint Architect in a multi-agent exam-design system. Your job is to produce the **topic-by-Bloom-level matrix** that governs coverage for the exam. The blueprint is approved by faculty at Checkpoint 1 and frozen before any items are written; every downstream agent measures items against it.\n\nThe cast: SME (extracts themes you use as input; later proposes items into the cells you produce), LOA (verifies items satisfy the cells you specified), IWS / Accessibility / Psychometrician / Adversarial Student (critic agents that work on items), Moderator (deterministic router), faculty (sole authority at checkpoints).\n\n## Your scope\n\nYou answer one question: **given what the course says it teaches (CLOs, weighted topics), what the materials actually contain (SME themes), and what the exam has room to assess (item-type counts, point and time budget, difficulty distribution), what is the optimal allocation of items across (topic, Bloom level) cells?**\n\nYou do not write items. You do not estimate item-level difficulty (cell-level target_points is your allocation; difficulty calibration belongs to the Psychometrician). You do not verify alignment of individual items (LOA's job).\n\n## How to read your three inputs\n\n- **CourseSpec** is the **planned** distribution: what the instructor says they teach, weighted. The CLOs determine the *cognitive levels* that must appear in the blueprint. The topics with their weights determine the *content allocation*.\n- **ExamSpec** is the **container**: total points, time budget, item-type mix, target difficulty fractions, accommodations. These set the size and shape of what you can build.\n- **SME themes** are the **actual coverage** signal: what the uploaded materials demonstrably support. If a planned topic has no theme support, the materials cannot ground items for it \u2014 record this in `coverage_check.warnings` and reduce that topic's allocation rather than fabricating items downstream.\n\nWhen the planned distribution and the actual coverage disagree, the actual coverage wins for execution and the disagreement gets surfaced to faculty via a warning. Do not silently rebalance.\n\n## Hard constraints\n\nThe blueprint you produce must satisfy all of these. Failures are surfaced in `coverage_check`, not silently fixed:\n\n1. **Point total**: `sum(cell.target_points) == exam_spec.total_points`. Record the actual sum in `coverage_check.point_total`; record the target in `target_point_total`.\n2. **Item count total**: `sum(cell.target_item_count) == sum(exam_spec.item_type_counts.{all fields})`. Record actual in `coverage_check.item_total`.\n3. **CLO coverage**: every CLO in `course_spec.clos` appears in at least one cell's `clo_refs`. Any uncovered CLO goes in `coverage_check.clos_uncovered` and triggers a warning.\n4. **Topic coverage**: every topic in `course_spec.topics` appears as a cell `topic_id` for at least one cell. Uncovered topics go in `coverage_check.topics_uncovered`.\n5. **Bloom integrity**: the Bloom distribution across cells must reflect the cognitive levels of the CLOs. If 60% of CLOs are at ANALYZE or higher, do not produce a blueprint with 80% of cells at REMEMBER / UNDERSTAND. This is the **cognitive drift** failure mode the system exists to prevent.\n\n## Topic weighting heuristics\n\n- Treat `course_spec.topics[i].weight` as the planned fraction of total points for that topic.\n- A topic's `target_points` across its cells should approximate `weight * total_points`, with rounding.\n- When themes contradict the plan (a high-weight topic has no theme support, or a low-weight topic dominates the materials), down-weight the unsupported topic and warn. Faculty will adjudicate at Checkpoint 1.\n\n## Bloom allocation heuristics\n\n- For each topic, allocate cells across Bloom levels using the CLOs that map to that topic. A topic whose CLOs are at APPLY and ANALYZE should not get its items concentrated at REMEMBER.\n- Reserve at least 20% of points for ANALYZE-and-above unless the course is genuinely introductory and all CLOs are at REMEMBER/UNDERSTAND.\n- For each cell, set `clo_refs` to the specific CLOs that cell is meant to provide evidence for. Empty `clo_refs` is not allowed \u2014 every cell must serve at least one CLO.\n\n## Item type allocation\n\n`ExamSpec.item_type_counts` constrains the total number of items per type. You do not assign types to individual cells (the SME does that during proposal). But your cell `target_item_count` totals must be consistent with the type counts. Treat this as a global constraint, not a per-cell one.\n\n## Hard rules\n\n1. **Do not silently fix conflicts.** Apply the spec to the extent possible and use `coverage_check.warnings` to surface every place where the inputs are in tension.\n2. **Do not invent CLOs or topics.** Use exactly what is in `course_spec`.\n3. **Do not propose items.** That is the SME's job in Phase 2.\n4. **Do not skip a CLO to make the math cleaner.** Coverage of all CLOs is non-negotiable; if you cannot fit a CLO in given the constraints, give it a minimal cell (1 item) and warn.\n\n## Tone\n\nBe specific and quantitative. Faculty will edit your blueprint at Checkpoint 1; write so they can see *why* each cell got the allocation it got. The `coverage_check.warnings` field is where you talk to faculty \u2014 use it to call out the trade-offs you made, not to apologize for them.\n",
+  "user_prompt": "Propose a blueprint for this exam: a list of (topic, Bloom level) cells with target item counts and point values. The blueprint is the single artifact that governs coverage; downstream agents propose and critique items against it.\n\nReconcile three inputs:\n  - The course spec: planned CLOs, topics with relative weights, and guiding principles.\n  - The exam spec: total points, time budget, item-type counts, target difficulty distribution, accommodations.\n  - The themes the SME extracted from the actual uploaded materials: what the materials actually cover, ranked by centrality.\n\nConstraints the blueprint must satisfy:\n  - Sum of cell target_points equals exam_spec.total_points.\n  - Sum of cell target_item_counts equals the total of exam_spec.item_type_counts.\n  - Every CLO in course_spec appears in at least one cell's clo_refs.\n  - Topic weighting across cells respects course_spec.topics weights (treat weights as the planned distribution; deviate only when themes show the materials cannot support that distribution, and record the deviation in coverage_check.warnings).\n  - Bloom distribution reflects the level of the CLOs (do not let cells drift toward REMEMBER and UNDERSTAND).\n  - Include a coverage_check with the actual covered/uncovered lists and any warnings.\n\n--- COURSE SPEC ---\n{\n  \"clos\": [\n    {\n      \"id\": \"clo_hess\",\n      \"text\": \"Apply Hess's law to compute standard enthalpy changes for reactions using tabulated standard enthalpies of formation.\",\n      \"bloom_level\": \"apply\",\n      \"knowledge_type\": \"procedural\"\n    },\n    {\n      \"id\": \"clo_entropy\",\n      \"text\": \"Compute standard entropy changes for reactions using tabulated standard molar entropies and predict the sign from changes in gas-phase moles.\",\n      \"bloom_level\": \"apply\",\n      \"knowledge_type\": \"procedural\"\n    },\n    {\n      \"id\": \"clo_gibbs_std\",\n      \"text\": \"Calculate the standard Gibbs free energy change of a reaction from standard enthalpy and entropy changes and interpret its sign for spontaneity.\",\n      \"bloom_level\": \"apply\",\n      \"knowledge_type\": \"procedural\"\n    },\n    {\n      \"id\": \"clo_gibbs_nonstd\",\n      \"text\": \"Compute non-standard Gibbs free energy using the reaction quotient and interpret deviations from standard conditions.\",\n      \"bloom_level\": \"analyze\",\n      \"knowledge_type\": \"conceptual\"\n    },\n    {\n      \"id\": \"clo_keq\",\n      \"text\": \"Relate the equilibrium constant to the standard Gibbs free energy change and predict whether products or reactants are favored.\",\n      \"bloom_level\": \"analyze\",\n      \"knowledge_type\": \"conceptual\"\n    },\n    {\n      \"id\": \"clo_vant_hoff\",\n      \"text\": \"Use the van't Hoff equation to predict how the equilibrium constant changes with temperature for endothermic and exothermic reactions.\",\n      \"bloom_level\": \"analyze\",\n      \"knowledge_type\": \"conceptual\"\n    },\n    {\n      \"id\": \"clo_units\",\n      \"text\": \"Carry out thermodynamic calculations with consistent units, correctly converting between J and kJ and using temperature in Kelvin.\",\n      \"bloom_level\": \"apply\",\n      \"knowledge_type\": \"procedural\"\n    }\n  ],\n  \"topics\": [\n    {\n      \"id\": \"topic_hess\",\n      \"name\": \"Hess's law and standard enthalpies of formation\",\n      \"weight\": 0.15,\n      \"source_refs\": []\n    },\n    {\n      \"id\": \"topic_entropy\",\n      \"name\": \"Standard entropy change and sign prediction\",\n      \"weight\": 0.15,\n      \"source_refs\": []\n    },\n    {\n      \"id\": \"topic_gibbs_std\",\n      \"name\": \"Standard Gibbs free energy and spontaneity\",\n      \"weight\": 0.2,\n      \"source_refs\": []\n    },\n    {\n      \"id\": \"topic_gibbs_nonstd\",\n      \"name\": \"Non-standard Gibbs free energy and the reaction quotient\",\n      \"weight\": 0.15,\n      \"source_refs\": []\n    },\n    {\n      \"id\": \"topic_keq\",\n      \"name\": \"Equilibrium constant from Gibbs free energy\",\n      \"weight\": 0.15,\n      \"source_refs\": []\n    },\n    {\n      \"id\": \"topic_vant_hoff\",\n      \"name\": \"Van't Hoff equation and temperature dependence\",\n      \"weight\": 0.1,\n      \"source_refs\": []\n    },\n    {\n      \"id\": \"topic_units\",\n      \"name\": \"Unit conventions in thermodynamic calculations\",\n      \"weight\": 0.1,\n      \"source_refs\": []\n    }\n  ],\n  \"guiding_principles\": \"Emphasize quantitative reasoning over rote definitions. Items should require students to use formulas, not just recall them. Avoid items that depend on memorizing tabulated values; provide any needed values in the stem. Prefer items that test conceptual understanding alongside calculation: an item that asks students to predict the sign of a quantity before computing it is more valuable than one that asks only for the numeric answer. Penalize unit errors only when units are integral to the construct (e.g., J vs kJ when combining enthalpy and entropy).\"\n}\n\n--- EXAM SPEC ---\n{\n  \"exam_type\": \"quiz\",\n  \"total_points\": 30,\n  \"time_budget_minutes\": 40,\n  \"item_type_counts\": {\n    \"mcq\": 4,\n    \"short_answer\": 2,\n    \"problem\": 2,\n    \"derivation\": 0,\n    \"data_interp\": 0\n  },\n  \"difficulty_distribution\": {\n    \"easy_ratio\": 0.25,\n    \"medium_ratio\": 0.5,\n    \"hard_ratio\": 0.25\n  },\n  \"accommodations_required\": [],\n  \"latex_required\": true,\n  \"figure_support\": false\n}\n\n--- SME THEMES (ranked) ---\n- rank=1 | id=T1\n  Gibbs free energy as the spontaneity criterion linking enthalpy, entropy, and temperature\n  (2 source chunks)\n- rank=2 | id=T2\n  Hess's Law applied via standard enthalpies of formation, including sign-flipping and scaling of reactions\n  (2 source chunks)\n- rank=3 | id=T3\n  Relating \u0394G\u00b0 to the equilibrium constant K via \u0394G\u00b0 = \u2212RT ln K\n  (1 source chunks)\n- rank=4 | id=T4\n  Temperature dependence of K via the Van't Hoff equation\n  (1 source chunks)\n- rank=5 | id=T5\n  Reaction quotient Q vs equilibrium constant K and the direction of spontaneous shift\n  (2 source chunks)\n- rank=6 | id=T6\n  Qualitative Le Chatelier reasoning about K versus T for exothermic and endothermic reactions\n  (1 source chunks)\n- rank=7 | id=T7\n  Standard entropy change of reaction from tabulated S\u00b0 values, including gas-mole heuristics for sign prediction\n  (1 source chunks)\n- rank=8 | id=T8\n  Unit handling and conversions across \u0394H\u00b0 (kJ), \u0394S\u00b0 (J/K), R, and T (K)\n  (2 source chunks)\n- rank=9 | id=T9\n  Integrated thermodynamic workflow: from tabulated \u0394H\u00b0_f and S\u00b0 to spontaneity, K, and T-dependence\n  (2 source chunks)\n- rank=10 | id=T10\n  Interpreting the magnitude and sign of K (products- vs reactants-favored)\n  (1 source chunks)",
+  "response": {
+    "id": "msg_01MyFbF5Y94xuA1BVwiUA8jJ",
+    "content": [
+      {
+        "id": "toolu_01Ar1rU2NAZFdXrHum4cgvcj",
+        "input": {
+          "cells": [
+            {
+              "topic_id": "topic_hess",
+              "topic_name": "Hess's law and standard enthalpies of formation",
+              "bloom_level": "apply",
+              "target_item_count": 1,
+              "target_points": 4,
+              "clo_refs": [
+                "clo_hess",
+                "clo_units"
+              ]
+            },
+            {
+              "topic_id": "topic_entropy",
+              "topic_name": "Standard entropy change and sign prediction",
+              "bloom_level": "apply",
+              "target_item_count": 1,
+              "target_points": 4,
+              "clo_refs": [
+                "clo_entropy",
+                "clo_units"
+              ]
+            },
+            {
+              "topic_id": "topic_gibbs_std",
+              "topic_name": "Standard Gibbs free energy and spontaneity",
+              "bloom_level": "apply",
+              "target_item_count": 2,
+              "target_points": 6,
+              "clo_refs": [
+                "clo_gibbs_std",
+                "clo_units"
+              ]
+            },
+            {
+              "topic_id": "topic_gibbs_nonstd",
+              "topic_name": "Non-standard Gibbs free energy and the reaction quotient",
+              "bloom_level": "analyze",
+              "target_item_count": 1,
+              "target_points": 5,
+              "clo_refs": [
+                "clo_gibbs_nonstd",
+                "clo_keq"
+              ]
+            },
+            {
+              "topic_id": "topic_keq",
+              "topic_name": "Equilibrium constant from Gibbs free energy",
+              "bloom_level": "analyze",
+              "target_item_count": 1,
+              "target_points": 4,
+              "clo_refs": [
+                "clo_keq",
+                "clo_gibbs_std"
+              ]
+            },
+            {
+              "topic_id": "topic_vant_hoff",
+              "topic_name": "Van't Hoff equation and temperature dependence",
+              "bloom_level": "analyze",
+              "target_item_count": 1,
+              "target_points": 4,
+              "clo_refs": [
+                "clo_vant_hoff"
+              ]
+            },
+            {
+              "topic_id": "topic_units",
+              "topic_name": "Unit conventions in thermodynamic calculations",
+              "bloom_level": "apply",
+              "target_item_count": 1,
+              "target_points": 3,
+              "clo_refs": [
+                "clo_units",
+                "clo_gibbs_std"
+              ]
+            }
+          ],
+          "coverage_check": {
+            "clos_covered": [
+              "clo_hess",
+              "clo_entropy",
+              "clo_gibbs_std",
+              "clo_gibbs_nonstd",
+              "clo_keq",
+              "clo_vant_hoff",
+              "clo_units"
+            ],
+            "clos_uncovered": [],
+            "topics_covered": [
+              "topic_hess",
+              "topic_entropy",
+              "topic_gibbs_std",
+              "topic_gibbs_nonstd",
+              "topic_keq",
+              "topic_vant_hoff",
+              "topic_units"
+            ],
+            "topics_uncovered": [],
+            "point_total": 30,
+            "target_point_total": 30,
+            "item_total": 8,
+            "warnings": [
+              "BLOOM DISTRIBUTION NOTE: 3 of 7 cells are at ANALYZE (43%), driven by CLOs clo_gibbs_nonstd, clo_keq, and clo_vant_hoff. The remaining 4 cells are at APPLY (57%). No cells sit at REMEMBER or UNDERSTAND, consistent with the guiding principle of emphasizing quantitative reasoning. Faculty should confirm this distribution is appropriate for a 40-minute quiz.",
+              "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_gibbs_std: planned weight 0.20 \u2192 target 6 pts (20% of 30). Allocated 2 items (25% of item count) to ensure coverage of both the procedural calculation and the spontaneity interpretation CLO. This is a minor item-count deviation from weight; point allocation is exact.",
+              "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_hess: planned weight 0.15 \u2192 target 4.5 pts; allocated 4 pts (13.3%). Rounded down by 0.5 pt to preserve integer points across all cells. The 0.5 pt shortfall was redistributed to topic_gibbs_nonstd (5 pts vs. planned 4.5 pts) to reflect its higher SME theme centrality (T5 ranks above T2 in the materials).",
+              "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_entropy: planned weight 0.15 \u2192 target 4.5 pts; allocated 4 pts (13.3%). Same integer-rounding rationale as topic_hess. SME theme T7 (rank 7) indicates entropy is the least materially supported of the procedural topics; faculty may wish to keep the allocation at 4 pts or restore it to 5 pts by trimming topic_units.",
+              "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_units: planned weight 0.10 \u2192 target 3 pts (10%). Allocated exactly 3 pts and 1 MCQ item. The guiding principle specifies unit errors should be penalized only when units are integral to the construct; the SME's T8 theme (rank 8, 2 source chunks) confirms unit handling is materially grounded. A standalone unit-conversion MCQ is appropriate rather than embedding a hidden unit trap inside a problem.",
+              "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_vant_hoff: planned weight 0.10 \u2192 target 3 pts; allocated 4 pts (13.3%). Increased by 1 pt because SME themes T4 (Van't Hoff, rank 4) and T6 (Le Chatelier qualitative reasoning, rank 6) together provide strong material support and clo_vant_hoff requires ANALYZE-level work that is difficult to assess with a low-point MCQ alone. Faculty should confirm this upward deviation.",
+              "SME THEME INTEGRATION: SME theme T9 ('Integrated thermodynamic workflow') and T10 ('Interpreting the magnitude and sign of K') have no dedicated topic in the course spec. T9 is served by the multi-CLO cell for topic_gibbs_std (which ties together \u0394H\u00b0, \u0394S\u00b0, and \u0394G\u00b0) and by the problem-type items expected in topic_gibbs_nonstd and topic_keq. T10 is subsumed under topic_keq (clo_keq). No additional cells were created because doing so would require inventing new topic IDs not in the course spec. Faculty may wish to add an 'Integrated workflow' topic to the course spec for future exams.",
+              "ITEM TYPE GUIDANCE FOR SME (non-binding): With 4 MCQ + 2 short_answer + 2 problem slots, a natural mapping is: MCQs \u2192 topic_hess (sign/scaling recognition), topic_entropy (sign prediction), topic_keq (interpret K magnitude), topic_units (unit conversion); short_answer \u2192 topic_gibbs_std (one cell, two items split as 1 short_answer + 1 MCQ is also viable) and topic_vant_hoff (qualitative + quantitative); problems \u2192 topic_gibbs_nonstd and the second topic_gibbs_std item or topic_entropy. The SME has discretion to reassign types within the global count constraints.",
+              "DIFFICULTY DISTRIBUTION NOTE: Target is 25% easy / 50% medium / 25% hard across 8 items (\u22482 easy, 4 medium, 2 hard). The Psychometrician should calibrate: suggested easy items are topic_hess and topic_units; medium items are topic_entropy, topic_gibbs_std (\u00d72), and topic_keq; hard items are topic_gibbs_nonstd and topic_vant_hoff. Blueprint cells do not encode difficulty \u2014 this is a recommendation to downstream agents only."
+            ]
+          }
+        },
+        "name": "submit_response",
+        "type": "tool_use",
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ],
+    "model": "claude-sonnet-4-6",
+    "role": "assistant",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 2195
+      },
+      "cache_creation_input_tokens": 2195,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 2366,
+      "output_tokens": 2029,
+      "server_tool_use": null,
+      "service_tier": "standard",
+      "inference_geo": "global"
+    },
+    "stop_details": null
+  }
+}

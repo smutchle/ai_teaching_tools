@@ -1,0 +1,196 @@
+{
+  "call_id": "d5229ba4a162",
+  "system": "# Subject Matter Expert\n\nYou are the Subject Matter Expert (SME) in a multi-agent exam-design system. The system supports a faculty member in the College of Science in building a high-quality exam from materials they have uploaded. Your job is **content fidelity, technical correctness, and theme extraction**.\n\nThe cast: alongside you sit a Blueprint Architect, a Learning Outcomes Alignment agent, an Item-Writing Specialist, an Accessibility Expert, a Psychometrician, an Adversarial Student, and a deterministic Moderator that routes work and resolves disagreement using a faculty-set trade-off policy. The faculty member is the authoritative decision-maker at three checkpoints (blueprint approval, item bank review, final draft review). You serve them, not the other agents.\n\n## What you do\n\n- **Extract candidate themes** from uploaded course materials, ranked by centrality to the course outcomes.\n- **Propose exam items** grounded in specific passages from those materials.\n- **Edit items** in response to objections from the critic agents when those objections have merit.\n- **Rebut objections** when they conflict with content fidelity or technical correctness on grounds you can defend.\n\n## Hard rules\n\n1. **Every item you propose must cite at least one `source_ref`.** A `source_ref` points to a specific chunk of the uploaded course materials by its `chunk_id`. Items without a citation are auto-rejected by the Grounding Verifier \u2014 do not produce them.\n2. **Never invent content not in the source materials.** If a topic appears in the blueprint but is absent from the chunks you have been given, say so in the rationale and propose fewer items. Do not fabricate to hit a count.\n3. **Prior exams are style reference only.** Chunks tagged `[PRIOR EXAM \u2014 style only]` may inform tone, framing, and calibration of difficulty. They must never be cited as a `source_ref` for new item content.\n4. **Respect the blueprint cell.** When asked to propose items for a `(topic, bloom_level)` cell, every item must target that cognitive level. An item that asks for recall when the cell calls for `analyze` is misaligned and will be dropped \u2014 don't waste a slot.\n5. **Match the requested item type and point value.** A 5-point problem is not the same task as a 1-point MCQ. Calibrate stem length, expected work, and rubric accordingly.\n\n## When you write items\n\n- **MCQ**: 4\u20135 options, exactly one correct. Distractors must reflect plausible misconceptions or near-miss reasoning errors \u2014 not throwaways. Avoid \"all of the above\" / \"none of the above\" unless pedagogically warranted. No grammatical cueing, no length tells, no absolute-language giveaways.\n- **Problem / derivation**: provide an `answer_key` with the worked solution and a `rubric` describing how partial credit is awarded across identifiable steps.\n- **Short answer**: provide an exemplar answer in `answer_key` and a `rubric` enumerating the criteria for full credit.\n- **Data interpretation**: ground the data in source materials when possible. If synthetic data is required, ensure it is dimensionally and physically reasonable and note in `accessibility_notes` that it is constructed.\n- Use LaTeX for all equations and mathematical notation (`$...$` inline, `$$...$$` display). Use SI units and consistent significant-figure conventions.\n\n## When you respond to critique\n\n- If a critic's objection has merit, **accept**: produce a clean edit that addresses the underlying concern, not just the surface symptom. A reworded distractor that still has the same flaw is not an edit.\n- If a critic's objection conflicts with content fidelity or technical correctness on defensible grounds, **rebut**: state the technical argument plainly. The Moderator will resolve the disagreement using the faculty's trade-off policy. A clean disagreement is more useful than performative agreement.\n- If you cannot decide without more information, **defer**: name exactly what additional information would let you choose.\n\nEmpty agreement is worse than a defended disagreement. Do not perform collegiality.\n\n## Tone and output discipline\n\nBe specific and economical. The faculty member will read your output in their item review. Avoid hedging, repetition, and stock phrases. Treat your output as a colleague's first draft for another colleague \u2014 direct, defensible, and clear about what is grounded in the materials versus what is your judgment.\n",
+  "user_prompt": "Extract up to 12 candidate themes from the course materials below. Rank them by centrality to the course (rank 1 = most central). Each theme must cite at least one source chunk. A theme is a coherent idea, technique, or framework that an exam item could be built around \u2014 not a single fact and not a whole chapter.\n\n--- COURSE MATERIALS ---\n[chunk_id=chunk_857868caefee | source=pchem_notes.pdf | p.1 | (preamble)]\nHess\u2019s Law, Gibbs Free Energy, and Equilibrium\nThermodynamics\nConverted from Handwritten PDF\n2026-04-25\n\n[chunk_id=chunk_21892039c9f1 | source=pchem_notes.pdf | p.1 | 1 Physical Chemistry \u2013 Study Sheet]\n1 Physical Chemistry \u2013 Study Sheet\n1.1 Hess\u2019s Law\n\u0394\ud835\udc3b\u2218\n\ud835\udc5f\ud835\udc65\ud835\udc5b = \u2211 \u0394\ud835\udc3b\u2218\n\ud835\udc53 (products) \u2212 \u2211 \u0394\ud835\udc3b\u2218\n\ud835\udc53 (reactants)\n\u2022 \u0394\ud835\udc3b\u2218\n\ud835\udc53 of any element in standard state = 0\n\u2022 Flip reaction \u2192 flip sign of \u0394\ud835\udc3b\u2218\n\u2022 Scale reaction by \ud835\udc5b \u2192 scale \u0394\ud835\udc3b\u2218 by \ud835\udc5b\n1.2 Standard Entropy Change\n\u0394\ud835\udc46\u2218\n\ud835\udc5f\ud835\udc65\ud835\udc5b = \u2211 \ud835\udc46 \u2218 (products) \u2212 \u2211 \ud835\udc46\u2218 (reactants)\n\u2022 Units: J mol \u22121K\u22121 \u2190 watch the J vs kJ mismatch!\n\u2022 More moles of gas \u21d2 \u0394\ud835\udc46 \u2218 > 0 (usually)\n1.3 Gibbs Free Energy\nStandard Conditions (298 K):\n\u0394\ud835\udc3a\u2218 = \u0394\ud835\udc3b\u2218 \u2212 \ud835\udc47 \u0394\ud835\udc46\u2218\nNon-Standard Conditions:\n\u0394\ud835\udc3a = \u0394\ud835\udc3a\u2218 + \ud835\udc45\ud835\udc47 ln \ud835\udc44\n\ud835\udc44 \u2261 reaction quotient\n\u0394\ud835\udc3a Meaning\n< 0 spontaneous\n1\n\n\u0394\ud835\udc3a Meaning\n= 0 equilibrium\n> 0 non-spontaneous\n\n[chunk_id=chunk_2bcf1dfd4797 | source=pchem_notes.pdf | p.2 | 2 Equilibrium Constant]\n2 Equilibrium Constant\n\u0394\ud835\udc3a\u00b0 = \u2212\ud835\udc45\ud835\udc47ln \ud835\udc3e\n\u2234\ud835\udc3e = \ud835\udc52 \u2212\u0394\ud835\udc3a\u00b0/\ud835\udc45\ud835\udc47\n\u2022 \ud835\udc45 = 8.314 J mol \u22121K\u22121\n\u2022 \ud835\udc47 must be in Kelvin\n\u2022 \ud835\udc3e > 1 : products favored; \ud835\udc3e < 1 : reactants favored\n\n[chunk_id=chunk_2ffdce5b3c6a | source=pchem_notes.pdf | p.2 | 3 Van\u2019t Hoff Equation]\n3 Van\u2019t Hoff Equation\nln \ud835\udc3e2\n\ud835\udc3e1\n= \u2212 \u0394\ud835\udc3b\u00b0\n\ud835\udc45 ( 1\n\ud835\udc472\n\u2212 1\n\ud835\udc471\n)\n3.1 La Chatelier Shortcut:\nReaction Type Raise T Lower T\nExothermic ( \u0394\ud835\udc3b\u00b0 < 0) K decreases K increases\nEndothermic ( \u0394\ud835\udc3b\u00b0 > 0) K increases K decreases\n\n[chunk_id=chunk_40bb1c6387b3 | source=pchem_notes.pdf | p.2 | 4 Unit Checklist]\n4 Unit Checklist\nSymbol Units\n\u0394\ud835\udc3b\u00b0 kJ mol \u22121\n\u0394\ud835\udc46\u00b0 J mol \u22121K\u22121 (convert to kJ before\ncombining with \u0394\ud835\udc3b\u00b0)\n\u0394\ud835\udc3a\u00b0 kJ mol \u22121\n\ud835\udc45 (with \u0394\ud835\udc3a\u00b0) 8.314 \u00d7 10\u22123 kJ mol \u22121K\u22121 or convert\n\u0394\ud835\udc3a\u00b0to J\n\ud835\udc47 Kelvin\n\n[chunk_id=chunk_d633395083c3 | source=pchem_notes.pdf | p.3 | 5 Workflow]\n5 Workflow\n{{FIGURE: Flowchart diagram showing the thermodynamic workflow described\nbelow}}\n\n[chunk_id=chunk_ba48274bb742 | source=pchem_notes.pdf | p.3 | 3\n\nT op Level Inputs:]\n3\n\nT op Level Inputs:\n\u0394\ud835\udc3b\u2218\n\ud835\udc53 tables std enthalpies of\nformation \ud835\udc46\u2218 tables std molar entropies\nSecond Level (Computations):\n\u2022 Hess\u2019s Law \u2014 compute \u0394\ud835\udc3b\u2218\n\ud835\udc5f\ud835\udc65\ud835\udc5b\n\u2022 Entropy Sum \u2014 compute \u0394\ud835\udc46\u2218\n\ud835\udc5f\ud835\udc65\ud835\udc5b\nThird Level (Gibbs std):\n\u0394\ud835\udc3a\u2218 = \u0394\ud835\udc3b\u2218 \u2212 \ud835\udc47 \u0394\ud835\udc46\u2218 (298)\nF ourth Level (Three Branches):\nLeft branch: Non-std \u0394\ud835\udc3a\n\u0394\ud835\udc3a = \u0394\ud835\udc3a\u2218 + \ud835\udc45\ud835\udc47 ln \ud835\udc44\nMiddle branch: Equilibrium \ud835\udc3e\n\ud835\udc3e = \ud835\udc52 \u2212\u0394\ud835\udc3a\u2218/\ud835\udc45\ud835\udc47\nRight branch: Van Hoff \ud835\udc3e shifts w \ud835\udc47\nBottom Level:\nSpontaneity & direction\n\u0394\ud835\udc3a < 0 \u2192 forward favored\n4",
+  "response": {
+    "id": "msg_01CggTRVCwLfgMfrCpLmij21",
+    "content": [
+      {
+        "id": "toolu_01Bn6e7Y38NwixZDJnM4GU3a",
+        "input": {
+          "themes": [
+            {
+              "id": "T1",
+              "text": "Gibbs free energy as the spontaneity criterion linking enthalpy, entropy, and temperature",
+              "rank": 1,
+              "rationale": "The relation \u0394G\u00b0 = \u0394H\u00b0 \u2212 T\u0394S\u00b0 (and its non-standard form \u0394G = \u0394G\u00b0 + RT ln Q) is the conceptual hinge of the notes: it ties Hess's Law outputs to entropy outputs and feeds the equilibrium and Van't Hoff branches. The sign-of-\u0394G decision table makes this directly examinable at recall, apply, and analyze levels.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_21892039c9f1",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a71.3"
+                },
+                {
+                  "chunk_id": "chunk_ba48274bb742",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "p.3 Third Level"
+                }
+              ]
+            },
+            {
+              "id": "T2",
+              "text": "Hess's Law applied via standard enthalpies of formation, including sign-flipping and scaling of reactions",
+              "rank": 2,
+              "rationale": "Hess's Law is the entry point of the workflow and supports multi-step computational items where students must reverse and scale component reactions before summing. The \u0394H\u00b0_f = 0 for elements rule is a common distractor source.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_21892039c9f1",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a71.1"
+                },
+                {
+                  "chunk_id": "chunk_ba48274bb742",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "Second Level"
+                }
+              ]
+            },
+            {
+              "id": "T3",
+              "text": "Relating \u0394G\u00b0 to the equilibrium constant K via \u0394G\u00b0 = \u2212RT ln K",
+              "rank": 3,
+              "rationale": "This bridge from thermodynamic state functions to equilibrium composition is explicit in the notes and supports both computational (solve for K) and interpretive (K>1 vs K<1) items.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_2bcf1dfd4797",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a72"
+                }
+              ]
+            },
+            {
+              "id": "T4",
+              "text": "Temperature dependence of K via the Van't Hoff equation",
+              "rank": 4,
+              "rationale": "Van't Hoff is a standalone branch in the workflow and supports apply/analyze items: given \u0394H\u00b0 and K at one temperature, predict K at another, or infer the sign of \u0394H\u00b0 from observed K-shifts.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_2ffdce5b3c6a",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a73"
+                }
+              ]
+            },
+            {
+              "id": "T5",
+              "text": "Reaction quotient Q vs equilibrium constant K and the direction of spontaneous shift",
+              "rank": 5,
+              "rationale": "The non-standard \u0394G expression \u0394G = \u0394G\u00b0 + RT ln Q directly enables items asking which direction a reaction proceeds given current concentrations relative to K. Distinct from T1 because the focus is on Q/K comparison reasoning.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_21892039c9f1",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a71.3 non-standard"
+                },
+                {
+                  "chunk_id": "chunk_ba48274bb742",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "Left branch"
+                }
+              ]
+            },
+            {
+              "id": "T6",
+              "text": "Qualitative Le Chatelier reasoning about K versus T for exothermic and endothermic reactions",
+              "rank": 6,
+              "rationale": "The shortcut table gives a clean qualitative-reasoning target: predict the direction of K change without computation. Useful for analyze-level MCQs that distinguish students who memorized Van't Hoff from those who understand its sign structure.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_2ffdce5b3c6a",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a73.1"
+                }
+              ]
+            },
+            {
+              "id": "T7",
+              "text": "Standard entropy change of reaction from tabulated S\u00b0 values, including gas-mole heuristics for sign prediction",
+              "rank": 7,
+              "rationale": "\u0394S\u00b0_rxn computation parallels Hess's Law structurally but uses absolute entropies (not formation values, and not zero for elements). The 'more moles of gas \u2192 \u0394S\u00b0 > 0' heuristic supports a distinct qualitative item type.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_21892039c9f1",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a71.2"
+                }
+              ]
+            },
+            {
+              "id": "T8",
+              "text": "Unit handling and conversions across \u0394H\u00b0 (kJ), \u0394S\u00b0 (J/K), R, and T (K)",
+              "rank": 8,
+              "rationale": "The notes flag the J\u2194kJ mismatch explicitly and provide a unit checklist. This supports distractors that are numerically off by a factor of 1000 \u2014 a high-value calibration target for partial credit in derivation items.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_40bb1c6387b3",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a74"
+                },
+                {
+                  "chunk_id": "chunk_21892039c9f1",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a71.2 unit warning"
+                }
+              ]
+            },
+            {
+              "id": "T9",
+              "text": "Integrated thermodynamic workflow: from tabulated \u0394H\u00b0_f and S\u00b0 to spontaneity, K, and T-dependence",
+              "rank": 9,
+              "rationale": "The workflow diagram organizes the entire course content into a single multi-step pipeline. Supports a capstone derivation/problem item that exercises Hess \u2192 entropy \u2192 Gibbs \u2192 K in one task.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_d633395083c3",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a75 figure"
+                },
+                {
+                  "chunk_id": "chunk_ba48274bb742",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "all levels"
+                }
+              ]
+            },
+            {
+              "id": "T10",
+              "text": "Interpreting the magnitude and sign of K (products- vs reactants-favored)",
+              "rank": 10,
+              "rationale": "Distinct from T3 (the computational bridge): this is the interpretive skill of mapping a numerical K to a qualitative claim about composition, which can be tested independently with short-answer or MCQ items.",
+              "source_refs": [
+                {
+                  "chunk_id": "chunk_2bcf1dfd4797",
+                  "source_doc": "pchem_notes.pdf",
+                  "locator": "\u00a72 bullets"
+                }
+              ]
+            }
+          ]
+        },
+        "name": "submit_response",
+        "type": "tool_use",
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ],
+    "model": "claude-opus-4-7",
+    "role": "assistant",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 2228
+      },
+      "cache_creation_input_tokens": 2228,
+      "cache_read_input_tokens": 0,
+      "input_tokens": 2478,
+      "output_tokens": 2481,
+      "server_tool_use": null,
+      "service_tier": "standard",
+      "inference_geo": "global"
+    },
+    "stop_details": null
+  }
+}

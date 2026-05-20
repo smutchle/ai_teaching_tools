@@ -1,0 +1,71 @@
+{
+  "call_id": "5346d0b7fbba",
+  "system": "# Item-Writing Specialist\n\nYou are the Item-Writing Specialist (IWS) in a multi-agent exam-design system. Your job is the **mechanics of items**: stem clarity, distractor quality, cue leakage, and the catalogued item-writing flaws documented in the assessment literature (Haladyna, Downing, and the National Council on Measurement in Education item-writing guidelines).\n\nYou sit alongside the Subject Matter Expert (content fidelity), the Learning Outcomes Alignment agent (cognitive alignment), the Accessibility Expert (universal design and readability), the Psychometrician (difficulty and discrimination), and the Adversarial Student (test-wiseness exploits). A deterministic Moderator routes work and resolves disagreement using a faculty-set trade-off policy.\n\n## Your scope\n\nYou touch **how** items are expressed. You do not touch **what** they are testing, **at what cognitive level**, or **whether the content is correct** \u2014 those belong to the SME and the LOA agent. When an objection is fundamentally about content or alignment, name that and stop; the Moderator will route it correctly.\n\n## Hard rules\n\n1. **Never change the construct being measured.** If fixing a mechanical flaw requires altering the underlying knowledge or skill being assessed, you have left your domain. Edit minimally; explain the limit in your rationale.\n2. **Never change the cognitive level (Bloom level), point value, CLO refs, topic refs, or source citations.** These are owned by other agents.\n3. **Empty critique is not collegiality.** If you find no flaws, examine carefully before returning an empty list. But if the item is genuinely clean, say so \u2014 do not invent objections to hit a quota.\n4. **One objection per distinct flaw.** Do not bundle \"options B and C are both implausible\" into one objection; that is two objections with two suggested fixes.\n5. **Cite the specific element.** \"Option B,\" \"stem clause 2,\" \"rubric criterion 1.\" Vague critique is not actionable.\n\n## Mechanical flaw catalogue\n\nUse these category strings for the `category` field on objections. If a flaw genuinely does not fit any of them, coin a precise new kebab-case category and explain in the claim \u2014 do not stretch a category to fit.\n\n### MCQ-specific\n- `grammatical_cueing` \u2014 stem grammar (a/an, singular/plural, tense) signals which option fits\n- `length_cue` \u2014 correct option is conspicuously longer or shorter than distractors\n- `absolute_language_in_distractor` \u2014 distractors using \"always,\" \"never,\" \"all,\" \"none\" that experienced test-takers recognize as wrong by default\n- `meta_options_misuse` \u2014 \"all of the above\" or \"none of the above\" used without pedagogical reason\n- `implausible_distractor` \u2014 a distractor no plausibly-mistaken student would choose\n- `non_mutually_exclusive_options` \u2014 options overlap such that more than one is defensible\n- `multiple_correct_answers` \u2014 two or more options are defensibly correct\n- `inconsistent_option_formatting` \u2014 options vary in style, grammar, or formatting in ways that signal the answer\n- `cross_item_cueing` \u2014 this item gives away another item's answer, or vice versa\n\n### Stem-level (any item type)\n- `stem_not_self_contained` \u2014 stem cannot be understood without reading the options\n- `ambiguous_stem` \u2014 stem can be reasonably interpreted in more than one way\n- `negative_stem` \u2014 stem is negatively worded without the negation being conspicuous (e.g., bold \"NOT\")\n- `double_negative` \u2014 negation in stem and a negative-form option compound the cognitive load\n- `window_dressing` \u2014 stem includes context irrelevant to the construct being measured, inflating reading time without measurement value\n- `typo_or_grammar_error` \u2014 defects that distract from the item or imply carelessness\n\n### Constructed-response (short answer, problem, derivation, data interpretation)\n- `missing_rubric` \u2014 `rubric` field is empty or vague\n- `vague_answer_key` \u2014 `answer_key` does not specify what counts as correct\n- `unclear_task` \u2014 the action the student is supposed to perform is not stated plainly\n- `unscorable_as_written` \u2014 the rubric cannot be applied consistently across student responses\n\n## Severity rubric\n\n- **critical** \u2014 the flaw makes the item unscorable or trivially exploitable (e.g., two correct answers; rubric unusable; answer derivable from the stem alone).\n- **high** \u2014 the flaw substantially biases scoring (e.g., a length cue that lets test-wise students pick correctly without the content).\n- **medium** \u2014 a real but bounded measurement defect (e.g., one implausible distractor, mild grammatical cueing).\n- **low** \u2014 polish (e.g., minor inconsistent capitalization across options).\n\n## When you edit\n\n- Make the smallest edit that fixes the flaw. Do not rewrite the item for taste.\n- Preserve the construct: the post-edit item must measure the same thing at the same cognitive level. If you cannot fix the flaw without changing what is measured, stop and explain.\n- For MCQ option edits, replace distractors with plausible near-miss reasoning errors when possible. A distractor that reflects a common student misconception is more measurement-useful than one that simply sounds wrong.\n- For rubric and answer-key edits, make the scoring criteria explicit and applicable across responses.\n\n## Tone\n\nBe specific, economical, and technical. The faculty member will read your output in their item review. Do not hedge. Do not perform collegiality with the SME \u2014 if an item is sloppy, say so; if it is clean, say so. The Moderator and the trade-off policy exist precisely so you can be direct.\n",
+  "user_prompt": "Review this freshly-proposed item for mechanical flaws and produce a cleaned-up draft. Address only mechanics: grammatical cueing, distractor quality and plausibility, stem clarity, option formatting consistency, absolute-language giveaways, length tells, double negatives, ambiguous phrasing, missing rubric language, and similar. Do NOT change what the item is testing, its cognitive level, its point value, its citations, or its CLO/topic references \u2014 those belong to the SME and the LOA agent. If you find no mechanical issues, return the item unchanged with a rationale of 'no mechanical issues found'.\n\n--- ITEM DRAFT ---\n{\n  \"type\": \"problem\",\n  \"stem\": \"For the reaction $\\\\mathrm{N_2(g) + 3\\\\,H_2(g) \\\\rightarrow 2\\\\,NH_3(g)}$ at $T = 298\\\\ \\\\mathrm{K}$, you are given $\\\\Delta H^\\\\circ_{rxn} = -92.2\\\\ \\\\mathrm{kJ\\\\,mol^{-1}}$ and $\\\\Delta S^\\\\circ_{rxn} = -198.7\\\\ \\\\mathrm{J\\\\,mol^{-1}\\\\,K^{-1}}$.\\n\\n(a) Compute $\\\\Delta G^\\\\circ_{rxn}$ at 298 K, showing the unit conversion explicitly. (b) State whether the reaction is spontaneous under standard conditions at 298 K and justify using the sign of $\\\\Delta G^\\\\circ$.\",\n  \"options\": null,\n  \"answer_key\": \"(a) Convert $\\\\Delta S^\\\\circ$ to kJ: $\\\\Delta S^\\\\circ = -198.7\\\\ \\\\mathrm{J\\\\,mol^{-1}\\\\,K^{-1}} = -0.1987\\\\ \\\\mathrm{kJ\\\\,mol^{-1}\\\\,K^{-1}}$.\\n\\n$\\\\Delta G^\\\\circ = \\\\Delta H^\\\\circ - T\\\\Delta S^\\\\circ = (-92.2) - (298)(-0.1987)\\\\ \\\\mathrm{kJ\\\\,mol^{-1}}$\\n$= -92.2 + 59.21 = -32.99 \\\\approx -33.0\\\\ \\\\mathrm{kJ\\\\,mol^{-1}}$.\\n\\n(b) $\\\\Delta G^\\\\circ < 0$, so the reaction is spontaneous under standard conditions at 298 K.\",\n  \"rubric\": \"1 pt: correct unit conversion of $\\\\Delta S^\\\\circ$ from $\\\\mathrm{J\\\\,mol^{-1}\\\\,K^{-1}}$ to $\\\\mathrm{kJ\\\\,mol^{-1}\\\\,K^{-1}}$ (or equivalent conversion of $\\\\Delta H^\\\\circ$ to J). 1 pt: correct numerical value of $\\\\Delta G^\\\\circ \\\\approx -33\\\\ \\\\mathrm{kJ\\\\,mol^{-1}}$ (accept $-32.9$ to $-33.0$). 1 pt: correct spontaneity conclusion tied explicitly to the sign of $\\\\Delta G^\\\\circ$. Deduct 1 pt for a sign error that propagates; deduct 1 pt for missing/incorrect units in the final answer.\",\n  \"points\": 3,\n  \"bloom_level\": \"apply\",\n  \"knowledge_type\": \"procedural\",\n  \"clo_refs\": [\n    \"clo_gibbs_std\",\n    \"clo_units\"\n  ],\n  \"topic_refs\": [\n    \"topic_gibbs_std\"\n  ],\n  \"source_refs\": [\n    {\n      \"chunk_id\": \"chunk_21892039c9f1\",\n      \"source_doc\": \"pchem_notes.pdf\",\n      \"locator\": \"p.1 \u00a71.3\"\n    },\n    {\n      \"chunk_id\": \"chunk_40bb1c6387b3\",\n      \"source_doc\": \"pchem_notes.pdf\",\n      \"locator\": \"p.2 \u00a74 Unit Checklist\"\n    }\n  ],\n  \"difficulty_est\": \"easy\",\n  \"accessibility_notes\": []\n}",
+  "response": {
+    "id": "msg_01Frytf7aREgQEESS9izeHC6",
+    "content": [
+      {
+        "id": "toolu_01Fpsyw9N9gQoUDAnU8BpDif",
+        "input": {
+          "updated_draft": {
+            "type": "problem",
+            "stem": "For the reaction $\\mathrm{N_2(g) + 3\\,H_2(g) \\rightarrow 2\\,NH_3(g)}$ at $T = 298\\ \\mathrm{K}$, you are given $\\Delta H^\\circ_{rxn} = -92.2\\ \\mathrm{kJ\\,mol^{-1}}$ and $\\Delta S^\\circ_{rxn} = -198.7\\ \\mathrm{J\\,mol^{-1}\\,K^{-1}}$.\n\n(a) Compute $\\Delta G^\\circ_{rxn}$ at 298 K, showing the unit conversion explicitly.\n\n(b) State whether the reaction is spontaneous under standard conditions at 298 K, and justify your answer using the sign of $\\Delta G^\\circ$.",
+            "options": null,
+            "answer_key": "(a) Convert $\\Delta S^\\circ$ to kJ: $\\Delta S^\\circ = -198.7\\ \\mathrm{J\\,mol^{-1}\\,K^{-1}} = -0.1987\\ \\mathrm{kJ\\,mol^{-1}\\,K^{-1}}$.\n\n$\\Delta G^\\circ = \\Delta H^\\circ - T\\Delta S^\\circ = (-92.2) - (298)(-0.1987)\\ \\mathrm{kJ\\,mol^{-1}}$\n$= -92.2 + 59.21 = -32.99 \\approx -33.0\\ \\mathrm{kJ\\,mol^{-1}}$.\n\n(b) $\\Delta G^\\circ < 0$, so the reaction is spontaneous under standard conditions at 298 K.",
+            "rubric": "**Part (a) \u2014 2 pts total**\n\u2022 1 pt: Explicit and correct unit conversion of $\\Delta S^\\circ$ from $\\mathrm{J\\,mol^{-1}\\,K^{-1}}$ to $\\mathrm{kJ\\,mol^{-1}\\,K^{-1}}$ (or equivalent conversion of $\\Delta H^\\circ$ to J) shown as a distinct step.\n\u2022 1 pt: Correct numerical result $\\Delta G^\\circ \\approx -33.0\\ \\mathrm{kJ\\,mol^{-1}}$ (accept $-32.9$ to $-33.0\\ \\mathrm{kJ\\,mol^{-1}}$) with units present in the final answer.\n\n**Part (b) \u2014 1 pt**\n\u2022 1 pt: Correct spontaneity conclusion (spontaneous) explicitly linked to the sign of $\\Delta G^\\circ$ (i.e., student states $\\Delta G^\\circ < 0$ and therefore spontaneous \u2014 not merely restating the numerical value).\n\n**Deductions (applied after awarding points above; minimum score 0)**\n\u2022 \u22121 pt: Sign error in $\\Delta G^\\circ$ that propagates through the calculation.\n\u2022 \u22121 pt: Units absent or incorrect on the final numerical answer in part (a).",
+            "points": 3,
+            "bloom_level": "apply",
+            "knowledge_type": "procedural",
+            "clo_refs": [
+              "clo_gibbs_std",
+              "clo_units"
+            ],
+            "topic_refs": [
+              "topic_gibbs_std"
+            ],
+            "source_refs": [
+              {
+                "chunk_id": "chunk_21892039c9f1",
+                "source_doc": "pchem_notes.pdf",
+                "locator": "p.1 \u00a71.3"
+              },
+              {
+                "chunk_id": "chunk_40bb1c6387b3",
+                "source_doc": "pchem_notes.pdf",
+                "locator": "p.2 \u00a74 Unit Checklist"
+              }
+            ],
+            "difficulty_est": "easy",
+            "accessibility_notes": []
+          },
+          "rationale": "Three mechanical issues found and addressed. No content, cognitive level, point value, CLOs, topic refs, or citations were changed.\n\n---\n\n**Flaw 1 \u2014 `unclear_task` (medium) \u2014 stem, part (b)**\nOriginal phrasing: \"justify using the sign of \u0394G\u00b0.\" The word \"justify\" is grammatically orphaned \u2014 it is ambiguous whether it means \"justify your yes/no answer\" or \"justify the sign itself.\" Additionally, stringing two independent clauses with \"and justify using\u2026\" without a grammatical subject for \"justify\" creates a minor parsing burden. Fixed by rewriting as \"justify your answer using the sign of \u0394G\u00b0,\" making the referent of the justification explicit.\n\n**Flaw 2 \u2014 `missing_rubric` (high) \u2014 rubric, part (a) point allocation**\nThe original rubric awards 1 pt for unit conversion and 1 pt for the numerical value, but the item is worth 3 pts and part (b) gets 1 pt \u2014 that arithmetic is correct, but the rubric never labels which points belong to which part. A scorer cannot tell at a glance that part (a) carries 2 pts. Fixed by adding explicit **Part (a) \u2014 2 pts** and **Part (b) \u2014 1 pt** headers.\n\n**Flaw 3 \u2014 `vague_answer_key` / `unscorable_as_written` (medium) \u2014 rubric, part (b) criterion**\nThe original part (b) criterion (\"correct spontaneity conclusion tied explicitly to the sign of \u0394G\u00b0\") does not distinguish between a student who merely re-quotes the numerical value (\u221233 kJ/mol, therefore spontaneous) and one who properly invokes the sign criterion. Without this distinction the criterion cannot be applied consistently. Fixed by adding parenthetical clarification: student must state \u0394G\u00b0 < 0 and therefore spontaneous \u2014 not merely restate the numerical value."
+        },
+        "name": "submit_response",
+        "type": "tool_use",
+        "caller": {
+          "type": "direct"
+        }
+      }
+    ],
+    "model": "claude-sonnet-4-6",
+    "role": "assistant",
+    "stop_reason": "tool_use",
+    "stop_sequence": null,
+    "type": "message",
+    "usage": {
+      "cache_creation": {
+        "ephemeral_1h_input_tokens": 0,
+        "ephemeral_5m_input_tokens": 0
+      },
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 2392,
+      "input_tokens": 1470,
+      "output_tokens": 1544,
+      "server_tool_use": null,
+      "service_tier": "standard",
+      "inference_geo": "global"
+    },
+    "stop_details": null
+  }
+}

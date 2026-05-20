@@ -1,0 +1,116 @@
+{
+  "cells": [
+    {
+      "topic_id": "topic_hess",
+      "topic_name": "Hess's law and standard enthalpies of formation",
+      "bloom_level": "apply",
+      "target_item_count": 1,
+      "target_points": 4,
+      "clo_refs": [
+        "clo_hess",
+        "clo_units"
+      ]
+    },
+    {
+      "topic_id": "topic_entropy",
+      "topic_name": "Standard entropy change and sign prediction",
+      "bloom_level": "apply",
+      "target_item_count": 1,
+      "target_points": 4,
+      "clo_refs": [
+        "clo_entropy",
+        "clo_units"
+      ]
+    },
+    {
+      "topic_id": "topic_gibbs_std",
+      "topic_name": "Standard Gibbs free energy and spontaneity",
+      "bloom_level": "apply",
+      "target_item_count": 2,
+      "target_points": 6,
+      "clo_refs": [
+        "clo_gibbs_std",
+        "clo_units"
+      ]
+    },
+    {
+      "topic_id": "topic_gibbs_nonstd",
+      "topic_name": "Non-standard Gibbs free energy and the reaction quotient",
+      "bloom_level": "analyze",
+      "target_item_count": 1,
+      "target_points": 5,
+      "clo_refs": [
+        "clo_gibbs_nonstd",
+        "clo_keq"
+      ]
+    },
+    {
+      "topic_id": "topic_keq",
+      "topic_name": "Equilibrium constant from Gibbs free energy",
+      "bloom_level": "analyze",
+      "target_item_count": 1,
+      "target_points": 4,
+      "clo_refs": [
+        "clo_keq",
+        "clo_gibbs_std"
+      ]
+    },
+    {
+      "topic_id": "topic_vant_hoff",
+      "topic_name": "Van't Hoff equation and temperature dependence",
+      "bloom_level": "analyze",
+      "target_item_count": 1,
+      "target_points": 4,
+      "clo_refs": [
+        "clo_vant_hoff"
+      ]
+    },
+    {
+      "topic_id": "topic_units",
+      "topic_name": "Unit conventions in thermodynamic calculations",
+      "bloom_level": "apply",
+      "target_item_count": 1,
+      "target_points": 3,
+      "clo_refs": [
+        "clo_units",
+        "clo_gibbs_std"
+      ]
+    }
+  ],
+  "coverage_check": {
+    "clos_covered": [
+      "clo_hess",
+      "clo_entropy",
+      "clo_gibbs_std",
+      "clo_gibbs_nonstd",
+      "clo_keq",
+      "clo_vant_hoff",
+      "clo_units"
+    ],
+    "clos_uncovered": [],
+    "topics_covered": [
+      "topic_hess",
+      "topic_entropy",
+      "topic_gibbs_std",
+      "topic_gibbs_nonstd",
+      "topic_keq",
+      "topic_vant_hoff",
+      "topic_units"
+    ],
+    "topics_uncovered": [],
+    "point_total": 30,
+    "target_point_total": 30,
+    "item_total": 8,
+    "warnings": [
+      "BLOOM DISTRIBUTION NOTE: 3 of 7 cells are at ANALYZE (43%), driven by CLOs clo_gibbs_nonstd, clo_keq, and clo_vant_hoff. The remaining 4 cells are at APPLY (57%). No cells sit at REMEMBER or UNDERSTAND, consistent with the guiding principle of emphasizing quantitative reasoning. Faculty should confirm this distribution is appropriate for a 40-minute quiz.",
+      "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_gibbs_std: planned weight 0.20 \u2192 target 6 pts (20% of 30). Allocated 2 items (25% of item count) to ensure coverage of both the procedural calculation and the spontaneity interpretation CLO. This is a minor item-count deviation from weight; point allocation is exact.",
+      "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_hess: planned weight 0.15 \u2192 target 4.5 pts; allocated 4 pts (13.3%). Rounded down by 0.5 pt to preserve integer points across all cells. The 0.5 pt shortfall was redistributed to topic_gibbs_nonstd (5 pts vs. planned 4.5 pts) to reflect its higher SME theme centrality (T5 ranks above T2 in the materials).",
+      "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_entropy: planned weight 0.15 \u2192 target 4.5 pts; allocated 4 pts (13.3%). Same integer-rounding rationale as topic_hess. SME theme T7 (rank 7) indicates entropy is the least materially supported of the procedural topics; faculty may wish to keep the allocation at 4 pts or restore it to 5 pts by trimming topic_units.",
+      "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_units: planned weight 0.10 \u2192 target 3 pts (10%). Allocated exactly 3 pts and 1 MCQ item. The guiding principle specifies unit errors should be penalized only when units are integral to the construct; the SME's T8 theme (rank 8, 2 source chunks) confirms unit handling is materially grounded. A standalone unit-conversion MCQ is appropriate rather than embedding a hidden unit trap inside a problem.",
+      "TOPIC WEIGHT vs. POINT ALLOCATION \u2014 topic_vant_hoff: planned weight 0.10 \u2192 target 3 pts; allocated 4 pts (13.3%). Increased by 1 pt because SME themes T4 (Van't Hoff, rank 4) and T6 (Le Chatelier qualitative reasoning, rank 6) together provide strong material support and clo_vant_hoff requires ANALYZE-level work that is difficult to assess with a low-point MCQ alone. Faculty should confirm this upward deviation.",
+      "SME THEME INTEGRATION: SME theme T9 ('Integrated thermodynamic workflow') and T10 ('Interpreting the magnitude and sign of K') have no dedicated topic in the course spec. T9 is served by the multi-CLO cell for topic_gibbs_std (which ties together \u0394H\u00b0, \u0394S\u00b0, and \u0394G\u00b0) and by the problem-type items expected in topic_gibbs_nonstd and topic_keq. T10 is subsumed under topic_keq (clo_keq). No additional cells were created because doing so would require inventing new topic IDs not in the course spec. Faculty may wish to add an 'Integrated workflow' topic to the course spec for future exams.",
+      "ITEM TYPE GUIDANCE FOR SME (non-binding): With 4 MCQ + 2 short_answer + 2 problem slots, a natural mapping is: MCQs \u2192 topic_hess (sign/scaling recognition), topic_entropy (sign prediction), topic_keq (interpret K magnitude), topic_units (unit conversion); short_answer \u2192 topic_gibbs_std (one cell, two items split as 1 short_answer + 1 MCQ is also viable) and topic_vant_hoff (qualitative + quantitative); problems \u2192 topic_gibbs_nonstd and the second topic_gibbs_std item or topic_entropy. The SME has discretion to reassign types within the global count constraints.",
+      "DIFFICULTY DISTRIBUTION NOTE: Target is 25% easy / 50% medium / 25% hard across 8 items (\u22482 easy, 4 medium, 2 hard). The Psychometrician should calibrate: suggested easy items are topic_hess and topic_units; medium items are topic_entropy, topic_gibbs_std (\u00d72), and topic_keq; hard items are topic_gibbs_nonstd and topic_vant_hoff. Blueprint cells do not encode difficulty \u2014 this is a recommendation to downstream agents only."
+    ]
+  }
+}

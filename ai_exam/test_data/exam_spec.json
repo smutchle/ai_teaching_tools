@@ -1,0 +1,20 @@
+{
+  "exam_type": "quiz",
+  "total_points": 30,
+  "time_budget_minutes": 40,
+  "item_type_counts": {
+    "mcq": 4,
+    "short_answer": 2,
+    "problem": 2,
+    "derivation": 0,
+    "data_interp": 0
+  },
+  "difficulty_distribution": {
+    "easy_ratio": 0.25,
+    "medium_ratio": 0.50,
+    "hard_ratio": 0.25
+  },
+  "accommodations_required": [],
+  "latex_required": true,
+  "figure_support": false
+}

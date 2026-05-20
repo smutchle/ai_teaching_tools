@@ -1,0 +1,177 @@
+{
+  "themes": [
+    {
+      "id": "theme_gibbs_spontaneity",
+      "text": "Gibbs free energy as the spontaneity criterion: computing \u0394G\u00b0 from \u0394H\u00b0 and T\u0394S\u00b0 at 298 K, and interpreting the sign of \u0394G (<0 spontaneous, =0 equilibrium, >0 non-spontaneous).",
+      "rank": 1,
+      "rationale": "This is the central synthesis equation of the notes \u2014 it ties Hess's Law and entropy outputs together and feeds every downstream branch (K, non-standard \u0394G, Van't Hoff). The workflow diagram explicitly places it at the 'Third Level' as the hinge between inputs and applications.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_21892039c9f1",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a71.3"
+        },
+        {
+          "chunk_id": "chunk_ba48274bb742",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "Third Level"
+        }
+      ]
+    },
+    {
+      "id": "theme_dG_K_relation",
+      "text": "Quantitative link between \u0394G\u00b0 and the equilibrium constant K via \u0394G\u00b0 = \u2212RT ln K (equivalently K = exp(\u2212\u0394G\u00b0/RT)), including interpretation of K>1 vs K<1.",
+      "rank": 2,
+      "rationale": "Bridges thermodynamics and equilibrium \u2014 a primary target for computational items where students convert a computed \u0394G\u00b0 into K or vice versa. Explicitly the 'Middle branch' of the fourth-level workflow.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_2bcf1dfd4797",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a72"
+        },
+        {
+          "chunk_id": "chunk_ba48274bb742",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "Middle branch"
+        }
+      ]
+    },
+    {
+      "id": "theme_hess_law",
+      "text": "Hess's Law for computing \u0394H\u00b0_rxn from standard enthalpies of formation, including the rules for flipping (sign change) and scaling (multiply by n) reactions, and \u0394H\u00b0_f = 0 for elements in standard state.",
+      "rank": 3,
+      "rationale": "One of the two foundational input computations in the workflow. Items can test direct \u0394H\u00b0_rxn calculation, manipulation of combined reactions, or recognition of the standard-state convention.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_21892039c9f1",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a71.1"
+        },
+        {
+          "chunk_id": "chunk_ba48274bb742",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "Second Level"
+        }
+      ]
+    },
+    {
+      "id": "theme_vant_hoff",
+      "text": "Van't Hoff equation: predicting how K shifts with temperature from \u0394H\u00b0, including the integrated form ln(K2/K1) = \u2212(\u0394H\u00b0/R)(1/T2 \u2212 1/T1) and the Le Chatelier shortcut for exothermic vs endothermic reactions.",
+      "rank": 4,
+      "rationale": "A distinct branch of the workflow with both quantitative (two-temperature K calculation) and qualitative (direction-of-shift) item formats available. The shortcut table is a natural conceptual MCQ target.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_2ffdce5b3c6a",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a73, \u00a73.1"
+        }
+      ]
+    },
+    {
+      "id": "theme_nonstandard_dG",
+      "text": "Non-standard Gibbs free energy via \u0394G = \u0394G\u00b0 + RT ln Q, and the relationship between Q and K in determining reaction direction away from standard conditions.",
+      "rank": 5,
+      "rationale": "The 'Left branch' of the workflow. Tests whether students can distinguish Q from K and reason about spontaneity at arbitrary composition, not just standard state.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_21892039c9f1",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a71.3 Non-Standard"
+        },
+        {
+          "chunk_id": "chunk_ba48274bb742",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "Left branch"
+        }
+      ]
+    },
+    {
+      "id": "theme_standard_entropy",
+      "text": "Standard entropy change of reaction \u0394S\u00b0_rxn from tabulated S\u00b0 values, including qualitative prediction of sign from change in moles of gas.",
+      "rank": 6,
+      "rationale": "The second input pillar feeding \u0394G\u00b0. Supports both computational items and conceptual sign-prediction items based on gas-mole accounting.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_21892039c9f1",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a71.2"
+        }
+      ]
+    },
+    {
+      "id": "theme_unit_consistency",
+      "text": "Unit discipline across thermodynamic quantities: reconciling \u0394H\u00b0 (kJ/mol) with \u0394S\u00b0 (J/mol\u00b7K), choosing R in J vs kJ, and enforcing T in Kelvin when combining quantities.",
+      "rank": 7,
+      "rationale": "Explicitly flagged twice in the notes ('watch the J vs kJ mismatch') and given a dedicated checklist section. High-value as distractor design in computational MCQs \u2014 wrong-unit answers are the canonical near-miss.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_40bb1c6387b3",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a74"
+        },
+        {
+          "chunk_id": "chunk_21892039c9f1",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a71.2 units note"
+        }
+      ]
+    },
+    {
+      "id": "theme_workflow_integration",
+      "text": "Integrated thermodynamic workflow: routing from tabulated \u0394H\u00b0_f and S\u00b0 through Hess's Law and entropy sums to \u0394G\u00b0, then branching to K, non-standard \u0394G, or temperature-dependent K.",
+      "rank": 8,
+      "rationale": "Multi-step problems that traverse the full workflow are the highest-Bloom items the materials directly support (apply/analyze). The notes present this as an explicit hierarchical flowchart, signaling its pedagogical centrality.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_d633395083c3",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a75"
+        },
+        {
+          "chunk_id": "chunk_ba48274bb742",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "all levels"
+        }
+      ]
+    },
+    {
+      "id": "theme_temperature_spontaneity",
+      "text": "Effect of temperature on spontaneity: how the sign and magnitude of T\u0394S\u00b0 relative to \u0394H\u00b0 determines whether \u0394G\u00b0 changes sign as T varies.",
+      "rank": 9,
+      "rationale": "Implicit in \u0394G\u00b0 = \u0394H\u00b0 \u2212 T\u0394S\u00b0 but a distinct conceptual frame from raw computation \u2014 supports analyze-level items asking at what T a reaction becomes spontaneous. Grounded in \u00a71.3, though the notes do not explicitly tabulate the four sign cases.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_21892039c9f1",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a71.3"
+        }
+      ]
+    },
+    {
+      "id": "theme_reaction_manipulation",
+      "text": "Algebraic manipulation of thermochemical equations: reversing reactions flips the sign of \u0394H\u00b0, scaling by n scales \u0394H\u00b0 by n, and adding reactions adds their \u0394H\u00b0 values.",
+      "rank": 10,
+      "rationale": "A narrow but high-frequency skill embedded in Hess's Law. Distinct enough from raw \u0394H\u00b0_rxn computation to warrant its own item slot \u2014 typically tested via multi-step combined-reaction problems.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_21892039c9f1",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a71.1 bullets"
+        }
+      ]
+    },
+    {
+      "id": "theme_K_interpretation",
+      "text": "Qualitative interpretation of the equilibrium constant: K > 1 indicates product-favored equilibrium, K < 1 reactant-favored, with the magnitude reflecting the sign and size of \u0394G\u00b0.",
+      "rank": 11,
+      "rationale": "Supports conceptual MCQs that pair a \u0394G\u00b0 sign with a K range without requiring full computation. Distinct from theme_dG_K_relation which is the quantitative form.",
+      "source_refs": [
+        {
+          "chunk_id": "chunk_2bcf1dfd4797",
+          "source_doc": "pchem_notes.pdf",
+          "locator": "\u00a72 bullets"
+        }
+      ]
+    }
+  ]
+}
