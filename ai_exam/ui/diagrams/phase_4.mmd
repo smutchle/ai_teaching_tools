@@ -1,0 +1,10 @@
+flowchart TD
+    Draft[Final ExamDraft] --> Audit[Psychometrician audit_exam]
+    Draft --> Variants[Accessibility generate_variant per item per kind]
+    Audit --> Bundle[Quarto export]
+    Variants --> Bundle
+    Draft --> Bundle
+    Draft --> Prov[provenance.json]
+    Bundle --> Render[quarto render PDF DOCX LaTeX]
+    Render --> Out[exam_bundle directory]
+    Prov --> Out

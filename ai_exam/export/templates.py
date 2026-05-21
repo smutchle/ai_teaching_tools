@@ -105,6 +105,17 @@ def _safe_meta_text(s: str) -> str:
 
 _BULLET_RE = re.compile(r"^\s*[-*+]\s")
 
+# Strip a leading letter-prefix the SME sometimes embeds inside MCQ option
+# text (e.g. "A. ...", "B) ...", "C: ..."). Without this, the rendered
+# option doubles up: "A. A) ..." because the template adds its own letter.
+# Matches an initial A-H followed by . ) : or - then whitespace. Won't
+# match plain words like "A note..." (no delimiter).
+_LEADING_LETTER_PREFIX = re.compile(r"^\s*[A-Ha-h]\s*[.\):\-]\s+")
+
+
+def _strip_option_letter_prefix(opt: str) -> str:
+    return _LEADING_LETTER_PREFIX.sub("", opt, count=1)
+
 
 def _fix_bullet_spacing(text: str) -> str:
     """Insert a blank line before any bullet that follows non-blank,
@@ -157,7 +168,7 @@ def _render_mcq_options(item: Item) -> str:
     out: list[str] = [""]
     letters = "ABCDEFGH"
     for i, opt in enumerate(item.options):
-        out.append(f"{letters[i]}. {opt}")
+        out.append(f"{letters[i]}. {_strip_option_letter_prefix(opt)}")
     out.append("")
     return "\n".join(out)
 

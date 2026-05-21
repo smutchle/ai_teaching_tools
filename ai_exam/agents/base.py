@@ -2,6 +2,7 @@
 
 import inspect
 import json
+import re
 import time
 import uuid
 from datetime import datetime, timezone
@@ -13,6 +14,33 @@ from pydantic import BaseModel, ValidationError
 from events import AgentEvent, EventKind, EventLog, summarize
 from providers import CallResult, LLMProvider
 
+
+# Models stringifying nested arrays/objects often emit invalid JSON escapes.
+# The JSON spec only allows backslash followed by: " \ / b f n r t or uXXXX.
+# Anything else — `\D` for LaTeX `\Delta`, `\'` for an apostrophe, `\c` for
+# `\circ`, etc. — is malformed and `json.loads` throws "Invalid \escape".
+#
+# The regex consumes each `\X` pair as a single match. Valid escapes (the
+# named alternatives + uXXXX) match the upper branches with group(1)=None
+# and pass through unchanged. Anything else falls to the catch-all `(.)`
+# branch with group(1)=the offending char, and we double the backslash so
+# `\D` becomes `\\D` — which json.loads correctly decodes back to `\D` in
+# the resulting string. Consuming pairs left-to-right also avoids the
+# trap where a valid `\\` (two backslashes) gets misread as invalid.
+_ESCAPE_PAIR_RE = re.compile(
+    r'\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}|(.))', re.DOTALL,
+)
+
+
+def _repair_json_escapes(s: str) -> str:
+    def _fix(m: re.Match[str]) -> str:
+        bad = m.group(1)
+        if bad is None:
+            return m.group(0)  # valid escape — pass through
+        return "\\\\" + bad
+
+    return _ESCAPE_PAIR_RE.sub(_fix, s)
+
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -20,23 +48,40 @@ class AgentResponseError(RuntimeError):
     """Raised when an agent's LLM response does not contain the expected tool call."""
 
 
+def _try_loads_lenient(s: str) -> Any | None:
+    """json.loads with a single fallback: if the strict parse fails due to a
+    non-JSON escape that a model commonly emits (e.g. `\\'`), repair and
+    retry once. Returns the parsed value, or None if even the repaired form
+    won't parse."""
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        repaired = _repair_json_escapes(s)
+        if repaired == s:
+            return None
+        try:
+            return json.loads(repaired)
+        except json.JSONDecodeError:
+            return None
+
+
 def _recursive_unwrap(v: Any) -> Any:
     """Recursively unwrap stringified-JSON values in a dict/list tree.
 
-    Whenever a string value parses via `json.loads` to a dict or list, swap
-    it in and recurse into the result. Strings that parse to JSON primitives
-    (numbers, bools, plain strings) are kept as-is — those are legitimate
-    string fields, not stringified complex objects. Strings that don't parse
-    at all are also kept as-is.
+    Whenever a string value parses via `json.loads` (with a tolerant
+    fallback for known model-emitted escape mistakes) to a dict or list,
+    swap it in and recurse. Strings that parse to JSON primitives are kept
+    as-is — those are legitimate string fields, not stringified complex
+    objects. Strings that don't parse at all (even after repair) are also
+    kept as-is.
 
     Drives Strategy A's per-field unwrap and feeds Strategy B's post-unwrap
-    recursion. Single shared traversal so any Opus stringification depth is
+    recursion. Single shared traversal so any stringification depth is
     handled uniformly.
     """
     if isinstance(v, str):
-        try:
-            parsed = json.loads(v)
-        except json.JSONDecodeError:
+        parsed = _try_loads_lenient(v)
+        if parsed is None:
             return v
         if isinstance(parsed, (dict, list)):
             return _recursive_unwrap(parsed)
@@ -122,15 +167,21 @@ class BaseAgent:
         *,
         event_log: EventLog | None = None,
         max_tokens: int = 4096,
+        max_attempts: int = 2,
     ) -> None:
         if not self.PERSONA_NAME:
             raise ValueError(
                 f"{type(self).__name__} must set the PERSONA_NAME class variable"
             )
+        if max_attempts < 1:
+            raise ValueError("max_attempts must be >= 1")
         persona_path = persona_dir / f"{self.PERSONA_NAME}.md"
         self._constitution: str = persona_path.read_text(encoding="utf-8")
         self._provider: LLMProvider = provider
         self._max_tokens: int = max_tokens
+        # On validation/no-tool-call failure, re-prompt the model with the
+        # error and try again, up to this many total attempts. 1 = no retry.
+        self._max_attempts: int = max_attempts
         self._event_log: EventLog | None = event_log
         self._current_epoch: int = 0
 
@@ -175,13 +226,25 @@ class BaseAgent:
         """Call the agent's LLM via the configured provider and return the
         response parsed as `response_model`.
 
-        Uses forced tool use to constrain the response to a JSON object matching
-        the model's JSON schema. Provider differences (Anthropic vs OpenAI tool
-        shapes, system-message format, cache controls) are handled inside the
-        provider; this method sees a uniform `CallResult`.
+        On model-output failure (no tool call, or `ValidationError` from the
+        Pydantic schema), retry up to `self._max_attempts` times, each retry
+        feeding the previous error back to the model in the user prompt:
+        *"Your previous response failed validation: <error>. Re-submit
+        matching the schema."* This catches the dominant class of failures
+        (terse models omitting required fields, stringified nested objects
+        the recursive-unwrap can't recover, etc.) without the orchestrator
+        needing to anticipate every shape.
+
+        Each attempt writes its own sidecar (`<call_id>.json` for the first
+        attempt; `<call_id>_attempt_N.json` for retries) so the audit trail
+        shows what the model said on each try. The event stream stays clean:
+        one INVOCATION_STARTED, one final INVOCATION_COMPLETED or
+        INVOCATION_FAILED — intermediate retries are not separate events.
+
+        Provider exceptions (network, rate limits, etc.) are *not* retried
+        here — they propagate immediately after the failed event.
         """
         # Capture verb name from the calling frame (the typed verb that invoked us).
-        # Falls back to None if introspection fails — log shape stays valid either way.
         verb: str | None
         try:
             verb = inspect.stack()[1].function
@@ -199,46 +262,83 @@ class BaseAgent:
             "as JSON arrays and nested objects as JSON objects — do NOT "
             "stringify nested values."
         )
+        tool_schema = response_model.model_json_schema()
+        effective_max_tokens = max_tokens or self._max_tokens
 
-        try:
-            result: CallResult = self._provider.call_with_tool(
-                system=self._constitution,
-                user_prompt=user_prompt,
-                tool_name=tool_name,
-                tool_description=tool_description,
-                tool_schema=response_model.model_json_schema(),
-                max_tokens=max_tokens or self._max_tokens,
-            )
-        except Exception as exc:
+        prompt = user_prompt
+        last_exc: Exception | None = None
+
+        for attempt in range(1, self._max_attempts + 1):
+            try:
+                result: CallResult = self._provider.call_with_tool(
+                    system=self._constitution,
+                    user_prompt=prompt,
+                    tool_name=tool_name,
+                    tool_description=tool_description,
+                    tool_schema=tool_schema,
+                    max_tokens=effective_max_tokens,
+                )
+            except Exception as exc:
+                # Provider-level failures (network, rate limit) don't get
+                # retried here — they bubble up immediately.
+                self._emit_failed(
+                    call_id, verb, target, started_at,
+                    f"{type(exc).__name__}: {exc}",
+                )
+                raise
+
+            # Sidecar per attempt: first attempt uses call_id, retries get
+            # a `_attempt_N` suffix so the audit trail shows every try.
+            sidecar_id = call_id if attempt == 1 else f"{call_id}_attempt_{attempt}"
+            self._write_sidecar_safe(sidecar_id, prompt, result.raw_response)
+
+            attempt_exc: Exception | None
+            if result.tool_input is None:
+                attempt_exc = AgentResponseError(
+                    f"no tool call returned for {tool_name!r}"
+                )
+            else:
+                try:
+                    parsed = _validate_tool_input(response_model, result.tool_input)
+                except (ValidationError, ValueError) as exc:
+                    attempt_exc = exc
+                else:
+                    self._emit_completed(
+                        call_id, verb, target, started_at,
+                        parsed, result.tokens_in, result.tokens_out,
+                    )
+                    return parsed
+
+            # We have a validation failure (or no-tool-call). Either retry
+            # or surface depending on attempts remaining.
+            last_exc = attempt_exc
+            if attempt < self._max_attempts:
+                # Build a corrective prompt: the original user prompt plus
+                # an addendum that quotes the error and asks for a corrected
+                # submission. Keep the addendum short — the model has to
+                # parse it, not produce it.
+                prompt = (
+                    f"{user_prompt}\n\n"
+                    f"--- PREVIOUS ATTEMPT {attempt} FAILED VALIDATION ---\n"
+                    f"{type(attempt_exc).__name__}: "
+                    f"{str(attempt_exc)[:800]}\n\n"
+                    "Re-submit your response, matching the schema exactly. "
+                    "Common mistakes to avoid: omitting required fields, "
+                    "stringifying nested objects or arrays, invalid JSON "
+                    "escapes inside strings."
+                )
+                continue
+
+            # Last attempt — emit failure and propagate.
             self._emit_failed(
                 call_id, verb, target, started_at,
-                f"{type(exc).__name__}: {exc}",
+                f"{type(attempt_exc).__name__}: {attempt_exc}",
             )
-            raise
+            raise attempt_exc
 
-        # Capture the sidecar BEFORE validation. A validation failure is
-        # exactly when we most need the raw response to diagnose.
-        self._write_sidecar_safe(call_id, user_prompt, result.raw_response)
-
-        if result.tool_input is None:
-            error = f"no tool call returned for {tool_name!r}"
-            self._emit_failed(call_id, verb, target, started_at, error)
-            raise AgentResponseError(f"{self.name}: {error}")
-
-        try:
-            parsed = _validate_tool_input(response_model, result.tool_input)
-        except (ValidationError, ValueError) as exc:
-            self._emit_failed(
-                call_id, verb, target, started_at,
-                f"{type(exc).__name__}: {exc}",
-            )
-            raise
-
-        self._emit_completed(
-            call_id, verb, target, started_at,
-            parsed, result.tokens_in, result.tokens_out,
-        )
-        return parsed
+        # Defensive: should never reach here because the loop returns or raises.
+        assert last_exc is not None
+        raise last_exc
 
     # -- event emission helpers --------------------------------------------------
 

@@ -151,7 +151,10 @@ class Theme(BaseModel):
 
 
 class ThemeList(BaseModel):
-    themes: list[Theme]
+    # Default to [] so a model that returns an empty/missing field yields
+    # an empty list instead of crashing with "Field required". Phase 1
+    # under-fills (zero themes) — the BlueprintArchitect handles that case.
+    themes: list[Theme] = Field(default_factory=list)
 
 
 class BlueprintCell(BaseModel):
@@ -210,7 +213,10 @@ class ItemDraft(BaseModel):
 
 
 class ItemDraftList(BaseModel):
-    items: list[ItemDraft]
+    # Default to [] so an empty/missing field yields an empty list instead
+    # of crashing the whole Phase-2 gather. A cell that gets no drafts
+    # under-fills; the rest of Phase 2 proceeds normally.
+    items: list[ItemDraft] = Field(default_factory=list)
 
 
 class Item(ItemDraft):
@@ -239,7 +245,7 @@ class ObjectionDraft(BaseModel):
 
 
 class ObjectionDraftList(BaseModel):
-    objections: list[ObjectionDraft]
+    objections: list[ObjectionDraft] = Field(default_factory=list)
 
 
 class Objection(ObjectionDraft):
@@ -256,7 +262,7 @@ class ItemObjections(BaseModel):
     """
 
     item_id: str
-    objections: list[ObjectionDraft]
+    objections: list[ObjectionDraft] = Field(default_factory=list)
 
 
 class ItemObjectionsBatch(BaseModel):
@@ -267,13 +273,20 @@ class ItemObjectionsBatch(BaseModel):
     schema enforces a list-of-entries rather than a free-form mapping.
     """
 
-    items: list[ItemObjections]
+    items: list[ItemObjections] = Field(default_factory=list)
 
 
 class Rebuttal(BaseModel):
     objection_id: str
     stance: RebuttalStance
-    rationale: str
+    rationale: str = Field(
+        default="",
+        description=(
+            "Brief justification for the stance. Optional — omit when the "
+            "stance is self-explanatory; never omit `objection_id` or "
+            "`stance`."
+        ),
+    )
     proposed_edit_summary: str | None = Field(
         default=None,
         description="Summary of the edit you would make. Required when stance == accept.",
@@ -289,12 +302,19 @@ class RebuttalBatch(BaseModel):
     and collapses one Claude/Kimi call per objection to one per item.
     """
 
-    rebuttals: list[Rebuttal]
+    rebuttals: list[Rebuttal] = Field(default_factory=list)
 
 
 class EditResult(BaseModel):
     updated_draft: ItemDraft
-    rationale: str
+    rationale: str = Field(
+        default="",
+        description=(
+            "Brief explanation of what was changed and why. "
+            "Optional — omit when the change is self-evident or you have no "
+            "additional commentary; never omit `updated_draft`."
+        ),
+    )
 
 
 class AlignmentResult(BaseModel):
@@ -374,7 +394,7 @@ class ExamAudit(BaseModel):
     """Psychometrician's exam-level audit: report + any objections raised."""
 
     report: ExamReport
-    objections: list[ObjectionDraft]
+    objections: list[ObjectionDraft] = Field(default_factory=list)
 
 
 class ExamDraft(BaseModel):

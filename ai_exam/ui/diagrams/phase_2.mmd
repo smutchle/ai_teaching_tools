@@ -1,0 +1,13 @@
+flowchart TD
+    Cell[Blueprint cell] --> Retr[Chroma retrieval]
+    Retr --> SME[SME propose_items 2x]
+    SME --> IWS[IWS cleanup]
+    IWS --> LOA[LOA verify_alignment]
+    LOA -->|aligned| Ground[Grounding verify]
+    LOA -->|misaligned| Realign[LOA suggest_realignment]
+    Realign --> LOA2[LOA re-verify]
+    LOA2 -->|aligned| Ground
+    LOA2 -->|misaligned| Rej1[reject]
+    Ground -->|grounded| Accept[accept]
+    Ground -->|not grounded| Rej2[reject]
+    Accept --> CP2[Checkpoint 2]

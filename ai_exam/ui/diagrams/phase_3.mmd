@@ -1,0 +1,15 @@
+flowchart TD
+    Start[Enter Phase 3] --> Epoch[Epoch 1 to max_epochs]
+    Epoch --> Crit[Critique pass parallel batched]
+    Crit --> Routing[Route objections per item]
+    Routing -->|critical| Edit[SME edit + reverify cascade]
+    Routing -->|non-critical| Rebut[SME rebut_objections batched]
+    Rebut -->|ACCEPT| Edit
+    Rebut -->|REBUT or DEFER| Stay[objection stays open]
+    Edit -->|passes| Resolved[resolved]
+    Edit -->|fails| Rejected[item rejected]
+    Resolved --> Conv[Convergence check]
+    Stay --> Conv
+    Rejected --> Conv
+    Conv -->|crit or high open| Epoch
+    Conv -->|none open| CP3[Checkpoint 3]

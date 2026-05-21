@@ -88,13 +88,34 @@ def launch_run(project_root: Path, spec: LaunchSpec) -> dict[str, Any]:
 
 
 def is_pid_alive(pid: int) -> bool:
-    """True if the process is still running. POSIX-only, fine for our targets."""
+    """True if the process is running. False for missing AND zombie processes.
+
+    Plain `os.kill(pid, 0)` returns success on zombies (defunct processes
+    whose entry is still in the process table waiting to be reaped), which
+    causes the UI to report a crashed pipeline as still running. We read
+    `/proc/<pid>/status` and reject `State: Z (zombie)` explicitly. Falls
+    back to `os.kill` when /proc isn't readable (non-Linux).
+    """
+    proc_status = f"/proc/{pid}/status"
+    try:
+        with open(proc_status) as f:
+            for line in f:
+                if line.startswith("State:"):
+                    parts = line.split()
+                    if len(parts) >= 2 and parts[1] == "Z":
+                        return False  # zombie — parent hasn't reaped it
+                    return True
+        # No State: line — odd, but treat as alive.
+        return True
+    except FileNotFoundError:
+        return False
+    except (OSError, PermissionError):
+        pass
     try:
         os.kill(pid, 0)
     except ProcessLookupError:
         return False
     except PermissionError:
-        # We don't own the process but it exists — treat as alive.
         return True
     return True
 

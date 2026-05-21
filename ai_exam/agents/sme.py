@@ -218,7 +218,7 @@ class SMEAgent(BaseAgent):
         cell: BlueprintCell,
         context: list[Chunk],
         *,
-        overgenerate_factor: float = 1.5,
+        overgenerate_factor: float = 2.0,
     ) -> list[ItemDraft]:
         n = max(1, math.ceil(cell.target_item_count * overgenerate_factor))
         prompt = (

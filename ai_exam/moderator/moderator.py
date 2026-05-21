@@ -20,6 +20,8 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from agents import (
     AccessibilityExpertAgent,
     AdversarialStudentAgent,
@@ -30,6 +32,7 @@ from agents import (
     PsychometricianAgent,
     SMEAgent,
 )
+from agents.base import AgentResponseError
 from events import AgentEvent, EventKind, EventLog
 from models import (
     AccommodationKind,
@@ -261,9 +264,14 @@ class Moderator:
         # Phase 2 — cells are independent (separate retrieval + SME calls per
         # cell), so fan them out. The only cross-cell shared state is
         # `_item_counter`, which is locked inside `_promote`.
+        #
+        # Each cell is wrapped so a model-output failure in one cell doesn't
+        # collapse the whole gather. The cell just under-fills and the run
+        # continues — surviving cells still produce items, and the overall
+        # Phase-2 snapshot will reflect what landed.
         self._emit_phase("phase_2", "Item generation: per-cell propose → cleanup → verify → ground")
         outcomes = gather_sync([
-            (lambda c=cell: self._phase_2_cell(c)) for cell in blueprint.cells
+            (lambda c=cell: self._safe_phase_2_cell(c)) for cell in blueprint.cells
         ])
 
         all_accepted: list[Item] = []
@@ -302,6 +310,27 @@ class Moderator:
 
     # -- Phase 2 -----------------------------------------------------------------
 
+    def _safe_phase_2_cell(self, cell: BlueprintCell) -> Phase2Outcome:
+        """Per-cell wrapper that catches the specific model-output failure
+        types (ValidationError + AgentResponseError) and converts them into
+        an empty Phase2Outcome. Any other exception still propagates — we
+        don't want to silently swallow infrastructure bugs (Chroma errors,
+        retriever crashes, etc.).
+        """
+        try:
+            return self._phase_2_cell(cell)
+        except (ValidationError, AgentResponseError) as exc:
+            self._emit_routing(
+                target=f"cell:{cell.topic_id}:{cell.bloom_level.value}",
+                decision=(
+                    f"cell failed and under-filled: "
+                    f"{type(exc).__name__}: {str(exc)[:200]}"
+                ),
+            )
+            return Phase2Outcome(
+                cell=cell, accepted=[], rejected=[], cited_chunks_by_item={},
+            )
+
     def _phase_2_cell(self, cell: BlueprintCell) -> Phase2Outcome:
         # Skip cells the blueprint marked as zero-item — BA sometimes produces
         # degenerate cells when it folds a topic's points into cross-citations
@@ -318,8 +347,8 @@ class Moderator:
         if not ctx_chunks:
             return Phase2Outcome(cell=cell, accepted=[], rejected=[], cited_chunks_by_item={})
 
-        # SME proposes 1.5× target item count.
-        drafts = self._agents.sme.propose_items(cell, ctx_chunks, overgenerate_factor=1.5)
+        # SME proposes 2× target item count to absorb LOA/Grounding rejections.
+        drafts = self._agents.sme.propose_items(cell, ctx_chunks, overgenerate_factor=2.0)
 
         accepted: list[Item] = []
         rejected: list[tuple[Item, str]] = []
@@ -330,12 +359,22 @@ class Moderator:
             # over-accepts, even when overgenerate gives us extra drafts).
             if len(accepted) >= cell.target_item_count:
                 break
-            # 1. IWS mechanical cleanup pre-promotion (still ItemDraft).
-            cleanup_result: EditResult = self._agents.iws.cleanup(draft)
-            cleaned_draft = cleanup_result.updated_draft
+            # 1. IWS mechanical cleanup pre-promotion. Skip cleanly if IWS
+            # returns a malformed EditResult — cleanup is polish, not
+            # load-bearing; the SME's draft is acceptable as-is.
+            try:
+                cleanup_result: EditResult = self._agents.iws.cleanup(draft)
+                cleaned_draft = cleanup_result.updated_draft
+                cleanup_rationale = cleanup_result.rationale
+            except (ValidationError, AgentResponseError) as exc:
+                cleaned_draft = draft
+                cleanup_rationale = (
+                    f"skipped — IWS produced malformed EditResult "
+                    f"({type(exc).__name__}); using SME draft as-is."
+                )
 
             # 2. Promote to Item with provenance for proposal + cleanup.
-            item = self._promote(cleaned_draft, target_cell=cell, cleanup_rationale=cleanup_result.rationale)
+            item = self._promote(cleaned_draft, target_cell=cell, cleanup_rationale=cleanup_rationale)
 
             # 3. LOA alignment verification.
             alignment: AlignmentResult = self._agents.loa.verify_alignment(item, self._course_spec.clos)
@@ -768,7 +807,7 @@ class Moderator:
             routable.append((item, objs))
 
         outcomes: list[_RoutingOutcome] = gather_sync([
-            (lambda it=item, os=objs: self._route_item_objections(draft, it, os))
+            (lambda it=item, os=objs: self._safe_route_item_objections(draft, it, os))
             for item, objs in routable
         ])
 
@@ -800,6 +839,33 @@ class Moderator:
         return metrics
 
     # -- Phase 3 helpers --------------------------------------------------------
+
+    def _safe_route_item_objections(
+        self,
+        draft: ExamDraft,
+        item: Item,
+        objections: list[Objection],
+    ) -> _RoutingOutcome:
+        """Per-item routing wrapper. Catches the specific model-output
+        failure types and marks the item rejected with a routing-event
+        rationale, so one bad item can't collapse the whole epoch's gather.
+        Mirrors _safe_phase_2_cell for symmetry."""
+        try:
+            return self._route_item_objections(draft, item, objections)
+        except (ValidationError, AgentResponseError) as exc:
+            item.status = ItemStatus.REJECTED
+            self._append_provenance(
+                item, agent="moderator", action="rejected",
+                rationale=(
+                    f"routing aborted: {type(exc).__name__}: "
+                    f"{str(exc)[:200]}"
+                ),
+            )
+            self._emit_routing(
+                target=item.id,
+                decision=f"item routing failed and item rejected: {type(exc).__name__}",
+            )
+            return _RoutingOutcome(item_id=item.id, item_rejected=True)
 
     def _route_item_objections(
         self,
@@ -901,13 +967,25 @@ class Moderator:
             rationale=f"[{reason}] {edit_result.rationale}",
         )
 
-        # Mechanical re-cleanup after the content edit.
-        cleanup: EditResult = self._agents.iws.cleanup(item)
-        self._replace_item_fields(item, cleanup.updated_draft)
-        self._append_provenance(
-            item, agent="item_writing_specialist", action="edited",
-            rationale=f"[post-edit cleanup] {cleanup.rationale}",
-        )
+        # Mechanical re-cleanup after the content edit. If IWS returns a
+        # malformed EditResult (e.g. missing updated_draft), skip the
+        # cleanup and proceed with the SME-edited item unchanged — the
+        # cleanup is a polish step, not load-bearing.
+        try:
+            cleanup: EditResult = self._agents.iws.cleanup(item)
+            self._replace_item_fields(item, cleanup.updated_draft)
+            self._append_provenance(
+                item, agent="item_writing_specialist", action="edited",
+                rationale=f"[post-edit cleanup] {cleanup.rationale}",
+            )
+        except (ValidationError, AgentResponseError) as exc:
+            self._append_provenance(
+                item, agent="item_writing_specialist", action="edited",
+                rationale=(
+                    f"[post-edit cleanup] skipped — IWS produced malformed "
+                    f"EditResult ({type(exc).__name__}); using SME edit as-is."
+                ),
+            )
 
         # LOA re-check.
         alignment: AlignmentResult = self._agents.loa.verify_alignment(item, self._course_spec.clos)

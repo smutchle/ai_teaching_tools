@@ -1,0 +1,4 @@
+flowchart LR
+    PDF[PDF] --> Chunk[Heading-aware chunker]
+    Chunk --> Embed[Ollama embedder]
+    Embed --> Chroma[Chroma collection]

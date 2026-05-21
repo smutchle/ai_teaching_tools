@@ -111,22 +111,23 @@ def render_course_spec_form(state_key: str) -> dict[str, Any]:
         clos.append(_blank_clo())
         st.rerun()
 
-    st.markdown("#### Syllabus topics")
+    st.markdown("#### Materials topics")
     st.caption(
-        "These are the subject areas you intend the exam to cover — your syllabus "
-        "skeleton. The pipeline uses each topic name as a retrieval query against "
-        "the uploaded materials, so topics that *match real language in the PDF* "
-        "retrieve better chunks and produce better items.\n\n"
+        "Subject areas covered by the uploaded materials — the labels under "
+        "which content is grouped. The pipeline uses each topic name as a "
+        "retrieval query against the PDF, so topics that *match real language "
+        "in the materials* retrieve better chunks and produce better items.\n\n"
         "**How this differs from \"themes\":** in Phase 1 the SME agent also "
         "extracts *themes* — exam-item-friendly framings of what the corpus "
-        "actually emphasizes. Themes are auto-discovered from your PDF; you don't "
-        "supply them. The Blueprint Architect reconciles your topics against the "
-        "SME's themes and flags any topic the corpus doesn't support."
+        "actually emphasizes. Themes are auto-discovered from your PDF; you "
+        "don't supply them. The Blueprint Architect reconciles your topics "
+        "against the SME's themes and flags any topic the materials don't "
+        "actually support."
     )
     st.caption(
         "Weights are relative — they govern how the blueprint distributes "
-        "points across the syllabus. Weights are normalized at use time; "
-        "they do not need to sum to 1.0 exactly."
+        "points across topics. Weights are normalized at use time; they do "
+        "not need to sum to 1.0 exactly."
     )
 
     topics = spec.setdefault("topics", [])

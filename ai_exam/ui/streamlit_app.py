@@ -4,7 +4,7 @@ Read-only multi-page app over the JSON snapshots and events.jsonl that
 `run.py` writes under `runs/run_<ts>/`. Three pages:
 
 - Job Monitor — timeline view of the event stream, with live polling
-- Export Bundle — download buttons and inline previews for Phase-4 artifacts
+- Job Outputs — download buttons and inline previews for Phase-4 artifacts
 - Personas — edit the agent constitution `.md` files
 
 Run with `./run.sh` (foreground) or `./run_in_background.sh` (nohup).
@@ -49,6 +49,11 @@ def _personas() -> None:
     render_personas_page(persona_dir=_PERSONA_DIR)
 
 
+def _docs() -> None:
+    from ui.docs_view import render_docs_page
+    render_docs_page()
+
+
 def main() -> None:
     st.set_page_config(
         page_title="AI Exam Builder",
@@ -58,9 +63,10 @@ def main() -> None:
     )
     run_page = st.Page(_run, title="Run", default=True)
     job_monitor_page = st.Page(_transcript, title="Job Monitor")
-    bundle_page = st.Page(_bundle, title="Export Bundle")
+    bundle_page = st.Page(_bundle, title="Job Outputs")
     personas_page = st.Page(_personas, title="Personas")
-    nav = st.navigation([run_page, job_monitor_page, bundle_page, personas_page])
+    docs_page = st.Page(_docs, title="Documentation")
+    nav = st.navigation([run_page, job_monitor_page, bundle_page, personas_page, docs_page])
     # If the Run page set this flag (one-shot), jump to Job Monitor immediately.
     if st.session_state.pop("_switch_to_transcript", False):
         st.switch_page(job_monitor_page)

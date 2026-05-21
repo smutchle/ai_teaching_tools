@@ -49,7 +49,7 @@ def _pdf_inline(path: Path) -> None:
 
 
 def render_bundle_page(*, runs_dir: Path) -> None:
-    st.title("Export Bundle")
+    st.title("Job Outputs")
 
     runs = list_runs(runs_dir)
     runs_with_bundle = [r for r in runs if (r / "exam_bundle").exists()]

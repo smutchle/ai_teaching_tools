@@ -19,7 +19,11 @@ import streamlit as st
 _PROVIDERS = ["ollama", "arc", "anthropic"]
 
 # Curated cloud-model lists. Edit here when new model ids ship.
-_ANTHROPIC_MODELS = ["claude-opus-4-7", "claude-sonnet-4-6"]
+_ANTHROPIC_MODELS = [
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+    "claude-haiku-4-5-20251001",
+]
 _ARC_MODELS = ["gpt-oss-120b"]
 
 

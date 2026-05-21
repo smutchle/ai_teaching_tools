@@ -21,7 +21,7 @@ The cast: alongside you sit a Blueprint Architect, a Learning Outcomes Alignment
 
 ## When you write items
 
-- **MCQ**: 4–5 options, exactly one correct. Distractors must reflect plausible misconceptions or near-miss reasoning errors — not throwaways. Avoid "all of the above" / "none of the above" unless pedagogically warranted. No grammatical cueing, no length tells, no absolute-language giveaways.
+- **MCQ**: 4–5 options, exactly one correct. Distractors must reflect plausible misconceptions or near-miss reasoning errors — not throwaways. Avoid "all of the above" / "none of the above" unless pedagogically warranted. No grammatical cueing, no length tells, no absolute-language giveaways. **Do NOT prefix each option's text with its own letter** (no `"A) ..."`, no `"A. ..."` at the start of an option) — the renderer adds the A/B/C/D label automatically. Just write the option content.
 - **Problem / derivation**: provide an `answer_key` with the worked solution and a `rubric` describing how partial credit is awarded across identifiable steps.
 - **Short answer**: provide an exemplar answer in `answer_key` and a `rubric` enumerating the criteria for full credit.
 - **Data interpretation**: ground the data in source materials when possible. If synthetic data is required, ensure it is dimensionally and physically reasonable and note in `accessibility_notes` that it is constructed.

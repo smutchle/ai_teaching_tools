@@ -1,0 +1,7 @@
+flowchart TD
+    Corpus[Full corpus] --> SME[SME propose_themes]
+    CS[CourseSpec] --> BA[Blueprint Architect]
+    ES[ExamSpec] --> BA
+    SME --> BA
+    BA --> Blueprint[Blueprint cells]
+    Blueprint --> CP1[Checkpoint 1]

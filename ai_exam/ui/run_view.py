@@ -232,8 +232,14 @@ def render_run_page(*, project_root: Path) -> None:
 
     st.divider()
 
-    # --- Course spec ---
-    st.markdown("## 2. Course spec")
+    # --- Materials spec ---
+    st.markdown("## 2. Materials spec")
+    st.caption(
+        "Describe what the uploaded materials cover — the learning objectives "
+        "students should be tested on (MLOs), the syllabus topics those "
+        "materials map to, and any free-text principles you want every agent "
+        "to honor. Scope these to the **uploaded PDF**, not the whole course."
+    )
     with st.container(border=True):
         course_spec = render_course_spec_form("course_spec_form")
 
@@ -272,23 +278,25 @@ def render_run_page(*, project_root: Path) -> None:
         state_key_provider="tier_low_provider",
         state_key_model="tier_low_model",
         ollama_fallback_model=_cfg.OLLAMA_MODEL,
-        default=TierChoice(provider="ollama", model=_cfg.OLLAMA_MODEL),
+        default=TierChoice(provider="anthropic", model="claude-haiku-4-5-20251001"),
     )
 
-    knob_cols = st.columns(3)
-    with knob_cols[0]:
-        max_ep_override = st.number_input(
-            "Max epochs override",
-            min_value=0, max_value=10,
-            value=int(st.session_state.get("max_epochs_override") or 0),
-            step=1,
-            help="0 = use policy.max_epochs.",
-        )
-        st.session_state["max_epochs_override"] = max_ep_override or None
-    with knob_cols[1]:
-        skip_3 = st.toggle("Skip Phase 3", value=True, help="Skip refinement loop.")
-    with knob_cols[2]:
-        skip_4 = st.toggle("Skip Phase 4", value=True, help="Skip audit + export.")
+    # Dynamic default: read from the live policy form so changing the policy's
+    # max_epochs there flows through here. Falls back to 4 if the form hasn't
+    # populated yet (shouldn't happen, but defensive).
+    _policy_form = st.session_state.get("policy_form", {}) or {}
+    _policy_max = int(_policy_form.get("max_epochs", 4)) or 4
+    max_epochs = st.number_input(
+        "Max Phase 3 refinement epochs",
+        min_value=1, max_value=10,
+        value=int(st.session_state.get("max_epochs_override") or _policy_max),
+        step=1,
+        help="Hard cap on the Phase 3 refinement loop. Each epoch is one full "
+             "critique → SME-rebut/edit → reverify cycle over every surviving "
+             "item. Convergence (no critical or high objections left open) "
+             "exits the loop earlier than the cap.",
+    )
+    st.session_state["max_epochs_override"] = max_epochs
 
     st.divider()
 
@@ -314,8 +322,6 @@ def render_run_page(*, project_root: Path) -> None:
             inputs_dir=inputs_dir,
             outputs_dir=outputs_dir,
             max_epochs=st.session_state.get("max_epochs_override"),
-            skip_phase_3=skip_3,
-            skip_phase_4=skip_4,
             high_provider=high.provider,
             high_model=high.model,
             low_provider=low.provider,
