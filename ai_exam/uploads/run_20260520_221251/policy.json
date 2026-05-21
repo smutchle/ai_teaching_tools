@@ -1,0 +1,11 @@
+{
+  "priority_rank": [
+    "content_fidelity",
+    "cognitive_alignment",
+    "accessibility",
+    "discrimination",
+    "brevity"
+  ],
+  "max_epochs": 4,
+  "convergence_rule": "no_critical_or_high_for_one_epoch"
+}

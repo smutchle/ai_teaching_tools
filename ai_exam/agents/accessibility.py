@@ -12,6 +12,8 @@ from models import (
     EditResult,
     Item,
     ItemDraft,
+    ItemObjections,
+    ItemObjectionsBatch,
     ItemVariant,
     Objection,
     ObjectionDraft,
@@ -19,6 +21,7 @@ from models import (
 )
 
 from agents.base import BaseAgent
+from agents.critique_batch import normalize_critique_batch as _normalize_critique_batch
 
 
 def _format_item(item: ItemDraft | Item) -> str:
@@ -28,26 +31,57 @@ def _format_item(item: ItemDraft | Item) -> str:
 class AccessibilityExpertAgent(BaseAgent):
     PERSONA_NAME: ClassVar[str] = "accessibility"
 
+    _CRITIQUE_GUIDANCE = (
+        "Inspect each item for accessibility and universal-design issues. "
+        "Use category strings from the catalogue in your constitution. One "
+        "objection per distinct issue.\n\n"
+        "Focus on construct-irrelevant difficulty: text that is harder than "
+        "the construct it is meant to measure. Idioms, unnecessarily complex "
+        "syntax, low-frequency vocabulary that is not the discipline's "
+        "technical vocabulary, dense parenthetical asides, and culturally "
+        "narrow examples all add load without measuring anything.\n\n"
+        "Stay in your lane: do not raise objections about content correctness "
+        "(SME), mechanics (IWS), alignment (LOA), or psychometric calibration "
+        "(Psychometrician). When in doubt about whether a difficulty is "
+        "construct-relevant, defer to the SME by raising a low-severity "
+        "objection rather than a high-severity one."
+    )
+
     def critique(self, item: Item) -> list[ObjectionDraft]:
         prompt = (
-            f"Inspect item {item.id} for accessibility and universal-design issues. "
-            "Use category strings from the catalogue in your constitution. Set target "
-            "to the item id exactly as given. One objection per distinct issue.\n\n"
-            "Focus on construct-irrelevant difficulty: text that is harder than the "
-            "construct it is meant to measure. Idioms, unnecessarily complex syntax, "
-            "low-frequency vocabulary that is not the discipline's technical "
-            "vocabulary, dense parenthetical asides, and culturally narrow examples "
-            "all add load without measuring anything.\n\n"
-            "Stay in your lane: do not raise objections about content correctness "
-            "(SME), mechanics (IWS), alignment (LOA), or psychometric calibration "
-            "(Psychometrician). When in doubt about whether a difficulty is "
-            "construct-relevant, defer to the SME by raising a low-severity "
-            "objection rather than a high-severity one.\n\n"
-            "If the item is genuinely clean from an accessibility standpoint, return "
-            "an empty list — but examine first.\n\n"
+            f"{self._CRITIQUE_GUIDANCE}\n\nSet `target` to the item id exactly "
+            f"as given. If the item is genuinely clean from an accessibility "
+            f"standpoint, return an empty list — but examine first.\n\n"
             f"--- ITEM (id={item.id}) ---\n{_format_item(item)}"
         )
         return self._invoke(prompt, ObjectionDraftList).objections
+
+    def critique_batch(self, items: list[Item]) -> list[ItemObjections]:
+        """Batch form: critique all items in one call.
+
+        Returns one ItemObjections entry per input item in input order. Empty
+        objection lists are kept (so the caller sees explicit "no concerns"
+        per item). Any objection whose `target` doesn't match its containing
+        item is patched on the way out — the schema requires per-entry
+        attribution and the Moderator relies on it.
+        """
+        if not items:
+            return []
+        item_blocks = [
+            f"--- ITEM (id={it.id}) ---\n{_format_item(it)}" for it in items
+        ]
+        prompt = (
+            f"{self._CRITIQUE_GUIDANCE}\n\n"
+            f"Inspect ALL {len(items)} items below. For each item return an "
+            "entry in the response with `item_id` set to the item id exactly "
+            "as given and `objections` containing your findings for THAT item. "
+            "Include every item even if you have no concerns — return "
+            "`objections: []` for clean items. Each ObjectionDraft's `target` "
+            "should equal its containing item's id.\n\n"
+            + "\n\n".join(item_blocks)
+        )
+        batch = self._invoke(prompt, ItemObjectionsBatch)
+        return _normalize_critique_batch(batch, items)
 
     def propose_edit(self, item: Item, objection: Objection) -> EditResult:
         prompt = (

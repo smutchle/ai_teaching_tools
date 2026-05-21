@@ -6,6 +6,33 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 
 ---
 
+## Handoff — pick up here
+
+**Where we are:** Phase 0–4 are live. Phase 4 (audit + variants + Quarto export) and Phase 2/3 parallelism landed in this session. CLI entry point: `python run.py --pdf test_data/pchem_notes.pdf [--max-epochs N] [--skip-phase-3] [--skip-phase-4]`. Outputs land under `runs/run_<ts>/` with per-phase JSON snapshots, `events/events.jsonl`, per-call sidecars, `transcript.md`, and (Phase 4) an `exam_bundle/` with PDF + DOCX + LaTeX + provenance.
+
+**To re-run from scratch:** activate the `genai` conda env, ensure `.env` has `ANTHROPIC_API_KEY`, ensure Ollama is up at `localhost:11434` with `nomic-embed-text-v2-moe:latest`, ensure `quarto` is on PATH (`which quarto` → e.g. `/opt/quarto/bin/quarto`), then `conda run --no-capture-output -n genai python run.py --pdf test_data/pchem_notes.pdf --max-epochs 1`.
+
+**Expected speedup from parallelism (not yet measured on real corpus):** the 113-call Phase 3 epoch was fully sequential. The critique pass (21 Sonnet calls) now runs in parallel; the routing pass parallelizes across items (within an item objections stay sequential because edits mutate the item); Phase 2 cells run in parallel. Wall-clock should drop substantially even at the same call count.
+
+**Most useful next pieces (in order of payoff):**
+1. **Validate the ARC + batching wins on real corpus.** Provider abstraction landed (`providers.py`), default route is `arc/gpt-oss-120b` (free via VT ARC). Batched SME `rebut_objections` (1 call per item × non-critical objections, instead of 1 per objection) and batched critic `critique_batch` (1 call per critic, not 1 per critic×item). Old serial call count on test corpus = 131; expected new = roughly 50-65. To swap any agent back to Claude, edit `config.MODEL_REGISTRY` (e.g. `"sme": _ANTHROPIC_OPUS`).
+2. **LOA `suggest_realignment` fallback in Phase 2** — biggest single quality lift. SME bloom-inflation is real; LOA `suggest_realignment` already exists as a verb but is never called. Wire it: when LOA rejects for `bloom_level_mismatch`, ask LOA for a suggestion, apply `remap_bloom` automatically. Recovers ~3 items per run that currently get dropped.
+3. **Streamlit UI** (you asked to be told before any UI work begins). The reader-side recipe for the chat-style transcript view is in `TODO.md` §7.
+4. Phase 3 polish: rebut-reassert escalation tracking, `priority_rank` consultation for cross-objection conflicts.
+5. Variant smoke test against real data: `test_data/exam_spec.json` currently has `accommodations_required: []` so the variant path is unexercised in the default run. Either add a kind to that spec for verification or write a unit test.
+6. Adaptive theme extraction landed (`SMEAgent.propose_themes`) — splits large corpora into ~80k-token batches and consolidates. Unit-tested for the splitter; full multi-batch path unexercised because the test corpus (7 chunks) hits the single-pass path. To exercise, lower the constructor's `theme_chunk_budget_chars` or ingest a real textbook.
+
+**What you should NOT remove without thinking:**
+- `_validate_tool_input` in `agents/base.py` — the four-strategy unwrap is load-bearing; Opus 4.7 stringifies nested fields unpredictably. Removing it will break Phase 3 within the first SME edit.
+- The `temperature` parameter is intentionally absent from `BaseAgent._invoke` — Opus 4.7 rejects it as deprecated.
+- Per-cell loop's top-of-loop break check + zero-target short-circuit in `_phase_2_cell` — guards against the off-by-one when BA produces target=0 cells.
+- `self._item_counter_lock` in `Moderator` — Phase 2 cells run in parallel and the item id counter is the one piece of cross-worker shared state. Without the lock, item ids could collide.
+- `_route_item_objections` is per-item by design — never collapse it back into a flat `for objection in objections_open` loop. The per-item grouping is what makes the parallel fan-out safe (same-item edits stay sequential).
+
+**Latest run:** `runs/run_20260520_142951/` — pre-parallelism baseline. Phase 2: 7 items / 25 pts → Phase 3 (1 epoch): 6 REFINED items / 22 pts / 38 open objections / 1 rejection. Phase 4 unverified on a fresh run; smoke-test against this draft + a stub `ExamAudit` produced all 16 expected files (qmd + pdf + docx + tex × 4 documents, plus provenance.json), zero Quarto failures.
+
+---
+
 ## Snapshot
 
 | Layer | Status |
@@ -18,13 +45,16 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 | Real retrieval (Ollama embedder + ChromaRetriever + pypdf ingestion) | done |
 | Grounding Verifier | done |
 | Moderator Phase 0–2 (intake → themes/blueprint/CP1 → per-cell items/CP2) | done, real-data verified |
-| Moderator Phase 3 (parallel critique + epoch loop + routing) | in progress |
+| Moderator Phase 3 (parallel critique + epoch loop + accept/rebut/defer + re-verify) | done, real-data verified (1 epoch); parallelism not yet measured on real corpus |
+| Moderator Phase 4 (audit + variants + Quarto export bundle) | done, smoke-tested against prior draft + stub audit |
 | `config.py` + `.env` + per-agent model registry | done |
 | `run.py` CLI entry point | done |
 | SQLite persistence layer | not started |
-| Streamlit UI (any screen) | not started |
-| Streamlit chat transcript view + download buttons | not started |
-| Export bundle (DOCX/PDF/QTI/LaTeX/JSON) | not started |
+| Streamlit UI (4 pages: Run / Transcript / Bundle / Personas) | done — port 8550, `./run.sh` / `./run_in_background.sh` |
+| Streamlit chat transcript view + download buttons | done (chat bubbles, live polling, sidecar drill-down, ZIP bundle download) |
+| Streamlit Run page (forms + kick-off + subprocess) | done — full forms for CourseSpec / ExamSpec / TradeOffPolicy, dynamic CLO + Topic lists, launches `python run.py` via Popen with detached session |
+| Streamlit driver UI (pauses at CP1/CP2/CP3 for human approval) | not started — design decision: kick-off-and-watch, no human-in-the-loop checkpoints |
+| Export bundle (DOCX/PDF/LaTeX/JSON) | done via Quarto (`export/`); QTI/Common Cartridge not started |
 
 ---
 
@@ -80,40 +110,46 @@ Legend: `[x]` done · `[~]` in progress · `[ ]` not started
 
 ### 6. Moderator + trade-off policy engine
 
-- [x] `Moderator` deterministic router (not an LLM): Phase 0–2 state machine in place
-- [x] `TradeOffPolicy` data type (`moderator/policy.py`): priority ranking over 5 dimensions + max_epochs + convergence rule. Phase 0–2 loads it but does not consult it; Phase 3 will use it for conflict resolution.
-- [x] Promotion logic: `ItemDraft` → `Item` (assign id, status=draft, append SME-proposed + IWS-edited provenance); `ObjectionDraft` → `Objection` model exists; Phase 3 will do the stamping
-- [x] Provenance append on every state change in Phase 0–2 (SME proposed, IWS edited, LOA accepted/rejected, Grounding accepted/rejected)
-- [ ] Phase 3 epoch loop: parallel (or sequential for v0) critique by Accessibility + Adversarial Student + Psychometrician; LOA + IWS re-check after edits
-- [ ] Phase 3 routing: critical → force SME edit or reject; conflict → priority_rank tiebreaker; otherwise → SME accept/rebut/defer
-- [ ] Anti-sycophancy enforcement: re-prompt critics whose epoch-1 critique is empty (per design §3)
-- [ ] Rebut-reassert loop bounded to 2 rounds before professor escalation (per design §5)
-- [ ] Convergence detection: exit when no critical/high objections open at end of an epoch
-- [ ] True parallelism for Phase 3 critique pass (sync first for debug; switch to async once the loop is stable)
+- [x] `Moderator` deterministic router (not an LLM): Phase 0–3 state machine in place
+- [x] `TradeOffPolicy` data type (`moderator/policy.py`): priority ranking over 5 dimensions + max_epochs + convergence rule. Loaded by Moderator; `max_epochs` is consulted (overridable via `--max-epochs`); `priority_rank` not yet consulted (see below).
+- [x] Promotion logic: `ItemDraft` → `Item` (assign id, status=draft, append SME-proposed + IWS-edited provenance); `ObjectionDraft` → `Objection` (uuid id, agent stamp from critic PERSONA_NAME)
+- [x] Provenance append on every state change (objected, edited, accepted, rejected, resolved with REBUT/DEFER detail)
+- [x] Phase 3 epoch loop in `Moderator.run_through_checkpoint_3`: sequential critique by Accessibility + Adversarial Student + Psychometrician on every non-rejected item
+- [x] Phase 3 routing: critical → force SME edit + re-verify (IWS cleanup → LOA → Grounding); non-critical → `SME.rebut_objection` then ACCEPT (edit + re-verify) / REBUT (log, objection stays open) / DEFER (log, stays open)
+- [x] Post-edit re-verification: after every SME edit, run IWS cleanup → LOA verify → Grounding verify. Failure rejects the item with provenance.
+- [x] Convergence detection: count critical+high in `objections_open` at end of epoch; exit if zero
+- [x] `EpochMetrics` snapshot per epoch (`phase_3_epoch_N.json`) + final snapshot (`phase_3_final_draft.json`)
+- [ ] Anti-sycophancy enforcement: re-prompt critics whose epoch-1 critique is empty (per design §3). Personas already discourage empty critique; no programmatic re-prompt yet.
+- [ ] `priority_rank` consultation: pairwise objection conflict resolution. Today every objection is routed to SME independently; when two critics make conflicting demands on the same item (e.g., Accessibility says "remove this jargon", SME says "the jargon IS the construct"), the trade-off policy should pick a winner without asking SME twice.
+- [ ] Rebut-reassert escalation: if a critic re-raises a previously-rebutted (item, category) pair across epochs, escalate to faculty at CP3. Currently both objections just stay open; convergence is the only stopping condition.
+- [x] **Parallelism for the critique pass and routing pass** — `gather_sync` in `moderator/parallel.py` runs the 3×N critique calls in parallel; the routing pass groups objections by item.id and dispatches one worker per item (within-item objections stay sequential since edits mutate the item). Phase 2 cells also run in parallel. Uses `asyncio.to_thread` over the sync Anthropic SDK rather than `AsyncAnthropic` — avoids doubling the agent verb surface.
+- [x] Exam-level Psychometrician audit at end of Phase 3 (`audit_exam` → `ExamAudit`) — now called by `Moderator.run_phase_4`. Report-only: surfaces exam-level objections in `phase_4_audit.json` and the rendered `exam_report.pdf` but does not auto-remediate.
 
 ### 7. Refinement live view UI
 
 - [x] `events.py` infrastructure (AgentEvent, EventLog, EventKind, JSONL + sidecar, Markdown formatter, filelock-safe concurrent appends)
 - [x] BaseAgent emits invocation_started / invocation_completed / invocation_failed automatically on every `_invoke`; verb name captured from call stack; tokens + duration recorded; failure path preserves original exception
 - [ ] Moderator emits routing_decision / policy_applied / checkpoint_reached / provenance_appended into the same log (depends on Moderator being built)
-- [ ] Streamlit Refinement Live View — read EventLog, render each event as `st.chat_message(agent_name)`, poll via `@st.fragment(run_every=1.0)` or `time.sleep(1); st.rerun()`
-- [ ] Streamlit sidebar download buttons: `.jsonl` (raw events file) and `.md` (rendered transcript via `EventLog.to_markdown()`)
-- [ ] Event-detail drawer: clicking a chat bubble loads the sidecar `calls/<call_id>.json` and shows full system prompt, user prompt, and raw response
-- [ ] Per-epoch / per-agent filtering in the UI
-- [ ] Atomic sidecar writes (write-to-tmp-then-rename) so a crash mid-write does not leave a partial file
+- [x] Streamlit Refinement Live View — `ui/transcript_view.py` renders each event as `st.chat_message`, polls via `st.fragment(run_every=2.0)` when "Live" toggle is on.
+- [x] Streamlit sidebar download buttons for export bundle artifacts (`ui/bundle_view.py`) plus inline PDF preview for `exam.pdf`.
+- [x] Event-detail drawer: every `INVOCATION_COMPLETED` bubble has an "Full call I/O (sidecar)" expander with tabs for user prompt, response, system prompt.
+- [x] Per-epoch / per-agent filtering in the sidebar.
+- [x] Persona editor (`ui/personas_view.py`): file picker + text area + Save/Reset/Reload. Edits land on disk and take effect on next `run.py` invocation.
+- [ ] Atomic sidecar writes (write-to-tmp-then-rename) so a crash mid-write does not leave a partial file — still a real concern under parallelism since multiple workers write sidecars concurrently.
+- [ ] Markdown transcript download (`.md` via `EventLog.to_markdown()`) from the transcript page sidebar.
 
 ### 8. Variants generator + export bundle
 
-- [ ] Finalization pipeline: Accessibility.generate_variant for each required `AccommodationKind`; Psychometrician.audit_exam for the exam report
-- [ ] Export bundle per design §9:
-  - [ ] `exam.docx` (primary, faculty-editable)
-  - [ ] `exam_variants/*.docx`
-  - [ ] `answer_key.docx`
-  - [ ] `rubrics.docx`
-  - [ ] `exam.qti.zip` (Canvas/Blackboard)
-  - [ ] `exam_report.pdf` (blueprint, coverage, Bloom distribution, est. difficulty curve)
-  - [ ] `provenance.json` (full audit trail)
-  - [ ] `exam.tex` (optional)
+- [x] Finalization pipeline (`Moderator.run_phase_4`): `Psychometrician.audit_exam` → `Accessibility.generate_variant` for each required `AccommodationKind` × surviving item (parallelized) → Quarto export. Variants accept "no change" answers and keep them — provenance-defensible.
+- [x] Export bundle in `export/` (Quarto-based):
+  - [x] `exam.qmd` → PDF + DOCX + LaTeX
+  - [x] `answer_key.qmd` → PDF + DOCX + LaTeX
+  - [x] `rubrics.qmd` → PDF + DOCX + LaTeX (only emitted when items have rubrics)
+  - [x] `exam_report.qmd` → PDF + DOCX (Bloom distribution, difficulty curve, CLO coverage, imbalance notes, exam-level findings)
+  - [x] `variants/<item_id>_<kind>.qmd` → PDF + DOCX + LaTeX, one per (item, kind) pair
+  - [x] `provenance.json` (full audit trail: draft + audit + variants)
+  - [x] `render_failures.json` (only written when a Quarto format fails — per-format failures don't abort the bundle)
+  - [ ] `exam.qti.zip` (Canvas/Blackboard) — deferred; consider via the `canvas_cartridge` skill
 - [ ] Streamlit Final Review screen (Checkpoint 3: full preview, variants tab, coverage heatmaps, exam-level report)
 - [ ] Streamlit Export screen
 
@@ -157,12 +193,46 @@ Two runs, three bugs fixed during debug, two real patterns observed.
 | 1 | `BadRequestError: 'temperature' is deprecated for this model` | Opus 4.7 rejects `temperature` param | Removed from `BaseAgent._invoke` |
 | 2 | `ValidationError: themes — Input should be a valid list, input_type=str` | Opus occasionally stringifies the entire response under one schema key (`{"themes": "<JSON-of-whole-response>"}`) | Two-part: clearer tool description telling the model not to stringify nested values; defensive unwrap fallback in `_validate_tool_input` that recovers the embedded JSON |
 | 3 | `topic_units` cell over-accepted 1 item even though `target_item_count=0` | Per-cell loop checked break condition *after* appending the item | Moved break check to top of loop; also added explicit skip-cell short-circuit when `target_item_count <= 0` |
+| 4 | `ValidationError: EditResult.updated_draft — Input should be a valid dictionary or instance of ItemDraft, input_type=str` | Opus stringifies SOME nested fields while leaving siblings as plain JSON (`{"updated_draft": "<JSON-of-ItemDraft>", "rationale": "ok"}`) — generalization of bug #2 | Extended `_validate_tool_input` to try `json.loads` on every string value; if a value parses to dict/list, swap and re-validate. Genuine string fields are untouched because primitive parse results are kept as-is. All four unwrap strategies are unit-tested. |
 
 ### Patterns observed (not bugs, but design pressure)
 
 - **SME inflates Bloom level.** When a blueprint cell asks for ANALYZE, SME tends to write APPLY-level work and label it ANALYZE. LOA catches it accurately — multiple-paragraph diagnoses pointing at the specific cognitive operations. Items are getting rejected when LOA's `suggest_realignment` could often save them with a relabel. Suggests adding a `suggest_realignment` fallback in Phase 2 routing.
-- **Grounding Verifier required a precise persona to be useful.** First persona was too strict: rejected any item whose stem provided numerical inputs (because those inputs weren't in the chunks). Second persona explicitly distinguishes "knowledge claims" (formulas, rules, definitions — must be in chunks) from "stated inputs" (numerical values supplied by the stem — fair game). This single persona change moved one run from 7 accepted / 6 rejected (26 pts) to 8 accepted / 4 rejected (32 pts), with the remaining rejections being defensible (e.g., asking about ΔG° of a *reversed* reaction when chunks state sign-flip only for ΔH°).
-- **The multi-agent design is paying off.** Six items got dropped across the two runs. Each rejection rationale is pedagogically substantive — the kind of feedback a careful colleague would give. The system is functioning as a collaborative reviewer, not a generator + rubber-stamp.
+- **Grounding Verifier required a precise persona to be useful.** First persona was too strict: rejected any item whose stem provided numerical inputs (because those inputs weren't in the chunks). Second persona explicitly distinguishes "knowledge claims" (formulas, rules, definitions — must be in chunks) from "stated inputs" (numerical values supplied by the stem — fair game). This single persona change moved one run from 7 accepted / 6 rejected (26 pts) to 8 accepted / 4 rejected (32 pts), with the remaining rejections being defensible.
+- **The multi-agent design is paying off.** Rejection rationales are pedagogically substantive — the kind of feedback a careful colleague would give. The system is functioning as a collaborative reviewer, not a generator + rubber-stamp.
+
+### Phase 3 first real-data run (1 epoch on the pchem corpus)
+
+Entering Phase 3 with 7 items (25 pts). Single epoch produced:
+
+| Severity | New objections raised | |
+|---|---:|---|
+| critical | 1 | |
+| high | 8 | |
+| medium | 23 | |
+| low | 17 | |
+| **total** | **49** | across 7 items × 3 critics |
+
+| SME stance | Count | |
+|---|---:|---|
+| ACCEPT (then edit + re-verify) | 11 | |
+| REBUT | 34 | |
+| DEFER | 0 | |
+
+| Outcome | Count | |
+|---|---:|---|
+| Objections resolved (edit + re-verify passed) | 11 | |
+| Items rejected (post-edit re-verify failed) | 1 | LOA caught a SME edit that drifted the item into APPLY from a cell that demanded APPLY but was labeled differently |
+| Items surviving | 6 (22 pts) | status=REFINED |
+| Open at end | 38 (4 critical+high) | did not converge — capped at max_epochs=1 |
+
+Phase-3 Claude calls: 113 total (45 SME rebut + 12 SME edit + 12 IWS cleanup + 12 LOA verify + 11 Grounding verify + 7 Accessibility + 7 Adversarial + 7 Psychometrician). Runtime ≈ 25 min.
+
+**Observations from Phase 3:**
+- **High SME rebut rate (69%, 34/49)** — the anti-sycophancy framing in the persona is taking hold. Hard to tell yet whether this is the right rate or whether SME is over-defending. Needs more epochs and more corpora.
+- **Zero defers.** SME is decisive. The persona's "empty agreement is worse than a clean disagreement" framing reads as "pick a side."
+- **Post-edit re-verification is necessary.** One out of 12 SME edits broke alignment — without the IWS-LOA-Grounding re-check, that item would have shipped silently broken.
+- **Non-convergence at 1 epoch is expected.** 38 open objections (4 critical+high) remain. Most are MEDIUM/LOW which the convergence rule ignores; CRITICAL+HIGH are the blockers. Needs ~2-3 more epochs to converge on this corpus.
 
 ### Inputs that landed for the test corpus
 - `test_data/course_spec.json` — 7 CLOs (apply + analyze mix), 7 weighted topics, principles

@@ -14,11 +14,14 @@ from models import (
     ExamDraft,
     ExamSpec,
     Item,
+    ItemObjections,
+    ItemObjectionsBatch,
     ObjectionDraft,
     ObjectionDraftList,
 )
 
 from agents.base import BaseAgent
+from agents.critique_batch import normalize_critique_batch as _normalize_critique_batch
 
 
 class PsychometricianAgent(BaseAgent):
@@ -39,20 +42,45 @@ class PsychometricianAgent(BaseAgent):
         )
         return self._invoke(prompt, DifficultyEstimate)
 
+    _CRITIQUE_GUIDANCE = (
+        "Inspect each item for psychometric defects: construction patterns "
+        "that predict poor discrimination or that mis-target the cell's "
+        "claimed difficulty. Use category strings from the catalogue in your "
+        "constitution.\n\n"
+        "Stay in your lane: do not raise objections about content (SME), "
+        "mechanics (IWS), alignment (LOA), or accessibility (Accessibility "
+        "Expert). Your scope is calibration and discrimination only."
+    )
+
     def critique(self, item: Item) -> list[ObjectionDraft]:
         prompt = (
-            f"Inspect item {item.id} for psychometric defects: construction patterns "
-            "that predict poor discrimination or that mis-target the cell's claimed "
-            "difficulty. Use category strings from the catalogue in your "
-            "constitution. Set target to the item id exactly as given.\n\n"
-            "Stay in your lane: do not raise objections about content (SME), "
-            "mechanics (IWS), alignment (LOA), or accessibility (Accessibility "
-            "Expert). Your scope is calibration and discrimination only.\n\n"
-            "If the item is psychometrically clean, return an empty list — but "
-            "examine first.\n\n"
+            f"{self._CRITIQUE_GUIDANCE}\n\nSet `target` to the item id exactly "
+            f"as given. If the item is psychometrically clean, return an "
+            f"empty list — but examine first.\n\n"
             f"--- ITEM (id={item.id}) ---\n{item.model_dump_json(indent=2)}"
         )
         return self._invoke(prompt, ObjectionDraftList).objections
+
+    def critique_batch(self, items: list[Item]) -> list[ItemObjections]:
+        """Batch form: one psychometric pass over all items in one call."""
+        if not items:
+            return []
+        item_blocks = [
+            f"--- ITEM (id={it.id}) ---\n{it.model_dump_json(indent=2)}"
+            for it in items
+        ]
+        prompt = (
+            f"{self._CRITIQUE_GUIDANCE}\n\n"
+            f"Inspect ALL {len(items)} items below. For each item return an "
+            "entry in the response with `item_id` set to the item id exactly "
+            "as given and `objections` containing your findings for THAT item. "
+            "Include every item even if you have no concerns — return "
+            "`objections: []` for clean items. Each ObjectionDraft's `target` "
+            "should equal its containing item's id.\n\n"
+            + "\n\n".join(item_blocks)
+        )
+        batch = self._invoke(prompt, ItemObjectionsBatch)
+        return _normalize_critique_batch(batch, items)
 
     def audit_exam(self, draft: ExamDraft, exam_spec: ExamSpec) -> ExamAudit:
         """Exam-level audit: produce ExamReport plus any exam-level objections.

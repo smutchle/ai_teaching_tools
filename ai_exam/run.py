@@ -51,11 +51,6 @@ def _build_outputs_dir(parent: Path | None) -> Path:
     return out
 
 
-def _ag(persona: str, client, event_log, **extra):
-    """Tiny helper to keep agent construction tidy. Looks up model from registry."""
-    return persona, config.model_for(persona), client, event_log, extra
-
-
 def main() -> int:
     p = argparse.ArgumentParser(description="ai_exam Phase 0–2 debug pipeline")
     p.add_argument("--inputs-dir", type=Path, default=_PROJECT_ROOT / "test_data",
@@ -69,13 +64,45 @@ def main() -> int:
     p.add_argument("--max-epochs", type=int, default=None,
                    help="Override policy.max_epochs for the Phase 3 epoch loop. "
                         "Useful for debug runs where you want to cap at 1 or 2.")
+    p.add_argument("--provider", choices=["ollama", "arc", "anthropic"], default=None,
+                   help="Route every agent to one provider (uses that provider's "
+                        "default model). Shortcut for setting both tiers equal.")
+    p.add_argument("--high-provider", choices=["ollama", "arc", "anthropic"], default=None,
+                   help="Provider for HIGH-tier agents (SME, Blueprint Architect, "
+                        "Adversarial Student). Overrides --provider when given.")
+    p.add_argument("--high-model", default=None,
+                   help="Model id for HIGH-tier agents. If omitted, uses the "
+                        "high-provider's default.")
+    p.add_argument("--low-provider", choices=["ollama", "arc", "anthropic"], default=None,
+                   help="Provider for LOW-tier agents (IWS, LOA, Grounding, "
+                        "Accessibility, Psychometrician).")
+    p.add_argument("--low-model", default=None,
+                   help="Model id for LOW-tier agents.")
     p.add_argument("--skip-phase-3", action="store_true",
                    help="Halt after Checkpoint 2; do not run the Phase 3 critic loop.")
+    p.add_argument("--skip-phase-4", action="store_true",
+                   help="Halt after Phase 3; do not run audit/variants/export bundle.")
     p.add_argument("--verbose", action="store_true")
     args = p.parse_args()
 
     outputs_dir = _build_outputs_dir(args.outputs_dir)
     print(f"OUTPUTS: {outputs_dir}")
+
+    # Apply provider override (if any) BEFORE any agent is constructed, so
+    # the per-persona MODEL_REGISTRY lookup sees the overridden values.
+    # Per-tier flags take precedence over the shorthand --provider.
+    high_p = args.high_provider or args.provider
+    low_p = args.low_provider or args.provider
+    if high_p is not None or low_p is not None:
+        # If only one tier was specified, default the other to the same so
+        # the user gets uniform behavior when they leave the other blank.
+        high_p = high_p or low_p
+        low_p = low_p or high_p
+        high_choice = config.make_choice(high_p, args.high_model)
+        low_choice = config.make_choice(low_p, args.low_model)
+        config.override_tiers(high_choice, low_choice)
+        print(f"PROVIDER: high → {high_choice.provider}/{high_choice.model}, "
+              f"low → {low_choice.provider}/{low_choice.model}")
 
     # 1. Load JSON inputs
     course_spec = CourseSpec.model_validate(_load_json(args.inputs_dir / "course_spec.json"))
@@ -85,7 +112,6 @@ def main() -> int:
           f"exam={exam_spec.exam_type.value} ({exam_spec.total_points} pts)")
 
     # 2. Wire infrastructure
-    client = config.make_anthropic_client()
     event_log = EventLog(outputs_dir / "events")
     embedder = OllamaEmbedder(host=config.OLLAMA_HOST, model=config.OLLAMA_EMBED_MODEL)
     retriever = ChromaRetriever(
@@ -99,38 +125,39 @@ def main() -> int:
     corpus = ingest_pdf(args.pdf, retriever)
     print(f"        {len(corpus)} chunks indexed (collection count = {retriever.count()})")
 
-    # 4. Instantiate agents
+    # 4. Instantiate agents. Each agent gets its own provider instance bound
+    #    to (provider_kind, model_id) per config.MODEL_REGISTRY.
     sme = SMEAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("sme"),
-        client=client, retriever=retriever, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("sme"),
+        retriever=retriever, event_log=event_log,
     )
     ba = BlueprintArchitectAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("blueprint_architect"),
-        client=client, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("blueprint_architect"),
+        event_log=event_log,
     )
     iws = ItemWritingSpecialistAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("item_writing_specialist"),
-        client=client, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("item_writing_specialist"),
+        event_log=event_log,
     )
     loa = LearningOutcomesAlignmentAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("learning_outcomes_alignment"),
-        client=client, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("learning_outcomes_alignment"),
+        event_log=event_log,
     )
     grounding = GroundingVerifierAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("grounding_verifier"),
-        client=client, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("grounding_verifier"),
+        event_log=event_log,
     )
     accessibility = AccessibilityExpertAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("accessibility"),
-        client=client, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("accessibility"),
+        event_log=event_log,
     )
     adversarial = AdversarialStudentAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("adversarial_student"),
-        client=client, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("adversarial_student"),
+        event_log=event_log,
     )
     psychometrician = PsychometricianAgent(
-        persona_dir=_PERSONA_DIR, model=config.model_for("psychometrician"),
-        client=client, event_log=event_log,
+        persona_dir=_PERSONA_DIR, provider=config.make_provider("psychometrician"),
+        event_log=event_log,
     )
     roster = AgentRoster(
         sme=sme, blueprint_architect=ba, iws=iws, loa=loa,
@@ -163,6 +190,18 @@ def main() -> int:
         draft = moderator.run_through_checkpoint_3(draft, max_epochs_override=args.max_epochs)
     else:
         print("RUN: Phase 3 skipped (--skip-phase-3)")
+
+    # 5c. Phase 4: audit + variants + export bundle (unless skipped)
+    phase_4_result = None
+    if not args.skip_phase_3 and not args.skip_phase_4:
+        print("RUN: Moderator Phase 4 (audit → variants → export) ...")
+        phase_4_result = moderator.run_phase_4(draft)
+        print(f"      audit: {len(phase_4_result.audit.objections)} exam-level objections, "
+              f"{len(phase_4_result.audit.report.imbalance_notes)} imbalance notes")
+        print(f"      variants: {len(phase_4_result.variants)}")
+        print(f"      export bundle: {len(phase_4_result.export_paths)} files written")
+    else:
+        print("RUN: Phase 4 skipped" + (" (--skip-phase-3)" if args.skip_phase_3 else " (--skip-phase-4)"))
 
     # 6. Summary + transcript
     survivors = [it for it in draft.items if it.status != ItemStatus.REJECTED]

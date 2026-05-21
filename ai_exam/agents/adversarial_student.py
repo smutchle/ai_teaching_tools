@@ -15,12 +15,15 @@ from typing import Any, ClassVar
 
 from models import (
     Item,
+    ItemObjections,
+    ItemObjectionsBatch,
     ObjectionDraft,
     ObjectionDraftList,
     SolveAttempt,
 )
 
 from agents.base import BaseAgent
+from agents.critique_batch import normalize_critique_batch as _normalize_critique_batch
 
 
 _STUDENT_VISIBLE_FIELDS = {"id", "type", "stem", "options", "points"}
@@ -66,6 +69,22 @@ class AdversarialStudentAgent(BaseAgent):
         )
         return self._invoke(prompt, SolveAttempt)
 
+    _CRITIQUE_GUIDANCE = (
+        "Inspect each item from a test-taker's perspective. Raise objections "
+        "about construction patterns that reward test-wiseness over "
+        "preparation. Use category strings from the catalogue in your "
+        "constitution.\n\n"
+        "You operate on the same redacted view as in attempt_solve — no "
+        "answer key, no rubric, no source refs, no metadata. Your critique "
+        "is grounded in what a test-wise student would notice when looking "
+        "at the item.\n\n"
+        "Stay in your lane: your output is about exploitability, not content "
+        "(SME), mechanics in the abstract (IWS handles those), alignment "
+        "(LOA), accessibility (Accessibility Expert), or calibration "
+        "(Psychometrician). An item-writing flaw that is not exploitable by "
+        "a test-wise student is not your concern."
+    )
+
     def critique(self, item: Item) -> list[ObjectionDraft]:
         """Raise objections about exploitable construction patterns.
 
@@ -75,20 +94,35 @@ class AdversarialStudentAgent(BaseAgent):
         the Moderator handles the deduplication.
         """
         prompt = (
-            f"Inspect item {item.id} from a test-taker's perspective. Raise "
-            "objections about construction patterns that reward test-wiseness over "
-            "preparation. Use category strings from the catalogue in your "
-            "constitution. Set target to the item id exactly as given.\n\n"
-            "You operate on the same redacted view as in attempt_solve — no answer "
-            "key, no rubric, no source refs, no metadata. Your critique is grounded "
-            "in what a test-wise student would notice when looking at the item.\n\n"
-            "Stay in your lane: your output is about exploitability, not content "
-            "(SME), mechanics in the abstract (IWS handles those), alignment (LOA), "
-            "accessibility (Accessibility Expert), or calibration (Psychometrician). "
-            "An item-writing flaw that is not exploitable by a test-wise student is "
-            "not your concern.\n\n"
-            "If you cannot identify any exploitable pattern, return an empty list — "
-            "but examine first.\n\n"
+            f"{self._CRITIQUE_GUIDANCE}\n\nSet `target` to the item id "
+            f"exactly as given. If you cannot identify any exploitable "
+            f"pattern, return an empty list — but examine first.\n\n"
             f"--- ITEM (id={item.id}) — STUDENT VIEW ONLY ---\n{_student_view(item)}"
         )
         return self._invoke(prompt, ObjectionDraftList).objections
+
+    def critique_batch(self, items: list[Item]) -> list[ItemObjections]:
+        """Batch form: scan all items at once using only student-view fields.
+
+        Critical: every item still goes through `_student_view` so the
+        redaction of answer_key / rubric / source_refs / metadata holds
+        even under batching.
+        """
+        if not items:
+            return []
+        item_blocks = [
+            f"--- ITEM (id={it.id}) — STUDENT VIEW ONLY ---\n{_student_view(it)}"
+            for it in items
+        ]
+        prompt = (
+            f"{self._CRITIQUE_GUIDANCE}\n\n"
+            f"Inspect ALL {len(items)} items below. For each item return an "
+            "entry in the response with `item_id` set to the item id exactly "
+            "as given and `objections` containing your findings for THAT item. "
+            "Include every item even if you have no concerns — return "
+            "`objections: []` for clean items. Each ObjectionDraft's `target` "
+            "should equal its containing item's id.\n\n"
+            + "\n\n".join(item_blocks)
+        )
+        batch = self._invoke(prompt, ItemObjectionsBatch)
+        return _normalize_critique_batch(batch, items)

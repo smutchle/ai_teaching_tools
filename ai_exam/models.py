@@ -247,6 +247,29 @@ class Objection(ObjectionDraft):
     agent: str
 
 
+class ItemObjections(BaseModel):
+    """One critic's objections for a single item, used in batched critique.
+
+    item_id ties the inner objections back to the item under review. Inside
+    `objections`, each ObjectionDraft's `target` should also equal item_id —
+    the Moderator patches any mismatches before promotion.
+    """
+
+    item_id: str
+    objections: list[ObjectionDraft]
+
+
+class ItemObjectionsBatch(BaseModel):
+    """Wrapper for a critic's response over multiple items in one call.
+
+    The critic returns exactly one ItemObjections entry per input item, even
+    when it has no concerns (objections=[]). The wrapper exists so the JSON
+    schema enforces a list-of-entries rather than a free-form mapping.
+    """
+
+    items: list[ItemObjections]
+
+
 class Rebuttal(BaseModel):
     objection_id: str
     stance: RebuttalStance
@@ -255,6 +278,18 @@ class Rebuttal(BaseModel):
         default=None,
         description="Summary of the edit you would make. Required when stance == accept.",
     )
+
+
+class RebuttalBatch(BaseModel):
+    """SME's stance on every non-critical objection raised against one item.
+
+    One Rebuttal per objection; objection_id ties each Rebuttal back to the
+    objection it answers. The batched form lets SME consider overlapping or
+    conflicting objections together rather than rebutting each in isolation,
+    and collapses one Claude/Kimi call per objection to one per item.
+    """
+
+    rebuttals: list[Rebuttal]
 
 
 class EditResult(BaseModel):

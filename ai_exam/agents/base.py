@@ -8,11 +8,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, ClassVar, TypeVar
 
-from anthropic import Anthropic
-from anthropic.types import MessageParam
 from pydantic import BaseModel, ValidationError
 
 from events import AgentEvent, EventKind, EventLog, summarize
+from providers import CallResult, LLMProvider
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -21,26 +20,81 @@ class AgentResponseError(RuntimeError):
     """Raised when an agent's LLM response does not contain the expected tool call."""
 
 
+def _recursive_unwrap(v: Any) -> Any:
+    """Recursively unwrap stringified-JSON values in a dict/list tree.
+
+    Whenever a string value parses via `json.loads` to a dict or list, swap
+    it in and recurse into the result. Strings that parse to JSON primitives
+    (numbers, bools, plain strings) are kept as-is — those are legitimate
+    string fields, not stringified complex objects. Strings that don't parse
+    at all are also kept as-is.
+
+    Drives Strategy A's per-field unwrap and feeds Strategy B's post-unwrap
+    recursion. Single shared traversal so any Opus stringification depth is
+    handled uniformly.
+    """
+    if isinstance(v, str):
+        try:
+            parsed = json.loads(v)
+        except json.JSONDecodeError:
+            return v
+        if isinstance(parsed, (dict, list)):
+            return _recursive_unwrap(parsed)
+        # Parsed to a JSON primitive — keep the original string. A legitimate
+        # rationale or claim that happens to be parseable shouldn't be silently
+        # demoted to int/bool/null.
+        return v
+    if isinstance(v, dict):
+        return {k: _recursive_unwrap(val) for k, val in v.items()}
+    if isinstance(v, list):
+        return [_recursive_unwrap(item) for item in v]
+    return v
+
+
 def _validate_tool_input(response_model: type[T], input_data: Any) -> T:
     """Validate tool input, recovering from common model misbehaviors.
 
-    Some models occasionally stringify the entire response and stuff it under
-    a single key (e.g., `{"themes": "<json-of-whole-ThemeList>"}`) instead of
-    filling in the schema. Detect that and unwrap before failing.
+    Observed Claude misbehaviors with forced tool use:
+    1. Entire response is a JSON string instead of a dict.
+    2. Single-key wrapper with whole response stringified under that key:
+       `{"themes": "<JSON-of-whole-ThemeList>"}`.
+    3. Some nested object/array fields stringified while siblings are correct:
+       `{"updated_draft": "<JSON-of-ItemDraft>", "rationale": "ok text"}`.
+    4. Multi-level stringification — a stringified value that, when parsed,
+       contains *more* stringified children.
+
+    Strategy: validate as-is; on failure, recursively unwrap any string value
+    that parses to a dict/list and re-validate (handles cases 3 and 4); if
+    that still fails and the input is a single-key wrapper, unwrap that and
+    recurse (handles case 2). Raise the original error if nothing recovers.
     """
     if isinstance(input_data, str):
         return response_model.model_validate_json(input_data)
     try:
         return response_model.model_validate(input_data)
     except ValidationError as direct_err:
-        if isinstance(input_data, dict) and len(input_data) == 1:
+        if not isinstance(input_data, dict):
+            raise
+
+        # Strategy A: recursive per-field unwrap of stringified complex values.
+        # Covers both single-level stringification and deeper nestings.
+        try:
+            return response_model.model_validate(_recursive_unwrap(input_data))
+        except ValidationError:
+            pass
+
+        # Strategy B: single-key wrapper with whole response under it. Apply
+        # the same recursive unwrap to the parsed payload so any inner
+        # stringification is also recovered.
+        if len(input_data) == 1:
             only_value = next(iter(input_data.values()))
             if isinstance(only_value, str):
                 try:
-                    unwrapped = json.loads(only_value)
+                    parsed = json.loads(only_value)
                 except json.JSONDecodeError:
                     raise direct_err
-                return response_model.model_validate(unwrapped)
+                return response_model.model_validate(_recursive_unwrap(parsed))
+
         raise
 
 
@@ -64,8 +118,7 @@ class BaseAgent:
     def __init__(
         self,
         persona_dir: Path,
-        model: str,
-        client: Anthropic,
+        provider: LLMProvider,
         *,
         event_log: EventLog | None = None,
         max_tokens: int = 4096,
@@ -76,11 +129,14 @@ class BaseAgent:
             )
         persona_path = persona_dir / f"{self.PERSONA_NAME}.md"
         self._constitution: str = persona_path.read_text(encoding="utf-8")
-        self._model: str = model
-        self._client: Anthropic = client
+        self._provider: LLMProvider = provider
         self._max_tokens: int = max_tokens
         self._event_log: EventLog | None = event_log
         self._current_epoch: int = 0
+
+    @property
+    def model(self) -> str:
+        return self._provider.model
 
     @property
     def name(self) -> str:
@@ -94,22 +150,35 @@ class BaseAgent:
         """Moderator stamps the current epoch so events are bucketed correctly."""
         self._current_epoch = epoch
 
+    def append_to_constitution(self, text: str) -> None:
+        """Append a runtime directive to this agent's constitution.
+
+        Used by the Moderator at startup to inject per-run policies that
+        don't belong in the persona .md file — notation rules from the
+        ExamSpec, trade-off priority hints, etc. The constitution is the
+        cached system prompt, so calls *after* this point pay one cache
+        miss to absorb the new text, then re-cache.
+        """
+        if not text.strip():
+            return
+        sep = "\n\n" if not self._constitution.endswith("\n") else ""
+        self._constitution = self._constitution + sep + text.strip() + "\n"
+
     def _invoke(
         self,
         user_prompt: str,
         response_model: type[T],
         *,
-        context: list[MessageParam] | None = None,
         max_tokens: int | None = None,
         target: str | None = None,
     ) -> T:
-        """Call Claude and return its response parsed as `response_model`.
+        """Call the agent's LLM via the configured provider and return the
+        response parsed as `response_model`.
 
         Uses forced tool use to constrain the response to a JSON object matching
-        the model's JSON schema. Malformed responses raise ValidationError with
-        the original location intact rather than being wrapped in a generic
-        error. API failures propagate unmodified after a failure event is
-        recorded — the log is instrumentation, never a wrapper.
+        the model's JSON schema. Provider differences (Anthropic vs OpenAI tool
+        shapes, system-message format, cache controls) are handled inside the
+        provider; this method sees a uniform `CallResult`.
         """
         # Capture verb name from the calling frame (the typed verb that invoked us).
         # Falls back to None if introspection fails — log shape stays valid either way.
@@ -124,64 +193,52 @@ class BaseAgent:
         self._emit_started(call_id, verb, target, user_prompt)
 
         tool_name = "submit_response"
-        tool: dict[str, Any] = {
-            "name": tool_name,
-            "description": (
-                f"Submit your response as a structured {response_model.__name__}. "
-                "Fill in each field according to the input_schema. Arrays must be "
-                "passed as JSON arrays and nested objects as JSON objects — do NOT "
-                "stringify nested values."
-            ),
-            "input_schema": response_model.model_json_schema(),
-        }
-        messages: list[MessageParam] = list(context or [])
-        messages.append({"role": "user", "content": user_prompt})
-
-        # Cache the constitution: it is identical across invocations for the life
-        # of the agent, so ephemeral cache_control turns repeated calls into a
-        # significant cost/latency win once the system prompt exceeds ~1k tokens.
-        system_blocks: list[dict[str, Any]] = [
-            {
-                "type": "text",
-                "text": self._constitution,
-                "cache_control": {"type": "ephemeral"},
-            }
-        ]
+        tool_description = (
+            f"Submit your response as a structured {response_model.__name__}. "
+            "Fill in each field according to the schema. Arrays must be passed "
+            "as JSON arrays and nested objects as JSON objects — do NOT "
+            "stringify nested values."
+        )
 
         try:
-            response = self._client.messages.create(
-                model=self._model,
+            result: CallResult = self._provider.call_with_tool(
+                system=self._constitution,
+                user_prompt=user_prompt,
+                tool_name=tool_name,
+                tool_description=tool_description,
+                tool_schema=response_model.model_json_schema(),
                 max_tokens=max_tokens or self._max_tokens,
-                system=system_blocks,  # type: ignore[arg-type]
-                tools=[tool],  # type: ignore[list-item]
-                tool_choice={"type": "tool", "name": tool_name},
-                messages=messages,
             )
         except Exception as exc:
-            self._emit_failed(call_id, verb, target, started_at, f"{type(exc).__name__}: {exc}")
+            self._emit_failed(
+                call_id, verb, target, started_at,
+                f"{type(exc).__name__}: {exc}",
+            )
             raise
 
-        for block in response.content:
-            if block.type == "tool_use" and block.name == tool_name:
-                result = _validate_tool_input(response_model, block.input)
-                self._emit_completed(
-                    call_id,
-                    verb,
-                    target,
-                    started_at,
-                    user_prompt,
-                    result,
-                    response,
-                )
-                return result
+        # Capture the sidecar BEFORE validation. A validation failure is
+        # exactly when we most need the raw response to diagnose.
+        self._write_sidecar_safe(call_id, user_prompt, result.raw_response)
 
-        error = (
-            f"expected tool call {tool_name!r}, got "
-            f"stop_reason={response.stop_reason!r}, "
-            f"content_types={[b.type for b in response.content]!r}"
+        if result.tool_input is None:
+            error = f"no tool call returned for {tool_name!r}"
+            self._emit_failed(call_id, verb, target, started_at, error)
+            raise AgentResponseError(f"{self.name}: {error}")
+
+        try:
+            parsed = _validate_tool_input(response_model, result.tool_input)
+        except (ValidationError, ValueError) as exc:
+            self._emit_failed(
+                call_id, verb, target, started_at,
+                f"{type(exc).__name__}: {exc}",
+            )
+            raise
+
+        self._emit_completed(
+            call_id, verb, target, started_at,
+            parsed, result.tokens_in, result.tokens_out,
         )
-        self._emit_failed(call_id, verb, target, started_at, error)
-        raise AgentResponseError(f"{self.name}: {error}")
+        return parsed
 
     # -- event emission helpers --------------------------------------------------
 
@@ -207,35 +264,40 @@ class BaseAgent:
             )
         )
 
-    def _emit_completed(
+    def _write_sidecar_safe(
         self,
         call_id: str,
-        verb: str | None,
-        target: str | None,
-        started_at: float,
         user_prompt: str,
-        result: BaseModel,
-        response: Any,
+        raw_response: dict[str, Any],
     ) -> None:
+        """Write the full I/O sidecar. Always called before validation so the
+        raw response is available even when validation later raises.
+
+        `raw_response` comes from the provider already-serialized to a dict so
+        no SDK-specific code lives here."""
         if self._event_log is None:
             return
-        duration_ms = int((time.monotonic() - started_at) * 1000)
-        tokens_in: int | None = None
-        tokens_out: int | None = None
-        usage = getattr(response, "usage", None)
-        if usage is not None:
-            tokens_in = getattr(usage, "input_tokens", None)
-            tokens_out = getattr(usage, "output_tokens", None)
-        try:
-            raw_response = response.model_dump()
-        except AttributeError:
-            raw_response = {"_repr": repr(response)}
         self._event_log.write_call_io(
             call_id,
             system=self._constitution,
             user_prompt=user_prompt,
             response=raw_response,
         )
+
+    def _emit_completed(
+        self,
+        call_id: str,
+        verb: str | None,
+        target: str | None,
+        started_at: float,
+        result: BaseModel,
+        tokens_in: int | None,
+        tokens_out: int | None,
+    ) -> None:
+        if self._event_log is None:
+            return
+        duration_ms = int((time.monotonic() - started_at) * 1000)
+        # Sidecar already written by _write_sidecar_safe before validation.
         self._event_log.append(
             AgentEvent(
                 timestamp=datetime.now(timezone.utc),
