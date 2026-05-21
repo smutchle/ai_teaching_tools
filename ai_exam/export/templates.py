@@ -32,11 +32,18 @@ from models import (
 
 # ---- YAML frontmatter ----------------------------------------------------
 
+# `from: markdown+fancy_lists` tells Pandoc to recognize `(a)`, `A.`, `(A)`,
+# `1.`, etc. as list-item markers — in addition to plain bullets. Without
+# this extension, multi-part question stems like "(a) Compute X." render
+# as inline text, not a list. Pair with our _normalize_markdown pass which
+# guarantees blank lines before list items.
+
 _FRONTMATTER_ALL_FORMATS = """---
 title: "{title}"
 subtitle: "{subtitle}"
 date: "{date}"
 lang: en
+from: markdown+fancy_lists
 format:
   pdf:
     pdf-engine: xelatex
@@ -55,6 +62,7 @@ title: "{title}"
 subtitle: "{subtitle}"
 date: "{date}"
 lang: en
+from: markdown+fancy_lists
 format:
   pdf:
     pdf-engine: xelatex
@@ -103,7 +111,25 @@ def _safe_meta_text(s: str) -> str:
     return "$".join(parts)
 
 
-_BULLET_RE = re.compile(r"^\s*[-*+]\s")
+# A list marker per Pandoc's `fancy_lists` extension is any of:
+#   - bullet:        - foo, * foo, + foo
+#   - lowercase:     a) foo, a. foo, (a) foo
+#   - uppercase:     A) foo, A. foo, (A) foo
+#   - numeric:       1) foo, 1. foo  (capped at 2 digits to avoid catching years)
+# The marker must be at line start (leading whitespace OK) and followed by
+# at least one whitespace character.
+_LIST_MARKER_RE = re.compile(
+    r"^\s*(?:[-*+]|\(?[a-zA-Z]\)?[.)]|\d{1,2}[.)])\s"
+)
+
+# SME-style sub-question marker wrapped in inline bold or italic at line
+# start: `**(a)** foo`, `__a.__ foo`, `*(A)* foo`. We strip the wrapping
+# so Pandoc parses the marker as a fancy-list item instead of inline
+# bold text glued to the paragraph above.
+_FORMATTED_MARKER_RE = re.compile(
+    r"^(\s*)(?:\*\*|__|\*|_)(\(?[a-zA-Z]\)?[.)]?)(?:\*\*|__|\*|_)\s+",
+    re.MULTILINE,
+)
 
 # Strip a leading letter-prefix the SME sometimes embeds inside MCQ option
 # text (e.g. "A. ...", "B) ...", "C: ..."). Without this, the rendered
@@ -117,25 +143,70 @@ def _strip_option_letter_prefix(opt: str) -> str:
     return _LEADING_LETTER_PREFIX.sub("", opt, count=1)
 
 
-def _fix_bullet_spacing(text: str) -> str:
-    """Insert a blank line before any bullet that follows non-blank,
-    non-bullet content.
+# Letter-list marker: either `(a)` parenthesized or `a.`/`a)` with a
+# trailing delimiter, in either case followed by whitespace. We canonicalize
+# every match to `A.  ` (uppercase letter + period + TWO spaces, the form
+# Pandoc fancy_lists requires for capital-letter markers).
+_LETTER_LIST_MARKER_RE = re.compile(
+    r"^(\s*)(?:\((?P<paren>[a-zA-Z])\)|(?P<bare>[a-zA-Z])[.)])\s+",
+    re.MULTILINE,
+)
 
-    CommonMark / Pandoc requires a blank line between a paragraph and a
-    following list — without it, the bullet renders as inline text on the
-    paragraph instead of as a list. SME-authored stems frequently violate
-    this (e.g. "Given:\n- value1\n- value2") so we patch on the way out.
+
+def _normalize_markdown(text: str) -> str:
+    """Defensive normalization of SME-authored markdown for Quarto rendering.
+
+    Three passes, in order:
+
+    1. **Strip inline formatting around sub-question markers** —
+       `**(a)** Calculate Q.` becomes `(a) Calculate Q.` so Pandoc parses
+       it as a list item instead of inline bold text.
+
+    2. **Canonicalize letter markers to uppercase `A.` form** — the SME
+       writes multi-part questions with `(a) (b) (c)` while MCQ options
+       use `A. B. C.`. The two-style mix looks inconsistent across an
+       exam. We unify everything on `A.  ` (capital + period + two spaces,
+       which is the form Pandoc fancy_lists actually requires for
+       capital-letter markers; without two spaces it gets confused with
+       initials like "B. Williams").
+
+    3. **Insert blank lines before list items** that follow non-blank,
+       non-list content — CommonMark requires it. Without the blank line
+       the marker renders glued to the paragraph above.
+
+    The Quarto frontmatter enables `+fancy_lists` so the canonical
+    `A.  foo` style parses as an ordered list across PDF, DOCX, HTML, and
+    LaTeX. The SME persona discourages bold-wrapped markers in the first
+    place; this is the defense-in-depth catch.
     """
+    # Pass 1: strip inline formatting from markers.
+    text = _FORMATTED_MARKER_RE.sub(
+        lambda m: f"{m.group(1)}{m.group(2)} ", text,
+    )
+
+    # Pass 2: canonicalize every letter marker to uppercase `A.  ` form.
+    def _canon(m: re.Match[str]) -> str:
+        letter = (m.group("paren") or m.group("bare")).upper()
+        return f"{m.group(1)}{letter}.  "
+    text = _LETTER_LIST_MARKER_RE.sub(_canon, text)
+
+    # Pass 3: enforce blank lines before list items.
     out: list[str] = []
-    prev_is_content = False  # non-blank AND not a bullet
+    prev_is_content = False  # non-blank AND not a list item
     for line in text.splitlines():
-        is_bullet = bool(_BULLET_RE.match(line))
+        is_list = bool(_LIST_MARKER_RE.match(line))
         is_blank = not line.strip()
-        if is_bullet and prev_is_content:
+        if is_list and prev_is_content:
             out.append("")
         out.append(line)
-        prev_is_content = (not is_blank) and (not is_bullet)
+        prev_is_content = (not is_blank) and (not is_list)
     return "\n".join(out)
+
+
+# Back-compat alias — older call sites use `_fix_bullet_spacing`. Keep
+# them working; both names route through the unified normalizer.
+def _fix_bullet_spacing(text: str) -> str:
+    return _normalize_markdown(text)
 
 
 def _blockquote(text: str) -> str:
@@ -165,10 +236,14 @@ def _item_heading(item: Item, n: int, *, show_answer: bool) -> str:
 def _render_mcq_options(item: Item) -> str:
     if not item.options:
         return ""
+    # Pandoc's fancy_lists requires TWO spaces after a capital-letter
+    # marker so "A.  foo" doesn't get confused with initials like
+    # "B. Williams". With a single space, every option mashes together
+    # into one paragraph. The two spaces are the smallest reliable cue.
     out: list[str] = [""]
     letters = "ABCDEFGH"
     for i, opt in enumerate(item.options):
-        out.append(f"{letters[i]}. {_strip_option_letter_prefix(opt)}")
+        out.append(f"{letters[i]}.  {_strip_option_letter_prefix(opt)}")
     out.append("")
     return "\n".join(out)
 

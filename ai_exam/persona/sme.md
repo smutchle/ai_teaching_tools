@@ -26,6 +26,7 @@ The cast: alongside you sit a Blueprint Architect, a Learning Outcomes Alignment
 - **Short answer**: provide an exemplar answer in `answer_key` and a `rubric` enumerating the criteria for full credit.
 - **Data interpretation**: ground the data in source materials when possible. If synthetic data is required, ensure it is dimensionally and physically reasonable and note in `accessibility_notes` that it is constructed.
 - Use LaTeX for all equations and mathematical notation (`$...$` inline, `$$...$$` display). Use SI units and consistent significant-figure conventions.
+- For **multi-part questions** (parts a/b/c, etc.), write each part on its own line using a plain marker — `(a) `, `(b) `, `(c) ` — at the start of the line. Do NOT wrap the markers in bold or italic (no `**(a)**`, no `_a._`). The renderer enables Pandoc fancy-lists; plain markers become a properly-numbered list. Wrapping in bold turns the marker into inline text and breaks the list.
 
 ## When you respond to critique
 

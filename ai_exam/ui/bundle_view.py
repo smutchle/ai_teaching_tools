@@ -33,6 +33,27 @@ def _file_row(path: Path) -> None:
     )
 
 
+def _html_new_tab(path: Path) -> None:
+    """Render an 'open in new tab' link for an HTML artifact.
+
+    Encodes the file as a base64 data URI so the browser opens it as a
+    standalone page without needing Streamlit to serve it. Works for
+    embed-resources Quarto HTML up to a few MB.
+    """
+    data = path.read_bytes()
+    b64 = base64.b64encode(data).decode("ascii")
+    size_kb = len(data) // 1024
+    st.markdown(
+        f'<a href="data:text/html;base64,{b64}" target="_blank" '
+        f'rel="noopener noreferrer" '
+        f'style="display:inline-block;padding:8px 14px;'
+        f'background:#2563eb;color:white;border-radius:6px;'
+        f'text-decoration:none;font-weight:600;">'
+        f'📖 Open `{path.name}` in new tab ({size_kb} KB)</a>',
+        unsafe_allow_html=True,
+    )
+
+
 def _pdf_inline(path: Path) -> None:
     if path.stat().st_size > _INLINE_PDF_MAX_BYTES:
         st.caption(
@@ -68,6 +89,28 @@ def render_bundle_page(*, runs_dir: Path) -> None:
         )
         picked = runs_with_bundle[picked_idx]
 
+        # --- Narrative generation ---
+        st.divider()
+        st.header("Narrative")
+        narrative_exists = (picked / "exam_bundle" / "narrative.html").exists()
+        narrative_label = (
+            "📖 Regenerate narrative" if narrative_exists else "📖 Generate narrative"
+        )
+        if st.button(narrative_label, use_container_width=True,
+                     help="Templates the event stream + sends to Haiku for "
+                          "polish; renders to HTML in the bundle."):
+            with st.spinner("Templating events, polishing via Haiku, rendering…"):
+                from narrative import build_narrative
+                result = build_narrative(picked)
+            if result.html_path:
+                st.success(f"narrative.html written ({result.html_path.stat().st_size:,} B)")
+            else:
+                st.warning("Markdown written but HTML render failed.")
+                if result.render_error:
+                    with st.expander("Render error"):
+                        st.code(result.render_error[:2000])
+            st.rerun()
+
     bundle = picked / "exam_bundle"
     primary = sorted(p for p in bundle.iterdir() if p.is_file())
     variants_dir = bundle / "variants"
@@ -98,17 +141,26 @@ def render_bundle_page(*, runs_dir: Path) -> None:
     for p in primary:
         by_stem.setdefault(p.stem, []).append(p)
 
-    artifact_order = ["exam", "answer_key", "instructor_notes", "rubrics",
-                      "exam_report", "provenance", "render_failures"]
+    artifact_order = ["narrative", "exam", "answer_key", "instructor_notes",
+                      "rubrics", "exam_report", "provenance", "narrative_draft",
+                      "render_failures"]
     ordered_stems = [s for s in artifact_order if s in by_stem] + [
         s for s in by_stem if s not in artifact_order
     ]
 
     for stem in ordered_stems:
         files = sorted(by_stem[stem], key=lambda p: p.suffix)
-        with st.expander(f"**{stem}**  ({len(files)} files)", expanded=(stem == "exam")):
+        # Default-expand: exam (the headline artifact) and narrative when present.
+        with st.expander(
+            f"**{stem}**  ({len(files)} files)",
+            expanded=(stem in ("exam", "narrative")),
+        ):
             for f in files:
                 _file_row(f)
+            # narrative.html → "open in new tab" link via data URI.
+            html = next((f for f in files if f.suffix == ".html"), None)
+            if html is not None:
+                _html_new_tab(html)
             # Inline-preview the PDF if present.
             pdf = next((f for f in files if f.suffix == ".pdf"), None)
             if pdf is not None:

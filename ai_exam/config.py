@@ -88,6 +88,7 @@ PERSONA_TIER: dict[str, str] = {
     "grounding_verifier":          "low",
     "accessibility":               "low",
     "psychometrician":             "low",
+    "narrator":                    "low",  # post-run narrative polish
 }
 
 
@@ -97,6 +98,12 @@ PERSONA_TIER: dict[str, str] = {
 MODEL_REGISTRY: dict[str, ModelChoice] = {
     p: _OLLAMA_DEFAULT for p in PERSONA_TIER
 }
+# Narrator is a one-shot post-run polish — default to Haiku for cheap+fast.
+# Users can flip everything via override_tiers / override_provider, in which
+# case the narrator follows.
+MODEL_REGISTRY["narrator"] = ModelChoice(
+    provider="anthropic", model="claude-haiku-4-5-20251001",
+)
 
 
 # Default per-provider model id when the caller asks for a provider but

@@ -422,6 +422,16 @@ class ItemVariant(BaseModel):
     adaptation_notes: str
 
 
+class Narrative(BaseModel):
+    """Polished narrative of one run, produced by the NarratorAgent.
+
+    Single-field wrapper so the LLM emits structured JSON via the normal
+    forced-tool-use path; the `narrative` string is plain markdown.
+    """
+
+    narrative: str
+
+
 class GroundingResult(BaseModel):
     """Grounding Verifier's verdict on whether an item's answer is supported
     by the chunks the SME cited as evidence.

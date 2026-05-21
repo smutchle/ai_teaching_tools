@@ -347,8 +347,8 @@ class Moderator:
         if not ctx_chunks:
             return Phase2Outcome(cell=cell, accepted=[], rejected=[], cited_chunks_by_item={})
 
-        # SME proposes 2× target item count to absorb LOA/Grounding rejections.
-        drafts = self._agents.sme.propose_items(cell, ctx_chunks, overgenerate_factor=2.0)
+        # SME proposes 2.5× target item count to absorb LOA/Grounding rejections.
+        drafts = self._agents.sme.propose_items(cell, ctx_chunks, overgenerate_factor=2.5)
 
         accepted: list[Item] = []
         rejected: list[tuple[Item, str]] = []
