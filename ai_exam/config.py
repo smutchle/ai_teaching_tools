@@ -89,6 +89,7 @@ PERSONA_TIER: dict[str, str] = {
     "accessibility":               "low",
     "psychometrician":             "low",
     "narrator":                    "low",  # post-run narrative polish
+    "spec_suggester":              "low",  # UI-only: draft CourseSpec from uploaded materials
 }
 
 
@@ -102,6 +103,10 @@ MODEL_REGISTRY: dict[str, ModelChoice] = {
 # Users can flip everything via override_tiers / override_provider, in which
 # case the narrator follows.
 MODEL_REGISTRY["narrator"] = ModelChoice(
+    provider="anthropic", model="claude-haiku-4-5-20251001",
+)
+# Spec Suggester is also a one-shot UI utility — cheap, fast, Haiku.
+MODEL_REGISTRY["spec_suggester"] = ModelChoice(
     provider="anthropic", model="claude-haiku-4-5-20251001",
 )
 

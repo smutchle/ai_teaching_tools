@@ -10,6 +10,7 @@ from typing import ClassVar
 
 from events import EventLog
 from models import (
+    CLO,
     BlueprintCell,
     Chunk,
     EditResult,
@@ -218,20 +219,62 @@ class SMEAgent(BaseAgent):
         cell: BlueprintCell,
         context: list[Chunk],
         *,
+        clos: list[CLO] | None = None,
+        guiding_principles: str = "",
         overgenerate_factor: float = 2.5,
     ) -> list[ItemDraft]:
+        """Draft items for a blueprint cell.
+
+        `clos` is the list of resolved CLO objects for the cell's `clo_refs`
+        — passed by the Moderator so the SME can read what each CLO actually
+        *means* rather than guessing from an opaque id like `clo_hess`.
+        Misalignment with the claimed CLO is the dominant Phase-2 rejection
+        cause; giving SME the CLO text up-front cuts that pattern at the
+        source.
+
+        `guiding_principles` is the free-text instructor preamble from
+        `CourseSpec.guiding_principles` (e.g. "emphasize quantitative
+        reasoning, no rote definitions"). Shapes stem-framing voice.
+        """
         n = max(1, math.ceil(cell.target_item_count * overgenerate_factor))
+
+        clo_section = ""
+        if clos:
+            clo_lines = [
+                f"- **{c.id}** (bloom={c.bloom_level.value}, "
+                f"knowledge={c.knowledge_type.value}): {c.text}"
+                for c in clos
+            ]
+            clo_section = (
+                "--- LEARNING OUTCOMES THE ITEM MUST EVIDENCE ---\n"
+                "Each item must produce evidence for at least one of these "
+                "outcomes at the cell's Bloom level. The Bloom level on the "
+                "CLO is what students must demonstrate — match it; do not "
+                "label an apply-level item as analyze.\n"
+                + "\n".join(clo_lines)
+                + "\n\n"
+            )
+
+        principles_section = ""
+        if guiding_principles.strip():
+            principles_section = (
+                "--- INSTRUCTOR'S GUIDING PRINCIPLES ---\n"
+                f"{guiding_principles.strip()}\n\n"
+            )
+
         prompt = (
             f"Propose {n} candidate exam items for the blueprint cell below. The "
             "Moderator will downselect to the target count after critique; aim for "
             "variety in stem framing while staying within the cell's topic and "
             "cognitive level.\n\n"
-            "--- BLUEPRINT CELL ---\n"
+            + principles_section
+            + clo_section
+            + "--- BLUEPRINT CELL ---\n"
             f"topic: {cell.topic_name} (id={cell.topic_id})\n"
             f"bloom_level: {cell.bloom_level.value}\n"
             f"target_item_count: {cell.target_item_count}\n"
             f"target_points: {cell.target_points}\n"
-            f"clo_refs: {cell.clo_refs}\n\n"
+            f"clo_refs (cite at least one in each item's clo_refs): {cell.clo_refs}\n\n"
             f"--- SOURCE CONTEXT ---\n{_format_chunks(context)}\n\n"
             "Every item must cite at least one source_ref drawn from the chunks "
             "above; use chunk_id values exactly as given. Chunks tagged "

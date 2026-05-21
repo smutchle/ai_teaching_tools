@@ -347,8 +347,19 @@ class Moderator:
         if not ctx_chunks:
             return Phase2Outcome(cell=cell, accepted=[], rejected=[], cited_chunks_by_item={})
 
+        # Resolve the cell's clo_refs against CourseSpec.clos so the SME
+        # gets the actual CLO *text* + Bloom + knowledge type — not just
+        # opaque IDs. Anything that doesn't resolve (stale ref) is dropped
+        # silently; LOA will catch it downstream.
+        cell_clos = [c for c in self._course_spec.clos if c.id in set(cell.clo_refs)]
+
         # SME proposes 2.5× target item count to absorb LOA/Grounding rejections.
-        drafts = self._agents.sme.propose_items(cell, ctx_chunks, overgenerate_factor=2.5)
+        drafts = self._agents.sme.propose_items(
+            cell, ctx_chunks,
+            clos=cell_clos,
+            guiding_principles=self._course_spec.guiding_principles,
+            overgenerate_factor=2.5,
+        )
 
         accepted: list[Item] = []
         rejected: list[tuple[Item, str]] = []

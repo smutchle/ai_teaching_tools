@@ -37,10 +37,17 @@ _CONFIG_ENVELOPE_VERSION = 1
 
 
 def _init_state(project_root: Path) -> None:
-    """One-time-per-session: seed form state from test_data defaults."""
+    """One-time-per-session: seed form state.
+
+    Materials spec (MLOs + topics + guiding principles) starts EMPTY — the
+    user either uploads a PDF and clicks "Suggest from materials", or fills
+    the fields by hand. Exam spec and trade-off policy still seed from
+    test_data defaults because those are sensible across exams (point
+    totals, difficulty distribution, priority rank).
+    """
     test_dir = project_root / "test_data"
     if "course_spec_form" not in st.session_state:
-        st.session_state["course_spec_form"] = _load_default(test_dir / "course_spec.json") or {
+        st.session_state["course_spec_form"] = {
             "clos": [], "topics": [], "guiding_principles": "",
         }
     if "exam_spec_form" not in st.session_state:
@@ -209,9 +216,9 @@ def render_run_page(*, project_root: Path) -> None:
     with cols[1]:
         use_test = st.toggle(
             "Use bundled test corpus",
-            value=True,
-            help="Use test_data/pchem_notes.pdf instead of uploading. "
-                 "Toggle off when you have your own PDF ready.",
+            value=False,
+            help="Use test_data/pchem_notes.pdf instead of uploading — "
+                 "handy for a quick smoke test.",
         )
 
     pdf_bytes: bytes | None = None
@@ -230,6 +237,36 @@ def render_run_page(*, project_root: Path) -> None:
         pdf_name = uploaded.name
         st.caption(f"Loaded `{uploaded.name}` ({len(pdf_bytes):,} bytes)")
 
+    # "Suggest from materials" — read the PDF, draft a CourseSpec, replace
+    # the form state. The user reviews/edits afterward before clicking Start.
+    if pdf_bytes is not None:
+        if st.button(
+            "✨ Suggest MLOs + Topics from the uploaded materials",
+            use_container_width=True,
+            help="Reads the PDF, calls Haiku once, and pre-fills the "
+                 "Materials spec section with a draft. You can edit, "
+                 "remove, or add entries before starting the run.",
+        ):
+            with st.spinner("Extracting PDF text + asking Haiku for a draft…"):
+                try:
+                    from ui.spec_suggester import suggest_course_spec
+                    draft = suggest_course_spec(pdf_bytes)
+                except Exception as exc:
+                    st.error(f"{type(exc).__name__}: {exc}")
+                else:
+                    # Overwrite the form state. Form widgets re-read from
+                    # session_state on the next rerun, so st.rerun() makes
+                    # the new draft show up immediately.
+                    st.session_state["course_spec_form"] = draft.model_dump(mode="json")
+                    n_clos = len(draft.clos)
+                    n_topics = len(draft.topics)
+                    st.toast(
+                        f"Drafted {n_clos} MLO(s) and {n_topics} topic(s). "
+                        f"Scroll to section 2 to review.",
+                        icon="✨",
+                    )
+                    st.rerun()
+
     st.divider()
 
     # --- Materials spec ---
@@ -238,7 +275,8 @@ def render_run_page(*, project_root: Path) -> None:
         "Describe what the uploaded materials cover — the learning objectives "
         "students should be tested on (MLOs), the syllabus topics those "
         "materials map to, and any free-text principles you want every agent "
-        "to honor. Scope these to the **uploaded PDF**, not the whole course."
+        "to honor. Scope these to the **uploaded PDF**, not the whole course. "
+        "Use the **Suggest from materials** button above to pre-fill from the PDF."
     )
     with st.container(border=True):
         course_spec = render_course_spec_form("course_spec_form")

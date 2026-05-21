@@ -8,6 +8,7 @@ from agents.learning_outcomes_alignment import LearningOutcomesAlignmentAgent
 from agents.narrator import NarratorAgent
 from agents.psychometrician import PsychometricianAgent
 from agents.sme import SMEAgent
+from agents.spec_suggester import SpecSuggesterAgent
 
 __all__ = [
     "AccessibilityExpertAgent",
@@ -21,4 +22,5 @@ __all__ = [
     "NarratorAgent",
     "PsychometricianAgent",
     "SMEAgent",
+    "SpecSuggesterAgent",
 ]
