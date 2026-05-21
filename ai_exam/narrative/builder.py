@@ -26,7 +26,6 @@ from pathlib import Path
 
 import config
 from agents.narrator import NarratorAgent
-from events import EventLog
 from narrative.templater import build_structured_draft
 
 
@@ -40,7 +39,16 @@ title: "{title}"
 subtitle: "Multi-agent run narrative"
 date: "{date}"
 lang: en
+from: markdown+fancy_lists
 format:
+  pdf:
+    pdf-engine: xelatex
+    geometry:
+      - margin=1in
+    documentclass: article
+    fontsize: 11pt
+    toc: true
+    toc-depth: 2
   html:
     embed-resources: true
     toc: true
@@ -56,7 +64,7 @@ class NarrativeResult:
     md_path: Path
     qmd_path: Path
     html_path: Path | None = None
-    render_error: str | None = None
+    pdf_path: Path | None = None
     failures: dict[str, str] = field(default_factory=dict)
 
 
@@ -73,13 +81,17 @@ def build_narrative(run_dir: Path) -> NarrativeResult:
 
     # 2. LLM polish via NarratorAgent. We construct it directly here —
     # no Moderator involved — using the standard config.make_provider
-    # registry so per-tier overrides apply. Event log lives under the
-    # run's events/ dir so the narrative call shows up in the Job Monitor.
-    event_log = EventLog(run_dir / "events")
+    # registry so per-tier overrides apply.
+    #
+    # The narrator deliberately does NOT log to the run's EventLog: the
+    # narrative is a post-hoc audit artifact (run again any time without
+    # rerunning the pipeline), so polluting the original run's timeline
+    # with narrator events would mislead viewers about what the agents
+    # actually did during the run.
     narrator = NarratorAgent(
         persona_dir=_PERSONA_DIR,
         provider=config.make_provider("narrator"),
-        event_log=event_log,
+        event_log=None,
         max_tokens=8192,  # narratives can be long
     )
     polished = narrator.polish(structured)
@@ -99,17 +111,27 @@ def build_narrative(run_dir: Path) -> NarrativeResult:
     result = NarrativeResult(
         draft_path=draft_path, md_path=md_path, qmd_path=qmd_path,
     )
-    try:
-        subprocess.run(
-            ["quarto", "render", str(qmd_path), "--to", "html"],
-            check=True, capture_output=True, text=True,
-            cwd=str(qmd_path.parent),
-        )
-        html_path = qmd_path.with_suffix(".html")
-        if html_path.exists():
-            result.html_path = html_path
-    except subprocess.CalledProcessError as exc:
-        result.render_error = (exc.stderr or exc.stdout or "").strip()
-    except FileNotFoundError:
-        result.render_error = "quarto not on PATH — install or fix PATH"
+    # Render each format separately so one toolchain failure (e.g. xelatex
+    # missing) doesn't take down the other format.
+    for fmt, ext in (("pdf", ".pdf"), ("html", ".html")):
+        try:
+            subprocess.run(
+                ["quarto", "render", str(qmd_path), "--to", fmt],
+                check=True, capture_output=True, text=True,
+                cwd=str(qmd_path.parent),
+            )
+        except subprocess.CalledProcessError as exc:
+            result.failures[fmt] = (exc.stderr or exc.stdout or "").strip()
+            continue
+        except FileNotFoundError:
+            result.failures[fmt] = "quarto not on PATH — install or fix PATH"
+            continue
+        produced = qmd_path.with_suffix(ext)
+        if produced.exists():
+            if fmt == "pdf":
+                result.pdf_path = produced
+            else:
+                result.html_path = produced
+        else:
+            result.failures[fmt] = f"quarto succeeded but {produced.name} not found"
     return result

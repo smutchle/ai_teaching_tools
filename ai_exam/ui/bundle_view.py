@@ -33,27 +33,6 @@ def _file_row(path: Path) -> None:
     )
 
 
-def _html_new_tab(path: Path) -> None:
-    """Render an 'open in new tab' link for an HTML artifact.
-
-    Encodes the file as a base64 data URI so the browser opens it as a
-    standalone page without needing Streamlit to serve it. Works for
-    embed-resources Quarto HTML up to a few MB.
-    """
-    data = path.read_bytes()
-    b64 = base64.b64encode(data).decode("ascii")
-    size_kb = len(data) // 1024
-    st.markdown(
-        f'<a href="data:text/html;base64,{b64}" target="_blank" '
-        f'rel="noopener noreferrer" '
-        f'style="display:inline-block;padding:8px 14px;'
-        f'background:#2563eb;color:white;border-radius:6px;'
-        f'text-decoration:none;font-weight:600;">'
-        f'📖 Open `{path.name}` in new tab ({size_kb} KB)</a>',
-        unsafe_allow_html=True,
-    )
-
-
 def _pdf_inline(path: Path) -> None:
     if path.stat().st_size > _INLINE_PDF_MAX_BYTES:
         st.caption(
@@ -157,11 +136,8 @@ def render_bundle_page(*, runs_dir: Path) -> None:
         ):
             for f in files:
                 _file_row(f)
-            # narrative.html → "open in new tab" link via data URI.
-            html = next((f for f in files if f.suffix == ".html"), None)
-            if html is not None:
-                _html_new_tab(html)
-            # Inline-preview the PDF if present.
+            # Inline-preview the PDF if present. Same path serves narrative.pdf,
+            # exam.pdf, etc. — no special-case HTML handling needed.
             pdf = next((f for f in files if f.suffix == ".pdf"), None)
             if pdf is not None:
                 st.markdown("**Inline preview:**")
