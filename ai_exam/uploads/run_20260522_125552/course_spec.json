@@ -1,0 +1,190 @@
+{
+  "clos": [
+    {
+      "id": "clo_define_agent_components",
+      "text": "Define the five essential components of an agent (LLM, tools, memory, loop, constitutional prompt) and explain the mechanical role each plays in decision-making and execution.",
+      "bloom_level": "understand",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_distinguish_workflow_agent",
+      "text": "Distinguish between predetermined and model-driven control flow, and use this distinction to classify a system as a workflow or agent.",
+      "bloom_level": "analyze",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_apply_escalation_principle",
+      "text": "Apply the escalation principle to justify whether a given problem requires an agent or can be solved by a simpler point on the spectrum (single call, tool-augmented LLM, or workflow).",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_map_system_to_pattern_stack",
+      "text": "Map any agentic system to its Layer 1 patterns (reasoning, tool use, memory, control), Layer 2 composition (single agent, multi-agent), and characteristic Layer 3 failure modes.",
+      "bloom_level": "analyze",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_price_pattern_costs",
+      "text": "Quantify the three costs of adding agency\u2014latency, tokens, and failure modes\u2014for a given architectural choice.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_construct_agent_loop",
+      "text": "Implement a working agent with a constitutional prompt, think-act-observe loop, and at least one MCP tool, demonstrating model-driven control flow.",
+      "bloom_level": "create",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_interpret_agent_metrics",
+      "text": "Interpret agent run metrics (iterations, tool calls, termination status) to assess whether a workflow or autonomous design is more suitable for a problem.",
+      "bloom_level": "analyze",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_evaluate_constitutional_prompt_impact",
+      "text": "Evaluate how a constitutional prompt shapes agent behavior and justify design choices (e.g., forbidding stubs or confabulated APIs) in terms of reliability and scientific validity.",
+      "bloom_level": "evaluate",
+      "knowledge_type": "conceptual"
+    }
+  ],
+  "topics": [
+    {
+      "id": "topic_agent_definition",
+      "name": "Agent definition and anatomy: LLM, tools, memory, loop, constitutional prompt",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "3.2",
+          "source_doc": "Document 1",
+          "locator": null
+        },
+        {
+          "chunk_id": "3.2.1-3.2.5",
+          "source_doc": "Document 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_agentic_spectrum",
+      "name": "The spectrum of agency: single call, tool-augmented LLM, workflow, single agent, multi-agent",
+      "weight": 1.8,
+      "source_refs": [
+        {
+          "chunk_id": "3.3.2",
+          "source_doc": "Document 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_workflow_vs_agent",
+      "name": "Workflow vs. agent: predetermined vs. model-driven control flow",
+      "weight": 2.0,
+      "source_refs": [
+        {
+          "chunk_id": "3.3.1",
+          "source_doc": "Document 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_escalation_principle",
+      "name": "The escalation principle: simplest viable architecture first, earned complexity",
+      "weight": 1.6,
+      "source_refs": [
+        {
+          "chunk_id": "3.5.1",
+          "source_doc": "Document 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_pattern_costs",
+      "name": "Cost-of-every-pattern lens: latency, tokens, failure modes",
+      "weight": 1.4,
+      "source_refs": [
+        {
+          "chunk_id": "3.5.2",
+          "source_doc": "Document 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_three_layer_model",
+      "name": "Three-layer course model: Layer 1 patterns, Layer 2 composition, Layer 3 anti-patterns",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "3.4",
+          "source_doc": "Document 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_system_analysis_procedure",
+      "name": "Six-step procedure for analyzing any agentic system",
+      "weight": 1.3,
+      "source_refs": [
+        {
+          "chunk_id": "3.6",
+          "source_doc": "Document 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_agent_loop_implementation",
+      "name": "Agent loop implementation: think-act-observe, MCP tools, termination logic",
+      "weight": 1.7,
+      "source_refs": [
+        {
+          "chunk_id": "4.7",
+          "source_doc": "Document 2",
+          "locator": null
+        },
+        {
+          "chunk_id": "4.10",
+          "source_doc": "Document 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_constitutional_prompt_design",
+      "name": "Constitutional prompts: behavioral specs, standards enforcement, persona design",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "3.2.5",
+          "source_doc": "Document 1",
+          "locator": null
+        },
+        {
+          "chunk_id": "4.5",
+          "source_doc": "Document 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_workflow_autonomous_tradeoffs",
+      "name": "Workflow vs. autonomous design tradeoffs: control, predictability, cost, debuggability",
+      "weight": 1.7,
+      "source_refs": [
+        {
+          "chunk_id": "4.10",
+          "source_doc": "Document 2",
+          "locator": null
+        }
+      ]
+    }
+  ],
+  "guiding_principles": "Emphasize rigorous engineering discipline over hype. Complexity must be earned through demonstrated failure of simpler designs. When teaching agent patterns, present them as cost\u2013benefit tradeoffs: quantify latency, token overhead, and failure modes explicitly. Favor analysis over memorization\u2014students should practice the six-step system-reading procedure on real examples and make architectural choices defensible by escalation-principle reasoning, not by what looks impressive in a slide deck."
+}

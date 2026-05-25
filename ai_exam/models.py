@@ -141,6 +141,45 @@ class ExamSpec(BaseModel):
     latex_required: bool = True
     figure_support: bool = True
 
+    def total_item_count(self) -> int:
+        c = self.item_type_counts
+        return c.mcq + c.short_answer + c.problem + c.derivation + c.data_interp
+
+    def target_item_type_counts(self) -> dict[ItemType, int]:
+        """Spec's per-type counts, keyed by ItemType."""
+        c = self.item_type_counts
+        return {
+            ItemType.MCQ: c.mcq,
+            ItemType.SHORT_ANSWER: c.short_answer,
+            ItemType.PROBLEM: c.problem,
+            ItemType.DERIVATION: c.derivation,
+            ItemType.DATA_INTERP: c.data_interp,
+        }
+
+    def target_difficulty_counts(self) -> dict[Difficulty, int]:
+        """Spec's per-difficulty counts.
+
+        Ratios → integer counts via largest-remainder rounding so the counts
+        sum exactly to ``total_item_count()`` regardless of how the input
+        ratios round individually.
+        """
+        n = self.total_item_count()
+        d = self.difficulty_distribution
+        raw = {
+            Difficulty.EASY: d.easy_ratio * n,
+            Difficulty.MEDIUM: d.medium_ratio * n,
+            Difficulty.HARD: d.hard_ratio * n,
+        }
+        floors = {k: int(v) for k, v in raw.items()}
+        deficit = n - sum(floors.values())
+        # Distribute the remaining items to the largest fractional parts.
+        remainders = sorted(
+            raw.items(), key=lambda kv: kv[1] - int(kv[1]), reverse=True
+        )
+        for i in range(deficit):
+            floors[remainders[i % len(remainders)][0]] += 1
+        return floors
+
 
 class Theme(BaseModel):
     id: str
@@ -179,9 +218,44 @@ class CoverageCheck(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class ItemSlot(BaseModel):
+    """A single planned item — the unit Phase 2 iterates over.
+
+    Where ``BlueprintCell`` covers topic + Bloom at the *aggregate* level
+    (how many items, how many points), ``ItemSlot`` pins the exact type and
+    difficulty for one item. The Moderator validates the slot histogram
+    against ``ExamSpec.item_type_counts`` and ``ExamSpec.difficulty_distribution``
+    before Phase 2; the SME is given the slot's type/difficulty as hard
+    constraints when drafting.
+    """
+
+    slot_id: str
+    topic_id: str
+    topic_name: str
+    bloom_level: BloomLevel
+    item_type: ItemType
+    difficulty: Difficulty
+    points: int
+    clo_refs: list[str] = Field(default_factory=list)
+
+
+class SlotPlan(BaseModel):
+    """One ItemSlot per planned exam item.
+
+    ``len(slots) == sum(exam_spec.item_type_counts.*)`` and the per-type and
+    per-difficulty histograms equal the spec exactly (difficulty counts use
+    largest-remainder rounding from the spec ratios). The Moderator enforces
+    these invariants and re-prompts the Blueprint Architect with the deltas
+    on mismatch.
+    """
+
+    slots: list[ItemSlot] = Field(default_factory=list)
+
+
 class Blueprint(BaseModel):
     cells: list[BlueprintCell]
     coverage_check: CoverageCheck
+    slot_plan: SlotPlan = Field(default_factory=SlotPlan)
 
 
 class ProvenanceEvent(BaseModel):
@@ -225,6 +299,7 @@ class Item(ItemDraft):
 
     id: str
     status: ItemStatus = ItemStatus.DRAFT
+    slot_id: str | None = None
     discrimination_est: float | None = None
     provenance: list[ProvenanceEvent] = Field(default_factory=list)
 

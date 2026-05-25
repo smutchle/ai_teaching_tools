@@ -20,7 +20,7 @@ from typing import Any
 
 @dataclass
 class LaunchSpec:
-    pdf_path: Path
+    pdf_paths: list[Path]
     inputs_dir: Path
     outputs_dir: Path
     max_epochs: int | None = None
@@ -36,10 +36,12 @@ class LaunchSpec:
 
 
 def _build_cmd(project_root: Path, spec: LaunchSpec) -> list[str]:
+    if not spec.pdf_paths:
+        raise ValueError("LaunchSpec.pdf_paths must contain at least one PDF.")
     cmd: list[str] = [
         sys.executable,
         str(project_root / "run.py"),
-        "--pdf", str(spec.pdf_path),
+        "--pdf", *[str(p) for p in spec.pdf_paths],
         "--inputs-dir", str(spec.inputs_dir),
         "--outputs-dir", str(spec.outputs_dir),
     ]
@@ -77,7 +79,7 @@ def launch_run(project_root: Path, spec: LaunchSpec) -> dict[str, Any]:
         "cmd": cmd,
         "started_at": dt.datetime.now().isoformat(),
         "log_path": str(log_path),
-        "pdf_path": str(spec.pdf_path),
+        "pdf_paths": [str(p) for p in spec.pdf_paths],
         "inputs_dir": str(spec.inputs_dir),
         "max_epochs": spec.max_epochs,
     }

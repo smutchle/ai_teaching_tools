@@ -38,9 +38,9 @@ from models import (
     AccommodationKind,
     AlignmentResult,
     Blueprint,
-    BlueprintCell,
     Chunk,
     CourseSpec,
+    Difficulty,
     EditResult,
     ExamAudit,
     ExamDraft,
@@ -49,7 +49,9 @@ from models import (
     Item,
     ItemDraft,
     ItemObjections,
+    ItemSlot,
     ItemStatus,
+    ItemType,
     ItemVariant,
     Objection,
     ObjectionDraft,
@@ -103,13 +105,30 @@ class EpochMetrics:
 
 
 @dataclass
-class Phase2Outcome:
-    """One blueprint cell's Phase 2 result."""
+class Phase2SlotOutcome:
+    """One slot's Phase 2 result.
 
-    cell: BlueprintCell
-    accepted: list[Item]
-    rejected: list[tuple[Item, str]]  # (item, reason)
-    cited_chunks_by_item: dict[str, list[Chunk]]
+    A slot either lands one accepted Item (status DRAFT, with slot_id stamped)
+    or stays unfilled. Up to ``slot_max_retries`` redraft attempts may run
+    inside ``_phase_2_slot`` before giving up; each rejected candidate is
+    returned in ``rejected`` for the snapshot.
+    """
+
+    slot: ItemSlot
+    item: Item | None
+    rejected: list[tuple[Item, str]]
+    cited_chunks: list[Chunk]
+
+
+_DIFFICULTY_ORDER: dict[Difficulty, int] = {
+    Difficulty.EASY: 0,
+    Difficulty.MEDIUM: 1,
+    Difficulty.HARD: 2,
+}
+
+
+def _difficulty_distance(a: Difficulty, b: Difficulty) -> int:
+    return abs(_DIFFICULTY_ORDER[a] - _DIFFICULTY_ORDER[b])
 
 
 @dataclass
@@ -176,6 +195,10 @@ class Moderator:
         # Phase 2 runs cells in parallel; the counter is the one piece of
         # cross-worker shared state. Lock it.
         self._item_counter_lock = threading.Lock()
+        # Tracks how many Phase-3 redraft attempts each slot_id has already
+        # consumed. Caps Phase-3 work for slots the materials simply can't
+        # support and prevents an infinite redraft loop.
+        self._slot_redraft_attempts: dict[str, int] = {}
 
         outputs_dir.mkdir(parents=True, exist_ok=True)
         self._stamp_epoch_on_agents()
@@ -261,23 +284,35 @@ class Moderator:
         self._snapshot("phase_1_blueprint.json", blueprint.model_dump(mode="json"))
         self._checkpoint(1, "blueprint approved [auto]")
 
-        # Phase 2 — cells are independent (separate retrieval + SME calls per
-        # cell), so fan them out. The only cross-cell shared state is
-        # `_item_counter`, which is locked inside `_promote`.
+        # Phase 2 — iterate the SlotPlan, not the cells. Each slot's
+        # (item_type, difficulty) is pinned by the Blueprint Architect, so
+        # one item per slot is produced and the global type+difficulty mix
+        # cannot drift. Slots are independent; the only cross-slot shared
+        # state is ``_item_counter``, locked inside ``_promote_for_slot``.
         #
-        # Each cell is wrapped so a model-output failure in one cell doesn't
-        # collapse the whole gather. The cell just under-fills and the run
-        # continues — surviving cells still produce items, and the overall
-        # Phase-2 snapshot will reflect what landed.
-        self._emit_phase("phase_2", "Item generation: per-cell propose → cleanup → verify → ground")
+        # Each slot is wrapped so a model-output failure in one slot doesn't
+        # collapse the gather — the slot stays unfilled and Phase 4 audit
+        # surfaces the gap.
+        slot_plan = blueprint.slot_plan
+        self._emit_phase(
+            "phase_2",
+            f"Item generation: per-slot propose → cleanup → verify → ground "
+            f"({len(slot_plan.slots)} slots)",
+        )
+
         outcomes = gather_sync([
-            (lambda c=cell: self._safe_phase_2_cell(c)) for cell in blueprint.cells
+            (lambda s=slot: self._safe_phase_2_slot(s, blueprint))
+            for slot in slot_plan.slots
         ])
 
         all_accepted: list[Item] = []
         all_rejected: list[tuple[Item, str]] = []
+        unfilled_slot_ids: list[str] = []
         for o in outcomes:
-            all_accepted.extend(o.accepted)
+            if o.item is not None:
+                all_accepted.append(o.item)
+            else:
+                unfilled_slot_ids.append(o.slot.slot_id)
             all_rejected.extend(o.rejected)
 
         self._snapshot(
@@ -288,9 +323,15 @@ class Moderator:
                     {"item": it.model_dump(mode="json"), "reason": reason}
                     for it, reason in all_rejected
                 ],
+                "unfilled_slots": unfilled_slot_ids,
             },
         )
-        self._checkpoint(2, f"item bank approved [auto]: {len(all_accepted)} accepted, {len(all_rejected)} rejected")
+        self._checkpoint(
+            2,
+            f"item bank approved [auto]: {len(all_accepted)} accepted, "
+            f"{len(all_rejected)} rejected, "
+            f"{len(unfilled_slot_ids)} slots unfilled",
+        )
 
         draft = ExamDraft(items=all_accepted, blueprint=blueprint, epoch=self._epoch)
         self._snapshot("exam_draft.json", draft.model_dump(mode="json"))
@@ -308,143 +349,237 @@ class Moderator:
             themes=themes,
         )
 
-    # -- Phase 2 -----------------------------------------------------------------
+    # -- Phase 2 (slot-based) ---------------------------------------------------
 
-    def _safe_phase_2_cell(self, cell: BlueprintCell) -> Phase2Outcome:
-        """Per-cell wrapper that catches the specific model-output failure
-        types (ValidationError + AgentResponseError) and converts them into
-        an empty Phase2Outcome. Any other exception still propagates — we
-        don't want to silently swallow infrastructure bugs (Chroma errors,
-        retriever crashes, etc.).
-        """
+    def _safe_phase_2_slot(
+        self, slot: ItemSlot, blueprint: Blueprint,
+    ) -> Phase2SlotOutcome:
+        """Per-slot wrapper. Catches model-output failures and leaves the slot
+        unfilled rather than collapsing the gather."""
         try:
-            return self._phase_2_cell(cell)
+            return self._phase_2_slot(slot, blueprint)
         except (ValidationError, AgentResponseError) as exc:
             self._emit_routing(
-                target=f"cell:{cell.topic_id}:{cell.bloom_level.value}",
+                target=f"slot:{slot.slot_id}",
                 decision=(
-                    f"cell failed and under-filled: "
+                    f"slot failed and unfilled: "
                     f"{type(exc).__name__}: {str(exc)[:200]}"
                 ),
             )
-            return Phase2Outcome(
-                cell=cell, accepted=[], rejected=[], cited_chunks_by_item={},
-            )
+            return Phase2SlotOutcome(slot=slot, item=None, rejected=[], cited_chunks=[])
 
-    def _phase_2_cell(self, cell: BlueprintCell) -> Phase2Outcome:
-        # Skip cells the blueprint marked as zero-item — BA sometimes produces
-        # degenerate cells when it folds a topic's points into cross-citations
-        # on other cells. Don't waste an SME call on them.
-        if cell.target_item_count <= 0:
-            self._emit_routing(
-                target=f"cell:{cell.topic_id}:{cell.bloom_level.value}",
-                decision="skipped: target_item_count=0",
-            )
-            return Phase2Outcome(cell=cell, accepted=[], rejected=[], cited_chunks_by_item={})
+    # Per-slot redraft budget. SME gets one extra retry against the same slot
+    # if every candidate from the first pass fails verification. Two is enough
+    # in practice; more burns model time on slots the materials can't support.
+    _SLOT_MAX_ATTEMPTS = 2
 
-        # Retrieve context for this cell using the topic name as query.
-        ctx_chunks = self._retriever.search(cell.topic_name, k=self._chunks_per_cell)
+    def _phase_2_slot(
+        self, slot: ItemSlot, blueprint: Blueprint,
+    ) -> Phase2SlotOutcome:
+        # Retrieve context for the slot using its topic name. Same K as the
+        # legacy per-cell flow.
+        ctx_chunks = self._retriever.search(slot.topic_name, k=self._chunks_per_cell)
         if not ctx_chunks:
-            return Phase2Outcome(cell=cell, accepted=[], rejected=[], cited_chunks_by_item={})
+            self._emit_routing(
+                target=f"slot:{slot.slot_id}",
+                decision="unfilled: no retrieval context for topic",
+            )
+            return Phase2SlotOutcome(slot=slot, item=None, rejected=[], cited_chunks=[])
 
-        # Resolve the cell's clo_refs against CourseSpec.clos so the SME
-        # gets the actual CLO *text* + Bloom + knowledge type — not just
-        # opaque IDs. Anything that doesn't resolve (stale ref) is dropped
-        # silently; LOA will catch it downstream.
-        cell_clos = [c for c in self._course_spec.clos if c.id in set(cell.clo_refs)]
+        # Resolve cell ClOs (use the slot's clo_refs as the primary set, but
+        # fall back to the parent cell's clo_refs if the slot is unset).
+        clo_ref_set = set(slot.clo_refs)
+        if not clo_ref_set:
+            for cell in blueprint.cells:
+                if cell.topic_id == slot.topic_id and cell.bloom_level == slot.bloom_level:
+                    clo_ref_set = set(cell.clo_refs)
+                    break
+        slot_clos = [c for c in self._course_spec.clos if c.id in clo_ref_set]
 
-        # SME proposes 2.5× target item count to absorb LOA/Grounding rejections.
-        drafts = self._agents.sme.propose_items(
-            cell, ctx_chunks,
-            clos=cell_clos,
-            guiding_principles=self._course_spec.guiding_principles,
-            overgenerate_factor=2.5,
-        )
-
-        accepted: list[Item] = []
         rejected: list[tuple[Item, str]] = []
-        cited_chunks_by_item: dict[str, list[Chunk]] = {}
+        accepted: Item | None = None
 
-        for draft in drafts:
-            # Stop if the cell is already full (check at top so the cell never
-            # over-accepts, even when overgenerate gives us extra drafts).
-            if len(accepted) >= cell.target_item_count:
-                break
-            # 1. IWS mechanical cleanup pre-promotion. Skip cleanly if IWS
-            # returns a malformed EditResult — cleanup is polish, not
-            # load-bearing; the SME's draft is acceptable as-is.
-            try:
-                cleanup_result: EditResult = self._agents.iws.cleanup(draft)
-                cleaned_draft = cleanup_result.updated_draft
-                cleanup_rationale = cleanup_result.rationale
-            except (ValidationError, AgentResponseError) as exc:
-                cleaned_draft = draft
-                cleanup_rationale = (
-                    f"skipped — IWS produced malformed EditResult "
-                    f"({type(exc).__name__}); using SME draft as-is."
-                )
+        for attempt in range(1, self._SLOT_MAX_ATTEMPTS + 1):
+            drafts = self._agents.sme.propose_items_for_slot(
+                slot, ctx_chunks,
+                clos=slot_clos,
+                guiding_principles=self._course_spec.guiding_principles,
+                overgenerate_factor=3.0,
+            )
 
-            # 2. Promote to Item with provenance for proposal + cleanup.
-            item = self._promote(cleaned_draft, target_cell=cell, cleanup_rationale=cleanup_rationale)
-
-            # 3. LOA alignment verification.
-            alignment: AlignmentResult = self._agents.loa.verify_alignment(item, self._course_spec.clos)
-            if not alignment.is_aligned:
-                # Try to realign before dropping. The dominant Phase-2
-                # rejection pattern is SME inflating Bloom level (writing
-                # apply-level work and labeling it analyze). LOA already
-                # knows the actual Bloom level — just ask it for a
-                # realignment suggestion and patch the item if remappable.
-                if not self._try_realignment(item):
-                    reason = f"loa_misaligned: {alignment.notes}"
+            for draft in drafts:
+                # 1. Slot-contract pre-filter: type must match exactly,
+                # difficulty within tolerance. Reject before promotion to
+                # save IWS/LOA/Grounding calls.
+                if draft.type != slot.item_type:
+                    item = self._promote_for_slot(draft, slot, cleanup_rationale="")
+                    reason = (
+                        f"slot_contract: item_type={draft.type.value} "
+                        f"does not match slot.item_type={slot.item_type.value}"
+                    )
+                    self._append_provenance(
+                        item, agent="moderator", action="rejected", rationale=reason,
+                    )
                     item.status = ItemStatus.REJECTED
                     rejected.append((item, reason))
                     continue
-                # Item was patched and re-verified — provenance is already
-                # written inside _try_realignment.
-            else:
+                if _difficulty_distance(draft.difficulty_est, slot.difficulty) > 1:
+                    item = self._promote_for_slot(draft, slot, cleanup_rationale="")
+                    reason = (
+                        f"slot_contract: difficulty_est={draft.difficulty_est.value} "
+                        f"too far from slot.difficulty={slot.difficulty.value}"
+                    )
+                    self._append_provenance(
+                        item, agent="moderator", action="rejected", rationale=reason,
+                    )
+                    item.status = ItemStatus.REJECTED
+                    rejected.append((item, reason))
+                    continue
+
+                # 2. IWS cleanup. Skip cleanly on malformed result.
+                try:
+                    cleanup_result: EditResult = self._agents.iws.cleanup(draft)
+                    cleaned_draft = cleanup_result.updated_draft
+                    cleanup_rationale = cleanup_result.rationale
+                except (ValidationError, AgentResponseError) as exc:
+                    cleaned_draft = draft
+                    cleanup_rationale = (
+                        f"skipped — IWS produced malformed EditResult "
+                        f"({type(exc).__name__}); using SME draft as-is."
+                    )
+
+                # Re-check type after IWS cleanup — paranoid: IWS shouldn't
+                # change type, but if it did the slot contract is violated.
+                if cleaned_draft.type != slot.item_type:
+                    cleaned_draft = cleaned_draft.model_copy(
+                        update={"type": slot.item_type},
+                    )
+
+                # 3. Promote to Item, stamp slot_id and snap difficulty_est
+                # to the slot's target so downstream readers see the
+                # contracted difficulty (the SME's value is preserved in
+                # provenance via the cleanup rationale).
+                item = self._promote_for_slot(
+                    cleaned_draft, slot, cleanup_rationale=cleanup_rationale,
+                )
+                if item.difficulty_est != slot.difficulty:
+                    self._append_provenance(
+                        item, agent="moderator", action="edited",
+                        rationale=(
+                            f"[slot_contract] snap difficulty_est: "
+                            f"{item.difficulty_est.value} → {slot.difficulty.value}"
+                        ),
+                    )
+                    item.difficulty_est = slot.difficulty
+
+                # 4. LOA alignment.
+                alignment: AlignmentResult = self._agents.loa.verify_alignment(
+                    item, self._course_spec.clos,
+                )
+                if not alignment.is_aligned:
+                    if not self._try_realignment(item):
+                        reason = f"loa_misaligned: {alignment.notes}"
+                        item.status = ItemStatus.REJECTED
+                        rejected.append((item, reason))
+                        continue
+                else:
+                    self._append_provenance(
+                        item,
+                        agent="learning_outcomes_alignment",
+                        action="accepted",
+                        rationale=(
+                            f"aligned at {alignment.actual_bloom_level.value} "
+                            f"for {alignment.actual_clo_refs}"
+                        ),
+                    )
+
+                # 5. Look up cited chunks for grounding.
+                cited: list[Chunk] = []
+                missing_ids: list[str] = []
+                for ref in item.source_refs:
+                    try:
+                        cited.append(self._retriever.get(ref.chunk_id))
+                    except KeyError:
+                        missing_ids.append(ref.chunk_id)
+                if missing_ids:
+                    reason = f"grounding_missing_chunks: {missing_ids}"
+                    self._append_provenance(
+                        item, agent="grounding_verifier", action="rejected", rationale=reason,
+                    )
+                    item.status = ItemStatus.REJECTED
+                    rejected.append((item, reason))
+                    continue
+
+                # 6. Grounding.
+                grounding: GroundingResult = self._agents.grounding.verify(item, cited)
+                if not grounding.is_grounded:
+                    reason = f"grounding_failed: {grounding.diagnosis}"
+                    self._append_provenance(
+                        item, agent="grounding_verifier", action="rejected", rationale=reason,
+                    )
+                    item.status = ItemStatus.REJECTED
+                    rejected.append((item, reason))
+                    continue
                 self._append_provenance(
-                    item,
-                    agent="learning_outcomes_alignment",
-                    action="accepted",
-                    rationale=f"aligned at {alignment.actual_bloom_level.value} for {alignment.actual_clo_refs}",
+                    item, agent="grounding_verifier", action="accepted", rationale=grounding.diagnosis,
                 )
 
-            # 4. Look up cited chunks for grounding; missing chunk_id is an automatic fail.
-            cited: list[Chunk] = []
-            missing_ids: list[str] = []
-            for ref in item.source_refs:
-                try:
-                    cited.append(self._retriever.get(ref.chunk_id))
-                except KeyError:
-                    missing_ids.append(ref.chunk_id)
-            if missing_ids:
-                reason = f"grounding_missing_chunks: {missing_ids}"
-                self._append_provenance(item, agent="grounding_verifier", action="rejected", rationale=reason)
-                item.status = ItemStatus.REJECTED
-                rejected.append((item, reason))
-                continue
-            cited_chunks_by_item[item.id] = cited
+                accepted = item
+                break
 
-            # 5. Grounding Verifier.
-            grounding: GroundingResult = self._agents.grounding.verify(item, cited)
-            if not grounding.is_grounded:
-                reason = f"grounding_failed: {grounding.diagnosis}"
-                self._append_provenance(item, agent="grounding_verifier", action="rejected", rationale=reason)
-                item.status = ItemStatus.REJECTED
-                rejected.append((item, reason))
-                continue
-            self._append_provenance(item, agent="grounding_verifier", action="accepted", rationale=grounding.diagnosis)
-
-            # 6. Item passes all gates; accept it. Loop-top check stops us
-            #    from over-accepting next iteration.
-            accepted.append(item)
+            if accepted is not None:
+                break
 
         self._emit_routing(
-            target=f"cell:{cell.topic_id}:{cell.bloom_level.value}",
-            decision=f"{len(accepted)}/{cell.target_item_count} accepted, {len(rejected)} rejected",
+            target=f"slot:{slot.slot_id}",
+            decision=(
+                f"{'filled' if accepted is not None else 'unfilled'} "
+                f"({len(rejected)} candidate(s) rejected across "
+                f"{attempt} attempt(s))"
+            ),
         )
-        return Phase2Outcome(cell=cell, accepted=accepted, rejected=rejected, cited_chunks_by_item=cited_chunks_by_item)
+        return Phase2SlotOutcome(
+            slot=slot, item=accepted, rejected=rejected, cited_chunks=ctx_chunks,
+        )
+
+    def _promote_for_slot(
+        self,
+        draft: ItemDraft,
+        slot: ItemSlot,
+        *,
+        cleanup_rationale: str,
+    ) -> Item:
+        """Slot-aware promotion. Stamps slot_id and uses slot.topic_id /
+        slot.bloom_level for the SME provenance rationale.
+        """
+        with self._item_counter_lock:
+            self._item_counter += 1
+            item_id = f"item_{self._item_counter:04d}"
+        item = Item(
+            **draft.model_dump(),
+            id=item_id,
+            status=ItemStatus.DRAFT,
+            slot_id=slot.slot_id,
+            provenance=[],
+        )
+        item.provenance.append(self._provenance_event(
+            agent="sme",
+            action="proposed",
+            target=item_id,
+            rationale=(
+                f"proposed for slot {slot.slot_id} "
+                f"(type={slot.item_type.value} difficulty={slot.difficulty.value} "
+                f"topic={slot.topic_id} bloom={slot.bloom_level.value})"
+            ),
+        ))
+        if cleanup_rationale:
+            item.provenance.append(self._provenance_event(
+                agent="item_writing_specialist",
+                action="edited",
+                target=item_id,
+                rationale=cleanup_rationale,
+            ))
+        return item
 
     def _try_realignment(self, item: Item) -> bool:
         """Ask LOA to suggest a realignment, apply it, re-verify.
@@ -517,31 +652,6 @@ class Moderator:
         return False
 
     # -- promotion + provenance --------------------------------------------------
-
-    def _promote(
-        self,
-        draft: ItemDraft,
-        *,
-        target_cell: BlueprintCell,
-        cleanup_rationale: str,
-    ) -> Item:
-        with self._item_counter_lock:
-            self._item_counter += 1
-            item_id = f"item_{self._item_counter:04d}"
-        item = Item(**draft.model_dump(), id=item_id, status=ItemStatus.DRAFT, provenance=[])
-        item.provenance.append(self._provenance_event(
-            agent="sme",
-            action="proposed",
-            target=item_id,
-            rationale=f"proposed for cell topic={target_cell.topic_id} bloom={target_cell.bloom_level.value}",
-        ))
-        item.provenance.append(self._provenance_event(
-            agent="item_writing_specialist",
-            action="edited",
-            target=item_id,
-            rationale=cleanup_rationale,
-        ))
-        return item
 
     def _append_provenance(
         self,
@@ -635,6 +745,9 @@ class Moderator:
             self._stamp_epoch_on_agents()
 
             metrics = self._run_epoch(draft, epoch_num)
+            # Redraft any slot that lost its item this epoch (or earlier).
+            # Newly-drafted items will enter the *next* epoch's critique pass.
+            self._phase_3_redraft_dropped_slots(draft, epoch_num)
             all_metrics.append(metrics)
             self._snapshot(
                 f"phase_3_epoch_{epoch_num}.json",
@@ -699,11 +812,22 @@ class Moderator:
 
         # 1. Exam-level audit (report-only — no remediation loop).
         audit: ExamAudit = self._agents.psychometrician.audit_exam(draft, self._exam_spec)
+        # 1b. Deterministic mix-invariant check on top of the Psychometrician's
+        # audit. The Psychometrician inspects difficulty curve etc., but we
+        # also need a strict count-based check against ExamSpec so any
+        # type-mix or difficulty-mix drift surfaces as a critical objection
+        # in the final report rather than silently shipping.
+        mix_objections = self._mix_invariant_objections(draft)
+        if mix_objections:
+            audit = audit.model_copy(update={
+                "objections": list(audit.objections) + mix_objections,
+            })
         self._snapshot("phase_4_audit.json", audit.model_dump(mode="json"))
         self._emit_routing(
             target="exam_global",
             decision=(
-                f"audit: {len(audit.objections)} exam-level objections raised; "
+                f"audit: {len(audit.objections)} exam-level objections raised "
+                f"({len(mix_objections)} from mix-invariant check); "
                 f"{len(audit.report.imbalance_notes)} imbalance notes"
             ),
         )
@@ -759,6 +883,66 @@ class Moderator:
             f"phase 4 complete: bundle at {bundle.bundle_dir}",
         )
         return Phase4Result(audit=audit, variants=variants, export_paths=bundle.produced)
+
+    def _mix_invariant_objections(self, draft: ExamDraft) -> list[ObjectionDraft]:
+        """Deterministic Phase-4 invariant check: surviving items must match
+        ``ExamSpec.item_type_counts`` and ``ExamSpec.difficulty_distribution``
+        exactly. Any deviation becomes a critical exam-level objection.
+
+        This is a final safety net — if Phase 2 slot enforcement and Phase 3
+        redrafting both did their job, this returns an empty list. When they
+        couldn't (e.g. the materials genuinely don't support a slot), the
+        instructor sees the precise gap in the audit report rather than
+        getting a wrong-mix exam.
+        """
+        survivors = [it for it in draft.items if it.status != ItemStatus.REJECTED]
+
+        # Type histogram
+        actual_types: dict[ItemType, int] = {t: 0 for t in ItemType}
+        for it in survivors:
+            actual_types[it.type] = actual_types.get(it.type, 0) + 1
+        target_types = self._exam_spec.target_item_type_counts()
+
+        # Difficulty histogram
+        actual_diffs: dict[Difficulty, int] = {d: 0 for d in Difficulty}
+        for it in survivors:
+            actual_diffs[it.difficulty_est] = actual_diffs.get(it.difficulty_est, 0) + 1
+        target_diffs = self._exam_spec.target_difficulty_counts()
+
+        objections: list[ObjectionDraft] = []
+        for t, want in target_types.items():
+            got = actual_types.get(t, 0)
+            if got != want:
+                objections.append(ObjectionDraft(
+                    severity=ObjectionSeverity.CRITICAL,
+                    category="mix_invariant",
+                    target="exam_global",
+                    claim=(
+                        f"Item-type mix violates ExamSpec: "
+                        f"{t.value} got {got}, expected {want}."
+                    ),
+                    suggested_fix=(
+                        f"Re-run Phase 2 for slots of type {t.value}, or amend "
+                        f"the ExamSpec to match what the materials support."
+                    ),
+                ))
+        for d, want in target_diffs.items():
+            got = actual_diffs.get(d, 0)
+            if got != want:
+                objections.append(ObjectionDraft(
+                    severity=ObjectionSeverity.CRITICAL,
+                    category="mix_invariant",
+                    target="exam_global",
+                    claim=(
+                        f"Difficulty mix violates ExamSpec: "
+                        f"{d.value} got {got}, expected {want}."
+                    ),
+                    suggested_fix=(
+                        f"Inspect slots flagged at the wrong difficulty during "
+                        f"Phase 2, or amend the ExamSpec ratios."
+                    ),
+                ))
+        return objections
 
     def _run_epoch(self, draft: ExamDraft, epoch_num: int) -> EpochMetrics:
         metrics = EpochMetrics(epoch=epoch_num)
@@ -851,6 +1035,77 @@ class Moderator:
 
     # -- Phase 3 helpers --------------------------------------------------------
 
+    # Cap on Phase-3 redraft attempts per slot. One redraft is the typical
+    # case (an item rejected in epoch N comes back in epoch N+1); the second
+    # attempt covers the rare case where the first redraft also fails LOA
+    # or grounding. Beyond two we accept the slot stays unfilled and let
+    # the Phase 4 audit surface it.
+    _PHASE_3_REDRAFT_CAP_PER_SLOT = 2
+
+    def _phase_3_redraft_dropped_slots(self, draft: ExamDraft, epoch_num: int) -> None:
+        """Refill slots whose item was rejected this epoch (or earlier).
+
+        Iterates ``draft.blueprint.slot_plan`` and, for any slot with no
+        accepted/refined Item attached, calls ``_phase_2_slot`` to produce
+        a replacement. Per-slot redraft count is capped so the loop is
+        bounded even when the materials can't support the slot.
+        """
+        slot_plan = draft.blueprint.slot_plan
+        if not slot_plan.slots:
+            return
+
+        live_slot_ids: set[str] = {
+            it.slot_id for it in draft.items
+            if it.slot_id is not None and it.status != ItemStatus.REJECTED
+        }
+
+        redraftable: list[ItemSlot] = []
+        for slot in slot_plan.slots:
+            if slot.slot_id in live_slot_ids:
+                continue
+            if self._slot_redraft_attempts.get(slot.slot_id, 0) >= self._PHASE_3_REDRAFT_CAP_PER_SLOT:
+                continue
+            redraftable.append(slot)
+
+        if not redraftable:
+            return
+
+        self._emit_routing(
+            target=f"epoch_{epoch_num}",
+            decision=f"redraft pass: {len(redraftable)} dropped slot(s) to refill",
+        )
+
+        outcomes = gather_sync([
+            (lambda s=slot: self._safe_phase_2_slot(s, draft.blueprint))
+            for slot in redraftable
+        ])
+
+        for outcome in outcomes:
+            self._slot_redraft_attempts[outcome.slot.slot_id] = (
+                self._slot_redraft_attempts.get(outcome.slot.slot_id, 0) + 1
+            )
+            if outcome.item is None:
+                continue
+            # Replace the rejected item in place (if any) so item ordering
+            # stays roughly stable; otherwise append.
+            replaced = False
+            for idx, existing in enumerate(draft.items):
+                if existing.slot_id == outcome.slot.slot_id and existing.status == ItemStatus.REJECTED:
+                    draft.items[idx] = outcome.item
+                    replaced = True
+                    break
+            if not replaced:
+                draft.items.append(outcome.item)
+            self._append_provenance(
+                outcome.item,
+                agent="moderator",
+                action="proposed",
+                rationale=(
+                    f"[phase_3_redraft] slot {outcome.slot.slot_id} refilled "
+                    f"after epoch {epoch_num} drop"
+                ),
+            )
+
     def _safe_route_item_objections(
         self,
         draft: ExamDraft,
@@ -860,7 +1115,7 @@ class Moderator:
         """Per-item routing wrapper. Catches the specific model-output
         failure types and marks the item rejected with a routing-event
         rationale, so one bad item can't collapse the whole epoch's gather.
-        Mirrors _safe_phase_2_cell for symmetry."""
+        Mirrors _safe_phase_2_slot for symmetry."""
         try:
             return self._route_item_objections(draft, item, objections)
         except (ValidationError, AgentResponseError) as exc:
@@ -998,6 +1253,12 @@ class Moderator:
                 ),
             )
 
+        # Slot-contract guard: SME edits + IWS cleanup must not change the
+        # item's type or difficulty away from what the slot pinned at
+        # planning time. Both moves are silently rolled back here, with a
+        # provenance note so the audit trail shows the drift attempt.
+        self._enforce_slot_contract(item, draft.blueprint)
+
         # LOA re-check.
         alignment: AlignmentResult = self._agents.loa.verify_alignment(item, self._course_spec.clos)
         if not alignment.is_aligned:
@@ -1063,6 +1324,47 @@ class Moderator:
 
     def _replace_item_fields(self, target: Item, source: ItemDraft) -> None:
         """Copy every ItemDraft field from source onto target, preserving the
-        Item-only fields (id, status, discrimination_est, provenance)."""
+        Item-only fields (id, status, slot_id, discrimination_est, provenance)."""
         for field_name in ItemDraft.model_fields:
             setattr(target, field_name, getattr(source, field_name))
+
+    def _enforce_slot_contract(self, item: Item, blueprint: Blueprint) -> None:
+        """Snap an item's type and difficulty back to the slot's pinned values
+        after any post-Phase-2 edit.
+
+        Phase-3 edits (SME edit_item, IWS cleanup) routinely move
+        difficulty_est by one step ("we softened the stem so this is medium
+        now") and occasionally even switch type. Either drift breaks the
+        slot contract enforced in Phase 2 and shows up as a critical
+        mix-invariant objection in Phase 4. The fix is mechanical: look up
+        the slot, snap both fields, and write provenance so the change is
+        visible. Item content is otherwise untouched.
+        """
+        if item.slot_id is None:
+            return
+        slot = next(
+            (s for s in blueprint.slot_plan.slots if s.slot_id == item.slot_id),
+            None,
+        )
+        if slot is None:
+            return
+        if item.type != slot.item_type:
+            old = item.type.value
+            item.type = slot.item_type
+            self._append_provenance(
+                item, agent="moderator", action="edited",
+                rationale=(
+                    f"[slot_contract] snap item_type: {old} → "
+                    f"{item.type.value} (slot {slot.slot_id})"
+                ),
+            )
+        if item.difficulty_est != slot.difficulty:
+            old = item.difficulty_est.value
+            item.difficulty_est = slot.difficulty
+            self._append_provenance(
+                item, agent="moderator", action="edited",
+                rationale=(
+                    f"[slot_contract] snap difficulty_est: {old} → "
+                    f"{item.difficulty_est.value} (slot {slot.slot_id})"
+                ),
+            )

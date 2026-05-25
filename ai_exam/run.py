@@ -2,12 +2,12 @@
 
 Usage:
     python run.py --inputs-dir test_data --pdf test_data/pchem_notes.pdf
-    python run.py --inputs-dir test_data --pdf test_data/pchem_notes.pdf --outputs-dir runs/foo
+    python run.py --inputs-dir test_data --pdf a.pdf b.pdf --outputs-dir runs/foo
 
-Loads JSON inputs (course_spec.json, exam_spec.json, policy.json) plus the
-specified PDF, ingests into a per-run Chroma collection, runs the Moderator
-through Checkpoint 2, and writes events.jsonl, calls/, per-phase snapshots,
-and a transcript.md under the outputs directory.
+Loads JSON inputs (course_spec.json, exam_spec.json, policy.json) plus one
+or more PDFs, ingests every PDF into a per-run Chroma collection, runs the
+Moderator through Checkpoint 2, and writes events.jsonl, calls/, per-phase
+snapshots, and a transcript.md under the outputs directory.
 """
 
 import argparse
@@ -28,7 +28,7 @@ from agents import (
     SMEAgent,
 )
 from events import EventLog
-from models import CourseSpec, ExamSpec, ItemStatus
+from models import Chunk, CourseSpec, ExamSpec, ItemStatus
 from moderator import AgentRoster, Moderator, TradeOffPolicy
 from retrieval import ChromaRetriever, OllamaEmbedder, ingest_pdf
 
@@ -55,8 +55,9 @@ def main() -> int:
     p = argparse.ArgumentParser(description="ai_exam Phase 0–2 debug pipeline")
     p.add_argument("--inputs-dir", type=Path, default=_PROJECT_ROOT / "test_data",
                    help="Directory containing course_spec.json, exam_spec.json, policy.json")
-    p.add_argument("--pdf", type=Path, required=True,
-                   help="Path to the source PDF to ingest")
+    p.add_argument("--pdf", type=Path, required=True, nargs="+",
+                   help="One or more PDFs to ingest. Pass space-separated paths "
+                        "(e.g. --pdf a.pdf b.pdf c.pdf).")
     p.add_argument("--outputs-dir", type=Path, default=None,
                    help="Directory for events, snapshots, Chroma store. Default: runs/run_<ts>/")
     p.add_argument("--themes-target-count", type=int, default=12)
@@ -120,9 +121,13 @@ def main() -> int:
         embedder=embedder,
     )
 
-    # 3. Ingest PDF into Chroma
-    print(f"INGEST: {args.pdf.name}")
-    corpus = ingest_pdf(args.pdf, retriever)
+    # 3. Ingest every PDF into Chroma (de-duped by deterministic chunk id).
+    pdf_paths: list[Path] = list(args.pdf)
+    print(f"INGEST: {len(pdf_paths)} PDF(s)")
+    corpus: list[Chunk] = []
+    for pdf_path in pdf_paths:
+        print(f"  + {pdf_path.name}")
+        corpus.extend(ingest_pdf(pdf_path, retriever))
     print(f"        {len(corpus)} chunks indexed (collection count = {retriever.count()})")
 
     # 4. Instantiate agents. Each agent gets its own provider instance bound

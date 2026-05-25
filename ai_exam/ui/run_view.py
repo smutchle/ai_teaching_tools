@@ -92,26 +92,32 @@ def _apply_config_envelope(envelope: dict[str, Any]) -> tuple[bool, str]:
 
 def _render_config_io() -> None:
     """Top-of-page download + upload of the full configuration."""
+    st.markdown("### Exam configuration (course spec + exam spec + policy)")
+    st.caption(
+        "Once you have configured your exam, use the buttons below to "
+        "**save the current configuration to a JSON file** or "
+        "**upload an existing exam configuration JSON** to pre-fill the forms. "
+        "Materials PDFs are not part of the JSON — upload them separately in section 1."
+    )
     cols = st.columns([2, 2, 3])
     with cols[0]:
         envelope = _build_config_envelope()
         st.download_button(
-            "💾 Export configuration",
+            "💾 Save configuration to JSON",
             data=json.dumps(envelope, indent=2),
             file_name="ai_exam_config.json",
             mime="application/json",
             use_container_width=True,
             help="Save the current course / exam / policy as a single JSON file. "
-                 "Reload it later via 'Import configuration' to skip the form again.",
+                 "Reload it later via 'Upload existing exam JSON' to skip the form again.",
         )
     with cols[1]:
         uploaded = st.file_uploader(
-            "Import configuration",
+            "⬆️ Upload existing exam JSON",
             type=["json"],
             accept_multiple_files=False,
             key="config_uploader",
-            label_visibility="collapsed",
-            help="Upload a previously-exported ai_exam_config.json to restore the form.",
+            help="Upload a previously-saved ai_exam_config.json to restore the form.",
         )
     # Apply on each rerun if we have a fresh upload (Streamlit's file_uploader
     # re-emits the same UploadedFile across reruns; we key off the file name
@@ -165,21 +171,30 @@ def _validate_specs(
 def _stage_inputs(
     project_root: Path,
     run_ts: str,
-    pdf_bytes: bytes,
-    pdf_name: str,
+    pdfs: list[tuple[str, bytes]],
     course_spec: dict,
     exam_spec: dict,
     policy: dict,
-) -> tuple[Path, Path]:
-    """Write the PDF and the 3 spec JSONs to `uploads/run_<ts>/`. Returns
-    (pdf_path, inputs_dir)."""
+) -> tuple[list[Path], Path]:
+    """Write every PDF and the 3 spec JSONs to `uploads/run_<ts>/`. Returns
+    (pdf_paths, inputs_dir)."""
     inputs_dir = project_root / "uploads" / f"run_{run_ts}"
     inputs_dir.mkdir(parents=True, exist_ok=True)
-    # Preserve the original PDF name (run.py prints it). Default to a stable
-    # name if upload was nameless somehow.
-    safe_name = pdf_name or "materials.pdf"
-    pdf_path = inputs_dir / safe_name
-    pdf_path.write_bytes(pdf_bytes)
+    pdf_paths: list[Path] = []
+    used_names: set[str] = set()
+    for idx, (raw_name, pdf_bytes) in enumerate(pdfs):
+        # Preserve the original PDF name (run.py prints it). Default to a
+        # stable name if upload was nameless somehow, and disambiguate
+        # duplicates so two files with the same name don't overwrite.
+        safe_name = raw_name or f"materials_{idx + 1}.pdf"
+        if safe_name in used_names:
+            stem = Path(safe_name).stem
+            suffix = Path(safe_name).suffix or ".pdf"
+            safe_name = f"{stem}__{idx + 1}{suffix}"
+        used_names.add(safe_name)
+        pdf_path = inputs_dir / safe_name
+        pdf_path.write_bytes(pdf_bytes)
+        pdf_paths.append(pdf_path)
     (inputs_dir / "course_spec.json").write_text(
         json.dumps(course_spec, indent=2), encoding="utf-8",
     )
@@ -189,7 +204,7 @@ def _stage_inputs(
     (inputs_dir / "policy.json").write_text(
         json.dumps(policy, indent=2), encoding="utf-8",
     )
-    return pdf_path, inputs_dir
+    return pdf_paths, inputs_dir
 
 
 def render_run_page(*, project_root: Path) -> None:
@@ -206,12 +221,14 @@ def render_run_page(*, project_root: Path) -> None:
     st.markdown("## 1. Materials")
     cols = st.columns([4, 2])
     with cols[0]:
-        uploaded = st.file_uploader(
-            "Upload course materials (PDF)",
+        uploaded_files = st.file_uploader(
+            "Upload course materials (PDF — one or more)",
             type=["pdf"],
-            accept_multiple_files=False,
-            help="The lecture notes, textbook excerpt, or other source material the "
-                 "exam will draw on. PDF only for now.",
+            accept_multiple_files=True,
+            help="The lecture notes, textbook excerpts, or other source material "
+                 "the exam will draw on. Drop in as many PDFs as you like — every "
+                 "one is ingested into the same per-run vector store and is fair "
+                 "game for retrieval.",
         )
     with cols[1]:
         use_test = st.toggle(
@@ -221,36 +238,37 @@ def render_run_page(*, project_root: Path) -> None:
                  "handy for a quick smoke test.",
         )
 
-    pdf_bytes: bytes | None = None
-    pdf_name: str | None = None
+    pdfs: list[tuple[str, bytes]] = []
     if use_test:
         test_pdf = project_root / "test_data" / "pchem_notes.pdf"
         if test_pdf.exists():
-            pdf_bytes = test_pdf.read_bytes()
-            pdf_name = test_pdf.name
+            test_bytes = test_pdf.read_bytes()
+            pdfs.append((test_pdf.name, test_bytes))
             st.caption(f"Using `{test_pdf.relative_to(project_root)}` "
-                       f"({len(pdf_bytes):,} bytes)")
+                       f"({len(test_bytes):,} bytes)")
         else:
             st.error(f"Test corpus not found at {test_pdf}")
-    elif uploaded is not None:
-        pdf_bytes = uploaded.getvalue()
-        pdf_name = uploaded.name
-        st.caption(f"Loaded `{uploaded.name}` ({len(pdf_bytes):,} bytes)")
+    elif uploaded_files:
+        for f in uploaded_files:
+            pdfs.append((f.name, f.getvalue()))
+        total_bytes = sum(len(b) for _, b in pdfs)
+        names = ", ".join(f"`{n}`" for n, _ in pdfs)
+        st.caption(f"Loaded {len(pdfs)} PDF(s) — {names} ({total_bytes:,} bytes total)")
 
-    # "Suggest from materials" — read the PDF, draft a CourseSpec, replace
+    # "Suggest from materials" — read the PDFs, draft a CourseSpec, replace
     # the form state. The user reviews/edits afterward before clicking Start.
-    if pdf_bytes is not None:
+    if pdfs:
         if st.button(
             "✨ Suggest MLOs + Topics from the uploaded materials",
             use_container_width=True,
-            help="Reads the PDF, calls Haiku once, and pre-fills the "
+            help="Reads the PDFs, calls Haiku once, and pre-fills the "
                  "Materials spec section with a draft. You can edit, "
                  "remove, or add entries before starting the run.",
         ):
             with st.spinner("Extracting PDF text + asking Haiku for a draft…"):
                 try:
-                    from ui.spec_suggester import suggest_course_spec
-                    draft = suggest_course_spec(pdf_bytes)
+                    from ui.spec_suggester import suggest_course_spec_multi
+                    draft = suggest_course_spec_multi([b for _, b in pdfs])
                 except Exception as exc:
                     st.error(f"{type(exc).__name__}: {exc}")
                 else:
@@ -340,8 +358,8 @@ def render_run_page(*, project_root: Path) -> None:
 
     # --- Validate + Start ---
     errors = _validate_specs(course_spec, exam_spec, policy)
-    if pdf_bytes is None:
-        errors.append("Upload a PDF (or toggle 'Use bundled test corpus').")
+    if not pdfs:
+        errors.append("Upload at least one PDF (or toggle 'Use bundled test corpus').")
     for e in errors:
         st.error(e)
 
@@ -349,14 +367,14 @@ def render_run_page(*, project_root: Path) -> None:
     if st.button("▶️ Start Run", type="primary", disabled=start_disabled,
                  use_container_width=True):
         run_ts = dt.datetime.now().strftime("%Y%m%d_%H%M%S")
-        assert pdf_bytes is not None and pdf_name is not None  # guarded above
-        pdf_path, inputs_dir = _stage_inputs(
-            project_root, run_ts, pdf_bytes, pdf_name,
+        assert pdfs  # guarded above
+        pdf_paths, inputs_dir = _stage_inputs(
+            project_root, run_ts, pdfs,
             course_spec, exam_spec, policy,
         )
         outputs_dir = project_root / "runs" / f"run_{run_ts}"
         info = launch_run(project_root, LaunchSpec(
-            pdf_path=pdf_path,
+            pdf_paths=pdf_paths,
             inputs_dir=inputs_dir,
             outputs_dir=outputs_dir,
             max_epochs=st.session_state.get("max_epochs_override"),

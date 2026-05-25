@@ -45,7 +45,7 @@ Content fidelity. The only agent that **authors item content** end-to-end.
 | Phase | Verb | What it does |
 |---|---|---|
 | 1 | `propose_themes(corpus, target_count)` | Reads the entire (batched) corpus, returns ranked themes — the SME's view of what the materials emphasize. Feeds the Blueprint Architect. |
-| 2 | `propose_items(cell, chunks)` | For each blueprint cell, drafts 2× the target item count, grounded in cited chunks. |
+| 2 | `propose_items_for_slot(slot, chunks)` | For each `ItemSlot` produced by the Blueprint Architect, drafts ~3 candidates pinned to the slot's item_type and difficulty, grounded in cited chunks. The Moderator picks the first candidate that passes verification. |
 | 3 | `rebut_objections(item, [Objection, …])` | One batched stance call (ACCEPT / REBUT / DEFER) per item across all non-critical objections raised against it. |
 | 3 | `edit_item(item, objection)` | Re-writes the item to satisfy an accepted (or critical) objection. |
 

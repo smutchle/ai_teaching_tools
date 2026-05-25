@@ -40,14 +40,30 @@ def extract_pdf_text(pdf_bytes: bytes) -> str:
 
 
 def suggest_course_spec(pdf_bytes: bytes) -> CourseSpec:
-    """Draft a CourseSpec from PDF bytes. Single Haiku call, no logging."""
-    raw_text = extract_pdf_text(pdf_bytes)
-    if not raw_text.strip():
+    """Draft a CourseSpec from a single PDF's bytes. Single Haiku call."""
+    return suggest_course_spec_multi([pdf_bytes])
+
+
+def suggest_course_spec_multi(pdfs: list[bytes]) -> CourseSpec:
+    """Draft a CourseSpec from one-or-more PDFs. Single Haiku call, no logging.
+
+    The text of every PDF is concatenated (separated by a doc boundary) and
+    truncated to _MAX_MATERIALS_CHARS before being handed to Haiku.
+    """
+    if not pdfs:
+        raise ValueError("suggest_course_spec_multi requires at least one PDF.")
+    parts: list[str] = []
+    for idx, pdf_bytes in enumerate(pdfs):
+        text = extract_pdf_text(pdf_bytes)
+        if text.strip():
+            parts.append(f"=== DOCUMENT {idx + 1} ===\n{text}")
+    if not parts:
         raise ValueError(
-            "Could not extract any text from the PDF. The PDF may be "
+            "Could not extract any text from the uploaded PDF(s). They may be "
             "image-only (scanned) — those would need OCR before this "
             "suggester can read them."
         )
+    raw_text = "\n\n".join(parts)
     materials = raw_text[:_MAX_MATERIALS_CHARS]
     agent = SpecSuggesterAgent(
         persona_dir=_PERSONA_DIR,

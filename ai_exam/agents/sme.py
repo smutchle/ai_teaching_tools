@@ -11,12 +11,12 @@ from typing import ClassVar
 from events import EventLog
 from models import (
     CLO,
-    BlueprintCell,
     Chunk,
     EditResult,
     Item,
     ItemDraft,
     ItemDraftList,
+    ItemSlot,
     Objection,
     Rebuttal,
     RebuttalBatch,
@@ -214,29 +214,30 @@ class SMEAgent(BaseAgent):
         )
         return self._invoke(prompt, ThemeList).themes
 
-    def propose_items(
+    # Per-slot SME calls need a larger completion budget than the agent's
+    # default 4k: each call emits up to ~3 full ItemDraft candidates, and a
+    # hard analyze-level PROBLEM item with multi-step answer_key + rubric
+    # easily runs to ~1500-2000 tokens per candidate. At 4k the model hits
+    # max_tokens mid-tool-call and emits an empty {}, silently leaving the
+    # slot unfilled. 8192 gives headroom without becoming wasteful.
+    _SLOT_PROPOSE_MAX_TOKENS: ClassVar[int] = 8192
+
+    def propose_items_for_slot(
         self,
-        cell: BlueprintCell,
+        slot: ItemSlot,
         context: list[Chunk],
         *,
         clos: list[CLO] | None = None,
         guiding_principles: str = "",
-        overgenerate_factor: float = 2.5,
+        overgenerate_factor: float = 3.0,
     ) -> list[ItemDraft]:
-        """Draft items for a blueprint cell.
+        """Draft candidate items for a single ItemSlot.
 
-        `clos` is the list of resolved CLO objects for the cell's `clo_refs`
-        — passed by the Moderator so the SME can read what each CLO actually
-        *means* rather than guessing from an opaque id like `clo_hess`.
-        Misalignment with the claimed CLO is the dominant Phase-2 rejection
-        cause; giving SME the CLO text up-front cuts that pattern at the
-        source.
-
-        `guiding_principles` is the free-text instructor preamble from
-        `CourseSpec.guiding_principles` (e.g. "emphasize quantitative
-        reasoning, no rote definitions"). Shapes stem-framing voice.
+        Unlike ``propose_items`` (cell-grain) this constrains the SME to one
+        ``item_type`` and one ``difficulty``. The Moderator picks the first
+        draft that matches those constraints and passes verification.
         """
-        n = max(1, math.ceil(cell.target_item_count * overgenerate_factor))
+        n = max(2, math.ceil(overgenerate_factor))
 
         clo_section = ""
         if clos:
@@ -247,10 +248,10 @@ class SMEAgent(BaseAgent):
             ]
             clo_section = (
                 "--- LEARNING OUTCOMES THE ITEM MUST EVIDENCE ---\n"
-                "Each item must produce evidence for at least one of these "
-                "outcomes at the cell's Bloom level. The Bloom level on the "
-                "CLO is what students must demonstrate — match it; do not "
-                "label an apply-level item as analyze.\n"
+                "Each candidate must produce evidence for at least one of "
+                "these outcomes at the slot's Bloom level. The Bloom level "
+                "is what students must demonstrate — match it; do not label "
+                "an apply-level item as analyze.\n"
                 + "\n".join(clo_lines)
                 + "\n\n"
             )
@@ -263,25 +264,44 @@ class SMEAgent(BaseAgent):
             )
 
         prompt = (
-            f"Propose {n} candidate exam items for the blueprint cell below. The "
-            "Moderator will downselect to the target count after critique; aim for "
-            "variety in stem framing while staying within the cell's topic and "
-            "cognitive level.\n\n"
+            f"Propose {n} candidate exam items for the SINGLE item slot below. "
+            "The Moderator will pick the best candidate that passes verification "
+            "— aim for variety in stem framing while staying within the slot's "
+            "constraints. Every candidate must satisfy every field of the slot:\n"
+            f"  - item_type: {slot.item_type.value} (HARD CONSTRAINT — every "
+            "candidate must be this type; the ItemDraft.type field MUST equal "
+            f"'{slot.item_type.value}'). Do not propose any other type.\n"
+            f"  - difficulty: {slot.difficulty.value} (HARD CONSTRAINT — set "
+            f"ItemDraft.difficulty_est to '{slot.difficulty.value}'; design "
+            "the stem so it actually IS that difficulty, not just labeled).\n"
+            f"  - bloom_level: {slot.bloom_level.value} (the cognitive level "
+            "students must demonstrate).\n"
+            f"  - topic: {slot.topic_name} (id={slot.topic_id}).\n"
+            f"  - points: {slot.points} (use this as ItemDraft.points).\n"
+            f"  - clo_refs (cite at least one of): {slot.clo_refs}\n\n"
+            "Type-specific reminders:\n"
+            "  - MCQ: ItemDraft.options must be a list of 4 plausible "
+            "options; answer_key is the correct option's letter (e.g. 'A').\n"
+            "  - short_answer: a 1–3 sentence response is the expected "
+            "evidence; supply a clean answer_key and a rubric for partial "
+            "credit.\n"
+            "  - problem: a multi-step quantitative or applied task; "
+            "answer_key shows the worked solution; rubric breaks down points.\n"
+            "  - derivation: a proof or symbolic argument; answer_key shows "
+            "the derivation; rubric scores the key inferential steps.\n"
+            "  - data_interp: a small table or computed result is embedded in "
+            "the stem; student interprets it.\n\n"
             + principles_section
             + clo_section
-            + "--- BLUEPRINT CELL ---\n"
-            f"topic: {cell.topic_name} (id={cell.topic_id})\n"
-            f"bloom_level: {cell.bloom_level.value}\n"
-            f"target_item_count: {cell.target_item_count}\n"
-            f"target_points: {cell.target_points}\n"
-            f"clo_refs (cite at least one in each item's clo_refs): {cell.clo_refs}\n\n"
-            f"--- SOURCE CONTEXT ---\n{_format_chunks(context)}\n\n"
-            "Every item must cite at least one source_ref drawn from the chunks "
-            "above; use chunk_id values exactly as given. Chunks tagged "
-            "[PRIOR EXAM — style only] may inform tone and difficulty but must "
-            "never be cited as a source_ref for new item content."
+            + f"--- SOURCE CONTEXT ---\n{_format_chunks(context)}\n\n"
+            "Every candidate must cite at least one source_ref drawn from the "
+            "chunks above; use chunk_id values exactly as given. Chunks "
+            "tagged [PRIOR EXAM — style only] may inform tone and difficulty "
+            "but must never be cited as a source_ref for new item content."
         )
-        return self._invoke(prompt, ItemDraftList).items
+        return self._invoke(
+            prompt, ItemDraftList, max_tokens=self._SLOT_PROPOSE_MAX_TOKENS,
+        ).items
 
     def edit_item(self, item: Item, objection: Objection) -> EditResult:
         prompt = (

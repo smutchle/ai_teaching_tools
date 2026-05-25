@@ -1,0 +1,221 @@
+{
+  "clos": [
+    {
+      "id": "clo_define_agent",
+      "text": "Define an agent as an LLM running in a loop with memory and tools, and identify its four core components (LLM, tools, memory, loop).",
+      "bloom_level": "remember",
+      "knowledge_type": "factual"
+    },
+    {
+      "id": "clo_distinguish_workflow_agent",
+      "text": "Distinguish between a workflow (predetermined control flow via code) and an agent (model-driven control flow) using the test: who decides what happens next?",
+      "bloom_level": "understand",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_analyze_spectrum",
+      "text": "Analyze the spectrum of agency (single LLM call, tool-augmented LLM, workflow, single agent, multi-agent) and explain why each step increases latency, token cost, and failure modes.",
+      "bloom_level": "analyze",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_apply_escalation_principle",
+      "text": "Apply the escalation principle to justify design choices by naming specific failures of simpler architectures rather than invoking edge cases.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_implement_agent_loop",
+      "text": "Implement an agent loop (think\u2013act\u2013observe\u2013think) that handles constitutional prompts, MCP tool calls, and bounded iteration via max_iterations.",
+      "bloom_level": "create",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_evaluate_control_flow",
+      "text": "Evaluate the control flow of an agentic system by identifying whether the code or the model steers execution at each decision point.",
+      "bloom_level": "evaluate",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_use_mcp_tools",
+      "text": "Use the Model Context Protocol (MCP) to expose a tool catalog to an LLM and interpret structured tool-call requests from the model.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_design_constitutional_prompt",
+      "text": "Design a constitutional prompt that shapes agent behavior by specifying role, standards, constraints, and communication tone.",
+      "bloom_level": "create",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_read_pattern_stack",
+      "text": "Read an agentic system as a pattern stack by naming Layer 1 patterns (reasoning, tool use, memory, safety), Layer 2 composition, and Layer 3 anti-patterns.",
+      "bloom_level": "analyze",
+      "knowledge_type": "procedural"
+    }
+  ],
+  "topics": [
+    {
+      "id": "topic_agent_anatomy",
+      "name": "Agent anatomy: LLM, tools, memory, loop, and constitutional prompt",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "3.2",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        },
+        {
+          "chunk_id": "3.2.1-3.2.5",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_workflow_vs_agent",
+      "name": "Workflow versus agent: control flow and the distinction between predetermined and model-driven execution",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "3.3",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        },
+        {
+          "chunk_id": "3.3.1",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        },
+        {
+          "chunk_id": "4.1",
+          "source_doc": "DOCUMENT 1",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_agency_spectrum",
+      "name": "Spectrum of agency: single call, tool-augmented, workflow, single agent, multi-agent",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "3.3.2",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_escalation_principle",
+      "name": "Escalation principle: demonstrating failure of simpler designs before adding complexity",
+      "weight": 1.0,
+      "source_refs": [
+        {
+          "chunk_id": "3.5.1",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_cost_of_patterns",
+      "name": "Cost of every pattern: latency, tokens, and failure modes",
+      "weight": 1.0,
+      "source_refs": [
+        {
+          "chunk_id": "3.5.2",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_think_act_observe_loop",
+      "name": "Think\u2013act\u2013observe loop mechanics: LLM decision, MCP tool execution, result feeding",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "4.7",
+          "source_doc": "DOCUMENT 1",
+          "locator": null
+        },
+        {
+          "chunk_id": "3.2.4",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_mcp_tools",
+      "name": "Model Context Protocol (MCP): exposing tool catalogs and handling structured tool requests",
+      "weight": 1.0,
+      "source_refs": [
+        {
+          "chunk_id": "4.2",
+          "source_doc": "DOCUMENT 1",
+          "locator": null
+        },
+        {
+          "chunk_id": "4.7",
+          "source_doc": "DOCUMENT 1",
+          "locator": null
+        },
+        {
+          "chunk_id": "3.2.2",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_constitutional_prompt",
+      "name": "Constitutional prompt: role, standards, constraints, and behavioral shaping",
+      "weight": 1.0,
+      "source_refs": [
+        {
+          "chunk_id": "4.3",
+          "source_doc": "DOCUMENT 1",
+          "locator": null
+        },
+        {
+          "chunk_id": "4.5",
+          "source_doc": "DOCUMENT 1",
+          "locator": null
+        },
+        {
+          "chunk_id": "3.2.5",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_pattern_stack",
+      "name": "Pattern stack model: Layer 1 (agent-level), Layer 2 (system-level), Layer 3 (anti-patterns)",
+      "weight": 1.0,
+      "source_refs": [
+        {
+          "chunk_id": "3.4",
+          "source_doc": "DOCUMENT 2",
+          "locator": null
+        }
+      ]
+    },
+    {
+      "id": "topic_agent_implementation",
+      "name": "Agent implementation: class structure, async loop, MCP server integration, termination criteria",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "4.7",
+          "source_doc": "DOCUMENT 1",
+          "locator": null
+        }
+      ]
+    }
+  ],
+  "guiding_principles": "Focus on the important, big-picture take-aways from this material."
+}
