@@ -345,6 +345,25 @@ if selected and selected != st.session_state.selected_dataset:
     else:
         st.session_state.dataset_description = ""
 
+# Upload an existing JSON definition
+uploaded = st.sidebar.file_uploader("Upload JSON", type=["json"], key="json_uploader")
+if uploaded is not None and st.session_state.get("uploaded_file_id") != uploaded.file_id:
+    try:
+        config = json.loads(uploaded.getvalue().decode("utf-8"))
+        Dataset(config)  # raises ValueError if 'dataset_config' wrapper is missing
+        name = config.get("dataset_config", {}).get("name", Path(uploaded.name).stem)
+        config_json = json.dumps(config, indent=2)
+        st.session_state.config_text = config_json
+        st.session_state["config_editor"] = config_json  # refresh the keyed text_area in tab2
+        st.session_state.current_config = config
+        st.session_state.selected_dataset = name
+        st.session_state.dataset_description = ""
+        st.session_state.last_error_message = None
+        st.session_state.uploaded_file_id = uploaded.file_id
+        st.sidebar.success(f"✅ Loaded '{uploaded.name}' — open the **JSON Editor** tab")
+    except (json.JSONDecodeError, ValueError) as e:
+        st.sidebar.error(f"❌ Upload failed: {e}")
+
 # Action buttons
 col1, col2, col3 = st.sidebar.columns(3)
 
