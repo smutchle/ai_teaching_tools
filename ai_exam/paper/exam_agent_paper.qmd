@@ -1,0 +1,599 @@
+---
+title: "Deliberation by Design: A Multi-Agent Large-Language-Model System for Constructively Aligned, Provenance-Tracked Examination Authoring in the Sciences"
+author:
+  - name: Scott Mutchler
+    affiliation: College of Science, Virginia Polytechnic Institute and State University
+    email: scott.r.mutchler@gmail.com
+date: 2026-06-06
+abstract: |
+  Authoring a high-quality summative examination requires the simultaneous
+  satisfaction of constraints that are individually well understood but jointly
+  difficult to hold in mind: content coverage in the proportions a course
+  promises, cognitive demand matched to stated learning outcomes, freedom from
+  item-writing flaws, accessibility for students with diverse needs, and
+  defensible measurement properties. A single author working under deadline
+  tends to collapse these constraints into whichever is easiest to satisfy,
+  producing exams that drift toward recall, harbour cueing flaws, and embed
+  construct-irrelevant difficulty. We present an agentic system that reframes
+  exam construction as *structured disagreement* rather than single-pass
+  generation. A team of specialised large-language-model (LLM) agents — a
+  subject-matter expert, a blueprint architect, and a panel of adversarial
+  critics for alignment, item-writing mechanics, accessibility, psychometrics,
+  and test-wiseness — propose, critique, and refine items across bounded
+  epochs, coordinated by a *deterministic* (non-LLM) moderator that applies a
+  faculty-specified trade-off policy and records every proposal, objection, and
+  resolution as an immutable provenance event. Item proposals are grounded in
+  the instructor's own uploaded materials by mandatory retrieval citations and
+  an independent grounding check, so the exam is built from course content
+  rather than from the model's parametric memory. We describe the design, its
+  grounding in established assessment theory (backward design, Bloom's revised
+  taxonomy, constructive alignment, and evidence-centred design), and an
+  end-to-end reference implementation that produces a complete, render-ready
+  exam bundle — exam, answer key, rubrics, accessibility variants, a coverage
+  and difficulty report, and a full audit trail — in roughly three minutes of
+  wall-clock time on a two-tier model routing (a strong hosted model for
+  generative roles and a small hosted model for verification roles); the same
+  pipeline can be run entirely on local open-weight models at the cost of speed.
+  We discuss
+  the pedagogical, cost, and time trade-offs of the approach,
+  including its limitations (the absence of empirical item-response data, the
+  residual risk of fluent-but-wrong content, and the gap between estimated and
+  observed psychometrics), and we describe our plan to release the system as an
+  open-source project to invite scrutiny, replication, and disciplinary
+  refinement.
+keywords: [automatic item generation, large language models, multi-agent systems, educational assessment, constructive alignment, retrieval-augmented generation, provenance, accessibility]
+bibliography: references.bib
+format:
+  pdf:
+    documentclass: article
+    papersize: letter
+    geometry:
+      - margin=1in
+    fontsize: 11pt
+    number-sections: true
+    colorlinks: true
+    fig-pos: 'H'
+    keep-tex: true
+    include-in-header:
+      text: |
+        \usepackage{booktabs}
+        \usepackage{microtype}
+execute:
+  echo: false
+  warning: false
+---
+
+# Introduction
+
+Summative assessment is among the highest-stakes design tasks an instructor
+performs, and among the least resourced. A midterm or final examination is the
+instrument through which a course converts months of instruction into
+defensible inferences about what students know and can do. Yet the typical
+author of that instrument is a single faculty member, working under deadline,
+holding in mind at once a set of constraints that the educational-measurement
+literature treats as distinct specialities: the exam must cover the right
+topics in the right proportions; it must target the cognitive levels the course
+outcomes actually promise rather than the levels that are easiest to write
+items for; it must be free of the grammatical cueing, implausible distractors,
+and overlapping options that the item-writing literature has catalogued for
+decades [@haladyna2002review]; it must remain accessible to students with
+diverse needs and language backgrounds, rather than penalising them through
+construct-irrelevant difficulty [@messick1995validity]; and it must distinguish
+students who have understood the material from those who have not, within a
+fixed time and point budget.
+
+Each of these dimensions has a mature literature behind it. Backward design
+[@wiggins2005understanding] tells us to specify the evidence an assessment must
+elicit *before* writing any tasks. Bloom's revised taxonomy
+[@anderson2001taxonomy] gives a vocabulary for cognitive demand. Constructive
+alignment [@biggs1996constructive] requires that each task elicit evidence at
+the cognitive level its target outcome promises. Evidence-centred assessment
+design [@mislevy2003structure] frames every item as an argument linking a claim
+about the student to the evidence a task elicits.
+The *Standards for Educational and Psychological Testing* [@aera2014standards]
+codify validity and fairness as professional obligations. Few practising
+faculty, however, have the time to consult these literatures for each
+assessment they write, and the predictable consequence is a well-documented set
+of failure modes: silent drift toward recall and procedural application,
+item-writing flaws that inflate scores without measuring anything, and
+accommodations produced reactively as ad hoc edits to a finished exam rather
+than designed in from the start.
+
+The recent maturation of large language models (LLMs) [@brown2020gpt3] has
+prompted enthusiasm for automating assessment authoring, and a substantial body
+of work on automatic question generation predates the current generation of
+models [@kurdi2020systematic]. The naïve application of a single, powerful
+model to "write me an exam," however, reproduces the single-author failure mode
+in a new guise. Asked to optimise content, cognition, accessibility, and
+measurement simultaneously, a single model tends to produce a smooth compromise
+that *looks* plausible on every dimension while obscuring where the trade-offs
+were made — an argument we make on design grounds rather than from a controlled
+comparison. Worse, LLMs are prone to confident
+fabrication [@ji2023survey] and to sycophantic agreement that simulates
+deliberation without its substance [@sharma2023sycophancy; @perez2022discovering].
+A generator that hallucinates a plausible-but-wrong answer key, or that agrees
+with every critique it receives, is not merely unhelpful; it is dangerous in a
+context where the output drives grades and is subject to appeal.
+
+This paper presents a system designed around the opposite premise. We treat
+exam construction not as a generation problem but as a *deliberation* problem,
+and we make the deliberation structural. A small team of specialised LLM agents
+— a subject-matter expert (SME), a blueprint architect, and a panel of
+adversarial critics — propose and contest items across bounded epochs. A
+**deterministic** moderator, not itself an LLM, collects objections, applies a
+trade-off policy the faculty member specifies in advance, and records every
+move as an immutable provenance event. Item content is **grounded** in the
+instructor's own uploaded materials through mandatory retrieval citations and an
+independent grounding check, so the exam is assembled from course content rather
+than from the model's parametric memory. The instructor of record is retained
+as the authoritative decision-maker, reviewing a fully rendered bundle rather
+than mediating the machinery.
+
+Our contributions are: (1) a system design that operationalises four
+established assessment frameworks as hard constraints in an agentic pipeline,
+rather than as advisory prompts; (2) a deliberately *non-LLM* moderator and a
+mandatory-objection protocol that together counter the multi-agent
+failure mode of convergence-through-agreement; (3) a grounding regime that ties
+every item to cited source passages and audits answer-key support; (4) a
+full-provenance record engineered for defensibility against grade appeals; and
+(5) a working, end-to-end reference implementation, which we describe and which
+we are preparing to release as open source. We are explicit throughout about
+what the system does *not* yet do — most importantly, it produces *estimated*
+rather than empirically observed psychometrics — and we frame the open-source
+release as the mechanism by which those gaps are most credibly closed.
+
+# Related Work
+
+**Automatic item and question generation.** Automatic question generation (AQG)
+has a long pre-LLM history, comprehensively surveyed by @kurdi2020systematic,
+who reviewed 93 studies and noted that the field had paid little attention to
+controlling difficulty, enriching question structure, or generating feedback,
+precisely the dimensions a blueprint-driven, critic-mediated design foregrounds.
+Classical AQG systems were largely template- or syntax-driven and produced
+factual recall questions; they rarely engaged the cognitive-alignment or
+fairness concerns that dominate professional assessment practice. The arrival of
+instruction-tuned LLMs [@brown2020gpt3] dramatically expanded the fluency and
+range of generated items, and recent work has applied LLMs to question
+generation and to Bloom-level-targeted item writing. Our work differs in
+treating generation as only the first move in a multi-party deliberation, and in
+subordinating the generator to an explicit blueprint and a panel of critics.
+
+**Multi-agent LLM systems.** A growing literature shows that orchestrating
+several LLM instances — debating, critiquing, or playing distinct roles —
+improves factuality and reasoning relative to a single pass. @du2024multiagent
+demonstrate that multi-agent debate reduces hallucination and improves
+reasoning; @park2023generative show that role-specialised agents can sustain
+coherent, differentiated behaviour; and frameworks such as AutoGen
+[@wu2023autogen] provide general machinery for multi-agent conversation. Our
+design draws on this line of work but departs from it in two deliberate ways.
+First, the coordinating moderator is *deterministic* rather than a model: the
+trade-off resolution that decides which dimension wins a conflict is a
+priority-ranked policy the faculty member sets, not an emergent property of a
+conversation. We made this choice because the resolution of a content-versus-
+accessibility conflict is a *value judgment* that must be auditable and must
+belong to the instructor, not to an opaque negotiation. Second, we adopt an
+anti-sycophancy protocol (critics must produce objections at a configurable
+minimum rate in early epochs, and empty critique is rejected and re-prompted)
+to counter the well-documented tendency of LLMs toward agreeable convergence
+[@sharma2023sycophancy; @perez2022discovering].
+
+**Grounding and retrieval.** Retrieval-augmented generation [@lewis2020rag]
+conditions model output on retrieved documents to improve factual accuracy and
+reduce hallucination. We apply this idea as a *gating constraint* rather than a
+quality nudge: an item proposal that does not cite at least one retrieved chunk
+from the instructor's materials is rejected before it can enter the item bank,
+and an independent grounding verifier checks that the cited passages actually
+support the claimed answer. Prior examinations, when supplied, are indexed for
+*style* only and are never returned as a content source for new items.
+
+**Assessment theory.** The system is an attempt to make four established
+frameworks operative rather than aspirational. Backward design
+[@wiggins2005understanding] is enforced by forbidding item generation before a
+blueprint is approved. Bloom's revised taxonomy [@anderson2001taxonomy] is the
+vertical axis of that blueprint. Constructive alignment [@biggs1996constructive]
+is checked per item by a dedicated agent. Evidence-centred design
+[@mislevy2003structure], together with modern validity theory
+[@messick1995validity; @kane2013validating], motivates the provenance record
+that turns each item into a documented argument. Accessibility is treated as a
+first-class design constraint in the spirit of Universal Design for Learning
+[@rose2002udl; @cast2018udl] rather than as post-hoc accommodation.
+
+# System Design
+
+## Overview and design commitments
+
+The system is delivered as a web application but its substance is a team of
+agents that propose, critique, and refine items under instructor supervision.
+Five commitments shape the design and distinguish it from a prompt-engineered
+single-model generator.
+
+1. **Multi-agent, not single-agent.** Each critic — alignment, item-writing,
+   accessibility, psychometrics, adversarial student — is a separate agent with
+   its own persona and output schema. The point is to make trade-offs *visible*,
+   not to optimise them away.
+2. **The moderator is deterministic.** Disagreement is resolved by a
+   priority-ranked policy, not by a model. This keeps value judgments with the
+   instructor and keeps resolution auditable.
+3. **Grounding is mandatory.** Every item proposal must cite at least one source
+   chunk from uploaded materials, and a grounding verifier checks that the cited
+   chunks support the answer. Ungrounded items are auto-rejected. Prior exams are
+   indexed for style only.
+4. **Full provenance.** Every proposal, edit, objection, and resolution writes a
+   structured provenance event. This is what makes an exam defensible under
+   appeal.
+5. **No agent-orchestration frameworks.** All agents and orchestration logic are
+   written directly against provider SDKs with an explicit, inspectable state
+   machine, so that the control flow — particularly the deterministic moderator —
+   is fully legible and testable.
+
+## Inputs
+
+The instructor provides three things. **Materials** are course readings, lecture
+notes, problem sets, and lab manuals (PDF and related formats); optional prior
+exams are accepted for style reference only. A **course specification** lists
+course learning outcomes (CLOs), each tagged with a target Bloom level, a
+weighted topic list, and free-text guiding principles (e.g., "emphasise
+quantitative reasoning; no rote definitions"). An **exam specification** fixes
+the exam type, total points and time budget, item-type counts, target difficulty
+distribution, and any required accessibility variants. A fourth input deserves
+emphasis: the **trade-off policy**, a ranked priority over *content fidelity,
+cognitive alignment, accessibility, discrimination,* and *brevity*, together with
+a maximum epoch count and a convergence rule. Requiring the instructor to rank
+these in advance places the responsibility for value judgments where it belongs
+and prevents the system from silently defaulting to whichever dimension is
+easiest to quantify.
+
+## Agent roster
+
+Table 1 lists the agents. Each is defined by a system prompt (its
+"constitution"), a set of allowed actions, and a forced-JSON output schema
+validated against a Pydantic contract.
+
+: The agent roster. The moderator is the only non-LLM participant. {#tbl-roster}
+
+| Agent | Role | Tier |
+|---|---|---|
+| Subject-Matter Expert (SME) | Extracts themes; proposes grounded items; defends or revises under critique | High |
+| Blueprint Architect | Builds the topic × Bloom matrix governing coverage | High |
+| Learning-Outcomes Alignment (LOA) | Verifies each item targets the cognitive level its CLO promises | Low |
+| Item-Writing Specialist (IWS) | Catches cueing, implausible distractors, and other mechanical flaws | Low |
+| Accessibility Expert | Reviews readability and construct-irrelevant difficulty; builds variants | Low |
+| Psychometrician | Estimates difficulty and discrimination; audits the distribution | Low |
+| Adversarial Student | Attempts each item using only test-wiseness, no materials | High |
+| Grounding Verifier | Checks cited chunks actually support the claimed answer | Low |
+| Moderator | Deterministic orchestrator; applies the trade-off policy | — (not an LLM) |
+
+The "tier" column reflects a deliberate cost decision discussed in
+@sec-cost: generative, reasoning-heavy roles (SME, architect, adversarial
+student) are routed to a strong hosted model, while verification and
+rule-application roles (alignment, item-writing, accessibility, psychometrics,
+grounding) are routed to a small, inexpensive model.
+
+## Orchestration: the epoch loop
+
+The pipeline runs in four phases, gated in the original design by three faculty
+checkpoints (CP1: blueprint approval; CP2: item-bank review; CP3: final review).
+
+- **Phase 0 — Intake.** Materials are ingested, chunked with a heading-aware
+  chunker, embedded, and stored in a local vector index. The specifications and
+  trade-off policy are parsed.
+- **Phase 1 — Blueprinting.** The SME extracts and ranks candidate themes from
+  the materials; the Blueprint Architect builds a topic × Bloom matrix with
+  target item counts and points per cell. The blueprint is the central artifact,
+  and it is frozen at CP1 before any item is written — the structural enforcement
+  of backward design.
+- **Phase 2 — Item generation.** For each blueprint cell, the SME *over-generates*
+  candidate items (each carrying mandatory source citations), the IWS performs a
+  mechanics cleanup pass, and the LOA verifies constructive alignment, dropping
+  misaligned items. When the LOA rejects an item for a Bloom mismatch, the system
+  first attempts an automatic realignment (re-mapping the item's Bloom level or
+  CLO reference and re-verifying) before discarding it.
+- **Phase 3 — Refinement epochs.** In each epoch, the critic panel reviews every
+  surviving item *in parallel*: the Accessibility Expert flags readability and
+  construct-irrelevant difficulty, the Adversarial Student attempts each item
+  using only test-wiseness, and the Psychometrician scores difficulty and flags
+  distributional imbalance. The moderator collects the objections, routes each to
+  the SME for an edit or a rebuttal, applies the trade-off policy when critics
+  conflict, and re-verifies any edited item through IWS → LOA → grounding. The
+  loop exits when no critical- or high-severity objections are raised for a full
+  epoch, or when the maximum epoch count is reached.
+- **Phase 4 — Finalisation.** The Accessibility Expert generates the required
+  accommodation variants; the Psychometrician produces an exam-level report
+  (Bloom distribution, estimated difficulty curve, CLO-coverage heatmap); and the
+  system renders the export bundle.
+
+## The deterministic moderator
+
+The moderator does the coordinating, and it is the one component we deliberately
+kept *out* of the language-model layer. For each open objection it applies a
+fixed procedure: a critical-severity objection forces an SME edit or item rejection;
+a conflict between objections on the same item is resolved by consulting the
+instructor's priority ranking and selecting the higher-ranked dimension, with
+the rationale logged; everything else is routed to the SME for an accept-edit,
+rebut, or defer response. Rebut–reassert cycles are bounded before escalation.
+Every resolution writes a provenance event. Because this logic is deterministic,
+it is unit-testable, reproducible, and legible to a faculty member who wants to
+know exactly why a given item survived or died — properties that an
+LLM-mediated negotiation cannot offer.
+
+## Anti-sycophancy by construction
+
+Multi-agent LLM systems are prone to convergence through mutual agreement, a
+failure mode that produces the appearance of deliberation without its substance
+[@sharma2023sycophancy; @perez2022discovering]. We counter this structurally.
+Critic personas are written to reward substantive disagreement; the moderator's
+mandatory-objection protocol rejects an empty early-epoch critique and
+re-prompts; and the Adversarial Student operates only on item text, with no
+access to materials or answer key, so its successes are genuine test-wiseness
+exploits rather than informed solving. We note only an informal observation from
+the handful of reference runs we have inspected so far — rebuttals are frequent
+and substantive rather than perfunctory — and we flag it as anecdotal, not a
+measured rate; quantifying objection and rebuttal behaviour across many runs is
+future work.
+
+## Grounding and provenance
+
+Every SME item proposal must cite at least one retrieved chunk; proposals
+without citations are auto-rejected, and a separate Grounding Verifier confirms
+that the cited chunks support the claimed answer, routing failures back to the
+SME. This is retrieval-augmented generation [@lewis2020rag] used as a *gate*
+rather than a hint. The provenance record — which agent proposed each item,
+which objections were raised, how each was resolved, and against which source
+passages — is the artifact that operationalises evidence-centred design
+[@mislevy2003structure] and modern validity theory [@kane2013validating]: it
+turns each item into a documented argument and gives an instructor a concrete,
+auditable record to put before a grade-appeal committee.
+
+# Reference Implementation
+
+We built a complete, end-to-end implementation to validate the design rather
+than to ship a product. It comprises roughly thirty Pydantic data contracts, one
+agent class per persona (each loading its constitution from an editable
+Markdown file), a provider abstraction supporting a hosted model, an
+OpenAI-compatible institutional endpoint, and a local model server, a
+retrieval layer over a local vector store with a local embedding model, an
+append-only event log with per-call input/output sidecars, the deterministic
+moderator state machine, and an export module that renders the final bundle
+through Quarto. A five-page observation UI lets a faculty member launch a run,
+watch an interactive timeline of every agent call, inspect outputs, edit
+personas, and read the documentation.
+
+Two implementation realities are worth reporting because they generalise to
+anyone building agentic pipelines on current models. First, **model output is
+not reliably schema-conformant.** Models stringify nested JSON fields, emit
+invalid escape sequences when embedding LaTeX backslashes, and omit
+required fields when terse. We addressed this principally with a
+retry-on-validation loop — when a response fails its Pydantic contract, the
+validation error is fed back to the model and the call is retried — backed by
+defensive defaults and per-cell/per-item safe wrappers so that one malformed
+response can never collapse a parallel fan-out. Second, **concurrency must be
+governed per backend.** A single-GPU local model serialises internally and times
+out under naïve parallelism; a free institutional endpoint has an hourly quota.
+Per-provider semaphores (and a raised token floor for local "thinking" models
+that emit long hidden reasoning streams before producing content) were necessary
+for the parallel critique phase to complete. We report these not as incidental
+engineering but as evidence that robustness scaffolding is a first-class concern
+in agentic assessment tooling.
+
+On a two-tier routing — a strong hosted model for the high tier and a small
+hosted model for the low tier — a quiz-scale reference corpus runs the full
+Phase 0–4 pipeline, including four refinement epochs, in roughly three minutes
+of wall-clock time, and produces a complete bundle: the exam, answer key,
+instructor notes, rubrics, an exam report, and a machine-readable provenance
+file, in PDF, DOCX, LaTeX, and HTML, together with an on-demand human-readable
+narrative of the run. We emphasise that this is a *functional* demonstration on a
+small corpus, not a controlled study of exam quality; the distinction is central
+to the limitations we discuss below.
+
+# Discussion: Trade-offs of the Approach
+
+We assess the approach along the dimensions that matter to a department deciding
+whether to adopt it, and we try not to flinch at the unfavourable ones.
+
+## Pedagogical trade-offs
+
+The strongest pedagogical argument for the system is that it makes the
+*deliberative structure* of good assessment design unavoidable. Backward design,
+constructive alignment, Bloom-level targeting, and item-writing discipline are
+not suggestions layered on top of a generator; they are enforced by the control
+flow. A faculty member cannot get items before approving a blueprint, cannot
+keep a misaligned item that the LOA rejects without an explicit override, and
+cannot ship an item whose answer is unsupported by cited materials. This is the
+educational-measurement equivalent of code review, and it is aimed squarely at
+the kinds of failure modes the literature warns about
+[@haladyna2002review; @messick1995validity], though whether it reduces them in
+practice is an empirical question we have not yet answered. Treating accessibility as a
+first-class critic, rather than a post-hoc accommodation, aligns the workflow
+with Universal Design for Learning [@rose2002udl].
+
+The counter-argument is that the system can *displace* rather than
+*develop* faculty expertise. A tool that silently fixes cueing flaws does not
+teach the instructor to avoid them next time, and an instructor who defers to the
+machine's blueprint may exercise less of the curricular judgment the blueprint is
+meant to externalise. We have tried to mitigate this by making the system
+observational and the provenance legible — the faculty member sees *why* each
+decision was made — but the risk of deskilling is real and is best evaluated
+empirically in a pilot. There is also a genuine pedagogical hazard specific to
+LLMs: a fluent but subtly wrong item or answer key [@ji2023survey] is more
+dangerous than an obviously wrong one, because it survives a casual read. Mandatory
+grounding and the adversarial critic reduce this risk but do not eliminate it,
+which is why the instructor checkpoint on the rendered bundle is not optional in
+the intended workflow.
+
+## Cost trade-offs {#sec-cost}
+
+Cost is governed almost entirely by model routing. The two-tier scheme is the key
+economic lever: a typical run issues on the order of a few dozen high-tier
+(generative) calls and roughly one hundred low-tier (verification) calls. Routing
+the high tier to a strong hosted model and the low tier to a small or local model
+concentrates spend on the generative roles whose output most shapes the exam,
+while keeping the marginal cost of an exam low. We have not benchmarked
+per-exam cost directly; an order-of-magnitude estimate from the call counts and
+current hosted-model token prices is single-digit cents to a few dollars per
+exam, dominated by the high-tier calls. Marginal cost approaches zero when the
+low tier (and optionally the high tier) is served by a local model on
+departmental hardware, at the cost of speed and, plausibly, some output quality.
+The system is provider-agnostic for exactly this reason, and the local-only
+configuration buys an additional benefit beyond cost: full data locality, since
+no course materials leave the institution. The principal *non-monetary* cost is
+engineering and maintenance: agentic pipelines on current
+models require the robustness scaffolding described above, and that scaffolding
+must track model and SDK changes.
+
+## Time trade-offs
+
+The time argument is the most concrete. The system reallocates faculty time from
+the mechanical aspects of construction — drafting items, checking distractors,
+balancing coverage, building accommodation variants, assembling an answer key and
+rubrics — to the consequential ones: specifying outcomes, ranking trade-offs, and
+reviewing a finished draft. The marginal machine time to produce a full bundle is
+minutes. The faculty time is front-loaded into the course and exam
+specifications, which, for a recurring course with stable outcomes, amortises
+across semesters: the specification is written once and reused, and only the
+materials and exam parameters change. The break-even is least favourable for a
+one-off exam in a course whose outcomes have never been formalised, and most
+favourable for a recurring exam in a course with a stable, documented outcome
+set — precisely the qualifying-exam and large-enrolment-core settings where
+defensibility matters most.
+
+## Why multiple agents, empirically
+
+A reasonable skeptic asks whether the multi-agent structure earns its complexity.
+Our position, consistent with the multi-agent-debate literature
+[@du2024multiagent], is that separating the critics is what makes the trade-offs
+*visible and contestable*. When the Accessibility Expert objects that a stem
+carries construct-irrelevant difficulty and the SME rebuts that the vocabulary in
+question *is* the construct, the disagreement is recorded, the policy is
+consulted, and the resolution is logged with rationale. A single agent asked to
+balance the same concerns internally produces a compromise with no visible seam
+and no audit trail. The cost is more calls and more orchestration; the benefit is
+accountability, which is what a graded, appealable context demands.
+
+# Limitations
+
+The boundaries of the present work are worth stating plainly.
+
+**Estimated, not observed, psychometrics.** The Psychometrician's difficulty and
+discrimination figures are *model estimates*, not statistics derived from student
+responses. Real item parameters are knowable only after administration. The
+system's psychometric report should be read as a design-time sanity check on the
+*intended* distribution, not as a substitute for post-hoc item analysis. Closing
+this gap requires a feedback loop in which administered-item statistics are
+returned to the system — work we have not yet done.
+
+**Residual fabrication risk.** Grounding and adversarial critique reduce but do
+not eliminate the chance of a fluent, plausible, and wrong item or answer key
+[@ji2023survey]. The mandatory instructor review of the rendered bundle is the
+backstop, and the workflow depends on it: the system is decision-support, not an
+autonomous authority.
+
+**No controlled evaluation yet.** The implementation is verified end-to-end on a
+small reference corpus. We have *not* run a controlled study comparing
+system-assisted exams to instructor practice, nor measured inter-rater agreement
+between the agent critics and human assessment experts, nor validated the
+constructive-alignment judgments against expert raters. These are the studies
+that would establish the system's value, and they are the central items of future
+work below. Claims of quality improvement in this paper are therefore
+*architectural and theoretical*, not empirical.
+
+**Scope.** The approach suits exams whose value lies in structured coverage of
+stable outcomes — recurring undergraduate exams, graduate qualifying exams. It is
+ill-suited to assessments whose pedagogical value is unpredictability (oral
+exams, open-ended research proposals), and we make no claim for those settings.
+
+**Generalisation of the corpus.** The reference runs use a small science corpus.
+The theme-extraction batching path that would be exercised by a full textbook is
+implemented but not yet stress-tested at that scale, and discipline-specific
+conventions beyond the sciences (e.g., the assessment norms of the humanities)
+are untested.
+
+**Human-in-the-loop posture.** The original design specified faculty checkpoints
+at CP1, CP2, and CP3. The reference implementation auto-advances these and places
+the human review at the rendered-bundle stage instead. This is a defensible UX
+choice for an observation-first tool, but it weakens the in-loop control the
+design envisioned; making the mid-run checkpoints optionally blocking is
+straightforward and is on the roadmap.
+
+# Future Work
+
+Several directions follow directly from the limitations.
+
+1. **Empirical validation.** The priority is a pilot: a small number of faculty,
+   one course and exam each, with a structured debrief comparing the
+   system-assisted exam to prior practice on time, item quality, and faculty
+   experience. In parallel, an expert-rater study would measure agreement between
+   the agent critics (especially the LOA's alignment judgments) and human
+   assessment specialists.
+2. **Closing the psychometric loop.** Returning administered-item statistics —
+   difficulty, discrimination, distractor analysis — to the system would let it
+   calibrate its estimates and would convert the design-time report into a
+   genuine measurement instrument over repeated administrations.
+3. **Programmatic anti-sycophancy enforcement and policy-driven conflict
+   resolution.** The mandatory-objection rate and the priority-rank consultation
+   for directly conflicting critic demands are specified in the design and only
+   partially enforced in code; completing them tightens the deliberation
+   guarantees.
+4. **Standards interoperability and persistence.** Export to QTI / Common
+   Cartridge for direct LMS import, and a durable persistence layer for
+   cross-session resume and longitudinal item banking, would move the system from
+   a single-session tool toward a departmental asset.
+5. **Broader disciplinary and accessibility coverage.** Stress-testing theme
+   extraction on full textbooks, validating non-science disciplines, and
+   expanding the accessibility variants beyond the current set are all tractable
+   extensions.
+
+# Open-Source Release and Collaboration
+
+We intend to release the system as an open-source project, and the decision is
+methodological rather than merely generous. Three of the system's commitments —
+auditability, a deterministic and inspectable moderator, and reproducibility —
+are credible only if the code is open to inspection. An assessment tool that asks
+a department to trust its alignment judgments, while hiding how those judgments
+are made, contradicts its own provenance argument. The deliberate avoidance of
+heavyweight agent-orchestration frameworks in favour of a plain, legible state
+machine was made partly with this in mind: a reviewer can read the moderator and
+verify that the trade-off resolution does what the policy says, without
+untangling a framework's control flow.
+
+The release is also the most credible path to the empirical validation the
+limitations demand. The studies that would establish the system's worth — pilots
+across courses and disciplines, expert-rater agreement, psychometric calibration
+against administered data — are larger than any single group can run, and they
+depend on instrument transparency to be comparable across sites. An open project
+with editable agent personas (each is a Markdown file), provider-agnostic model
+routing, and a documented data-contract layer invites exactly the multi-site,
+multi-discipline contribution that turns a reference implementation into a
+validated method. We plan to publish the repository with the reference corpus,
+the agent constitutions, the deterministic moderator, and the rendering
+pipeline; to document the contribution surfaces (new critic agents, new export
+targets, new disciplinary persona sets); and to license it for unrestricted
+academic use. We invite the assessment and educational-technology communities to
+test the alignment judgments against their own expertise, to contribute critics
+for concerns we have not modelled, and to report where the system fails — which,
+for a tool whose entire premise is structured disagreement, is the most useful
+contribution of all.
+
+# Conclusion
+
+We have described a multi-agent LLM system that treats examination authoring as
+structured deliberation rather than single-pass generation. Four assessment
+frameworks — backward design, Bloom's revised taxonomy, constructive alignment,
+and evidence-centred design — enter the system as hard constraints rather than
+advice. A deterministic, auditable moderator coordinates the critic agents under
+a trade-off policy the instructor sets. Every item is grounded in cited course
+materials and carries a full provenance trail. Taken together, these make the
+trade-offs of good assessment design visible, contestable, and defensible. A
+working reference implementation produces a complete, render-ready exam bundle
+in minutes at low marginal cost, with the instructor retained as the
+authoritative reviewer. The approach's pedagogical, cost, and time trade-offs are
+favourable for recurring, defensibility-sensitive assessments and unfavourable
+for one-off or open-ended ones. Its central limitation — estimated
+rather than observed psychometrics, and the absence of controlled evaluation — is
+real, and we have argued that the most credible route to closing it is an
+open-source release that invites the multi-site, multi-discipline scrutiny on
+which assessment validity ultimately depends.
+
+# References {.unnumbered}
+
+::: {#refs}
+:::
