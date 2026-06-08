@@ -1,0 +1,151 @@
+{
+  "clos": [
+    {
+      "id": "clo_solve_exponential_de",
+      "text": "Solve first-order linear homogeneous differential equations of the form y\u2032(t) = ay(t) using separation of variables to obtain the general solution y(t) = ke^(at).",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_apply_ivp_exponential",
+      "text": "Apply initial conditions to exponential differential equations to find the particular solution and compute population or quantity values at specific times.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_interpret_growth_decay",
+      "text": "Interpret the sign of the growth rate parameter r (positive for growth, negative for decay) and explain how it determines long-term behavior of exponential models.",
+      "bloom_level": "understand",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_model_real_phenomena",
+      "text": "Translate real-world scenarios (population growth, radioactive decay) into differential equations of the form y\u2032(t) = ay(t) by identifying the relationship between rate of change and quantity.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_calculate_doubling_time",
+      "text": "Calculate doubling time for exponential growth or half-life for exponential decay by solving the equations P(t+T) = 2P(t) or Q(t+T) = \u00bdQ(t).",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_extract_rate_from_data",
+      "text": "Extract the growth or decay rate parameter from two data points at different times using the ratio method and logarithms.",
+      "bloom_level": "apply",
+      "knowledge_type": "procedural"
+    },
+    {
+      "id": "clo_analyze_longterm_behavior",
+      "text": "Analyze and describe the long-term limiting behavior of exponential growth and decay solutions using limits as t \u2192 \u221e.",
+      "bloom_level": "analyze",
+      "knowledge_type": "conceptual"
+    },
+    {
+      "id": "clo_recognize_separable_de",
+      "text": "Recognize first-order linear homogeneous differential equations as separable and explain why all such linear equations are separable.",
+      "bloom_level": "understand",
+      "knowledge_type": "conceptual"
+    }
+  ],
+  "topics": [
+    {
+      "id": "topic_linear_homogeneous_de",
+      "name": "First-order Linear Homogeneous Differential Equations",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_1",
+          "source_doc": "DOCUMENT 1",
+          "locator": "Introduction section"
+        }
+      ]
+    },
+    {
+      "id": "topic_separation_of_variables",
+      "name": "Separation of Variables for Solving Exponential DEs",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_2",
+          "source_doc": "DOCUMENT 1",
+          "locator": "DE rewriting section"
+        }
+      ]
+    },
+    {
+      "id": "topic_exponential_growth",
+      "name": "Exponential Growth Models and Population Dynamics",
+      "weight": 2.0,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_3",
+          "source_doc": "DOCUMENT 1",
+          "locator": "Section 1, Left Column (1.1)"
+        }
+      ]
+    },
+    {
+      "id": "topic_radioactive_decay",
+      "name": "Exponential Decay Models and Radioactive Decay",
+      "weight": 2.0,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_4",
+          "source_doc": "DOCUMENT 1",
+          "locator": "Radioactive decay subsection and Section 1.2"
+        }
+      ]
+    },
+    {
+      "id": "topic_ivp_solutions",
+      "name": "Initial Value Problems and Particular Solutions",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_5",
+          "source_doc": "DOCUMENT 1",
+          "locator": "Sections 1.1, 1.2, and 1.3\u20131.4 examples"
+        }
+      ]
+    },
+    {
+      "id": "topic_doubling_half_life",
+      "name": "Doubling Time and Half-Life Calculations",
+      "weight": 1.5,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_6",
+          "source_doc": "DOCUMENT 1",
+          "locator": "Section 2"
+        }
+      ]
+    },
+    {
+      "id": "topic_rate_parameter_estimation",
+      "name": "Determining Growth and Decay Rates from Data",
+      "weight": 1.0,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_7",
+          "source_doc": "DOCUMENT 1",
+          "locator": "Section 1.4 ratio method"
+        }
+      ]
+    },
+    {
+      "id": "topic_limit_behavior",
+      "name": "Long-Term Behavior and Limits of Exponential Functions",
+      "weight": 1.0,
+      "source_refs": [
+        {
+          "chunk_id": "chunk_8",
+          "source_doc": "DOCUMENT 1",
+          "locator": "Section 2.1"
+        }
+      ]
+    }
+  ],
+  "guiding_principles": "Emphasize procedural fluency and real-world modeling. Students should be able to solve exponential DEs and apply them to concrete scenarios (population growth, radioactive decay) with quantitative calculations. Prefer items that require students to set up and solve IVPs or extract parameters from data over pure definition recall. Encourage interpretation of the growth-rate sign and long-term behavior to build conceptual understanding alongside computational skill."
+}
