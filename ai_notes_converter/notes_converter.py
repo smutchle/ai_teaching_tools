@@ -469,7 +469,6 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
-
     st.title("📝 Note Converter")
     st.markdown("""
     Upload your handwritten PDF notes to convert them to accessible digital formats including Quarto, LaTeX, Word and PDF documents.
@@ -525,7 +524,7 @@ def main():
             "Adobe PDF Auto-Tag",
             value=adobe_available,
             disabled=not adobe_available,
-            help="Uses Adobe PDF Services API to add production-grade accessibility tags (PDF/UA) to the rendered PDF. "
+            help="Uses Adobe PDF Services API to add production-grade accessibility tags (PDF/UA) to the rendered PDF (very limited budget). "
                  "Requires PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env file."
         )
         if not adobe_available:
@@ -534,7 +533,7 @@ def main():
         st.markdown("---")
         st.markdown("### About This Tool")
         st.markdown("""
-        This application uses Claude Sonnet 4.5's advanced vision AI to:
+        This application uses Anthropic Claude advanced vision AI to:
         - **Extract** handwritten text from PDF pages with high accuracy
         - **Convert** mathematical notation to accessible LaTeX format
         - **Preserve** diagrams and drawings as embedded images with alt text

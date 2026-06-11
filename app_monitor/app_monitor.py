@@ -8,7 +8,6 @@ from urllib.parse import urlparse
 import time
 
 st.set_page_config(page_title="Streamlit Process Monitor", layout="wide")
-
 def get_streamlit_processes():
     """Find all running streamlit processes"""
     streamlit_processes = []

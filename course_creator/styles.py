@@ -7,31 +7,34 @@ def inject_css():
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@400;500;600;700&display=swap');
 
-    /* ── Root Variables ── */
+    /* Force a light theme regardless of the user's system color-scheme. */
+    :root { color-scheme: light only; }
+
+    /* ── Root Variables — Virginia Tech light palette ── */
     :root {
-        --bg-deep:    #0b0e1a;
-        --bg-base:    #111626;
-        --bg-surface: #181e30;
-        --bg-card:    #1e2638;
-        --bg-hover:   #242d42;
-        --accent:     #d4a437;
-        --accent-dim: #8a6820;
-        --accent-glow:#f0c458;
-        --teal:       #4ab8b0;
-        --teal-dim:   #2a7c76;
-        --text-hi:    #eef2f8;
-        --text-mid:   #a8b4cc;
-        --text-lo:    #5c6880;
-        --border:     #2a3249;
-        --border-hi:  #3a4560;
-        --success:    #4caf82;
-        --error:      #e05c6a;
-        --warn:       #e0943a;
+        --bg-deep:    #FFFFFF;
+        --bg-base:    #F7F4F3;
+        --bg-surface: #F4F1F0;
+        --bg-card:    #FFFFFF;
+        --bg-hover:   #EDE7E5;
+        --accent:     #861F41;  /* VT Chicago Maroon */
+        --accent-dim: #642338;
+        --accent-glow:#A02850;
+        --teal:       #E87722;  /* VT Burnt Orange (secondary accent) */
+        --teal-dim:   #B85E16;
+        --text-hi:    #1A1A1A;
+        --text-mid:   #3D3D3D;
+        --text-lo:    #75787B;  /* Hokie Stone gray */
+        --border:     #E0DAD8;
+        --border-hi:  #C9C0BD;
+        --success:    #2E7D52;
+        --error:      #B3261E;
+        --warn:       #B5651D;
         --radius-sm:  6px;
         --radius-md:  10px;
         --radius-lg:  16px;
-        --shadow-sm:  0 1px 4px rgba(0,0,0,0.4);
-        --shadow-md:  0 4px 16px rgba(0,0,0,0.5);
+        --shadow-sm:  0 1px 4px rgba(0,0,0,0.08);
+        --shadow-md:  0 4px 16px rgba(0,0,0,0.12);
     }
 
     /* ── Global Reset ── */
@@ -62,14 +65,13 @@ def inject_css():
         height: 56px;
         border-radius: var(--radius-md);
         object-fit: cover;
-        filter: brightness(1.1) contrast(1.1);
-        box-shadow: 0 0 24px rgba(212,164,55,0.25);
+        box-shadow: 0 0 24px rgba(134,31,65,0.18);
     }
     .app-header-text h1 {
         font-family: 'Cormorant Garamond', serif !important;
         font-size: 2.4rem !important;
         font-weight: 600 !important;
-        color: var(--text-hi) !important;
+        color: var(--accent) !important;
         margin: 0 0 2px !important;
         letter-spacing: 0.01em;
         line-height: 1.1;
@@ -85,7 +87,7 @@ def inject_css():
     .app-header-badge {
         margin-left: auto;
         background: linear-gradient(135deg, var(--accent-dim), var(--accent));
-        color: var(--bg-deep);
+        color: #FFFFFF;
         font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.1em;
@@ -98,17 +100,17 @@ def inject_css():
     /* ── Headings ── */
     h1, h2, h3, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
         font-family: 'Cormorant Garamond', serif !important;
-        color: var(--text-hi) !important;
+        color: var(--accent) !important;
         letter-spacing: 0.01em;
     }
     h1 { font-size: 2.1rem !important; font-weight: 600 !important; }
-    h2 { font-size: 1.6rem !important; font-weight: 500 !important; color: var(--text-mid) !important; }
+    h2 { font-size: 1.6rem !important; font-weight: 500 !important; color: var(--accent) !important; }
     h3 { font-size: 1.3rem !important; font-weight: 500 !important; }
 
     [data-testid="stHeadingWithActionElements"] h2,
     [data-testid="stHeadingWithActionElements"] h3 {
         font-family: 'Cormorant Garamond', serif !important;
-        color: var(--text-hi) !important;
+        color: var(--accent) !important;
     }
 
     /* ── Tabs ── */
@@ -136,11 +138,11 @@ def inject_css():
     [data-testid="stTab"]:hover {
         color: var(--text-mid) !important;
         border-bottom-color: var(--border-hi) !important;
-        background: rgba(255,255,255,0.03) !important;
+        background: rgba(0,0,0,0.03) !important;
     }
     [data-testid="stTab"][aria-selected="true"] {
-        color: var(--accent-glow) !important;
-        border-bottom-color: var(--accent) !important;
+        color: var(--accent) !important;
+        border-bottom-color: var(--teal) !important;
         background: transparent !important;
     }
     [data-testid="stTabPanel"] {
@@ -153,7 +155,7 @@ def inject_css():
 
     /* ── Buttons ── */
     .stButton > button {
-        background: linear-gradient(135deg, #1e2638, #2a3454) !important;
+        background: linear-gradient(135deg, #FFFFFF, #F4F1F0) !important;
         color: var(--text-mid) !important;
         border: 1px solid var(--border-hi) !important;
         border-radius: var(--radius-sm) !important;
@@ -167,24 +169,24 @@ def inject_css():
         box-shadow: var(--shadow-sm) !important;
     }
     .stButton > button:hover {
-        background: linear-gradient(135deg, #2a3454, #323e60) !important;
-        color: var(--text-hi) !important;
+        background: linear-gradient(135deg, #F4F1F0, #EDE7E5) !important;
+        color: var(--accent) !important;
         border-color: var(--accent-dim) !important;
-        box-shadow: 0 0 12px rgba(212,164,55,0.15), var(--shadow-sm) !important;
+        box-shadow: 0 0 12px rgba(134,31,65,0.12), var(--shadow-sm) !important;
         transform: translateY(-1px) !important;
     }
     .stButton > button[kind="primary"] {
         background: linear-gradient(135deg, var(--accent-dim), var(--accent)) !important;
-        color: var(--bg-deep) !important;
+        color: #FFFFFF !important;
         border-color: var(--accent) !important;
     }
     .stButton > button[kind="primary"]:hover {
         background: linear-gradient(135deg, var(--accent), var(--accent-glow)) !important;
-        box-shadow: 0 0 20px rgba(212,164,55,0.35), var(--shadow-sm) !important;
+        box-shadow: 0 0 20px rgba(134,31,65,0.25), var(--shadow-sm) !important;
     }
     .stDownloadButton > button {
         background: linear-gradient(135deg, var(--teal-dim), var(--teal)) !important;
-        color: var(--bg-deep) !important;
+        color: #FFFFFF !important;
         border: none !important;
         border-radius: var(--radius-sm) !important;
         font-family: 'Syne', sans-serif !important;
@@ -195,7 +197,7 @@ def inject_css():
         transition: all 0.2s ease !important;
     }
     .stDownloadButton > button:hover {
-        box-shadow: 0 0 16px rgba(74,184,176,0.3) !important;
+        box-shadow: 0 0 16px rgba(232,119,34,0.3) !important;
         transform: translateY(-1px) !important;
     }
 
@@ -215,8 +217,8 @@ def inject_css():
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus,
     .stNumberInput > div > div > input:focus {
-        border-color: var(--accent-dim) !important;
-        box-shadow: 0 0 0 2px rgba(212,164,55,0.12) !important;
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 2px rgba(134,31,65,0.12) !important;
         outline: none !important;
     }
     .stTextInput label, .stTextArea label, .stNumberInput label,
@@ -269,29 +271,29 @@ def inject_css():
 
     /* ── Info / Warning / Error / Success Boxes ── */
     [data-testid="stInfo"] {
-        background: rgba(74,184,176,0.08) !important;
+        background: rgba(232,119,34,0.08) !important;
         border: 1px solid var(--teal-dim) !important;
         border-left: 3px solid var(--teal) !important;
         border-radius: var(--radius-sm) !important;
-        color: var(--teal) !important;
+        color: var(--teal-dim) !important;
     }
     [data-testid="stSuccess"], .stSuccess {
-        background: rgba(76,175,130,0.08) !important;
-        border: 1px solid #2a6648 !important;
+        background: rgba(46,125,82,0.08) !important;
+        border: 1px solid #BFE0CE !important;
         border-left: 3px solid var(--success) !important;
         border-radius: var(--radius-sm) !important;
         color: var(--success) !important;
     }
     [data-testid="stWarning"], .stWarning {
-        background: rgba(224,148,58,0.08) !important;
-        border: 1px solid #7a5020 !important;
+        background: rgba(181,101,29,0.08) !important;
+        border: 1px solid #E8C9A0 !important;
         border-left: 3px solid var(--warn) !important;
         border-radius: var(--radius-sm) !important;
         color: var(--warn) !important;
     }
     [data-testid="stError"], .stError {
-        background: rgba(224,92,106,0.08) !important;
-        border: 1px solid #7a2030 !important;
+        background: rgba(179,38,30,0.08) !important;
+        border: 1px solid #E8B3AE !important;
         border-left: 3px solid var(--error) !important;
         border-radius: var(--radius-sm) !important;
         color: var(--error) !important;
@@ -315,7 +317,7 @@ def inject_css():
         border-radius: 4px !important;
     }
     [data-testid="stProgressBar"] > div {
-        background: var(--bg-card) !important;
+        background: var(--bg-hover) !important;
         border-radius: 4px !important;
     }
 
@@ -329,7 +331,7 @@ def inject_css():
 
     /* ── Code Blocks ── */
     [data-testid="stCode"] {
-        background: var(--bg-deep) !important;
+        background: var(--bg-surface) !important;
         border: 1px solid var(--border) !important;
         border-radius: var(--radius-sm) !important;
     }
@@ -343,13 +345,13 @@ def inject_css():
 
     /* ── Download Links (CSV) ── */
     .stMarkdown a {
-        color: var(--teal) !important;
+        color: var(--accent) !important;
         text-decoration: none !important;
         font-size: 0.95rem !important;
         font-weight: 600 !important;
         transition: color 0.15s !important;
     }
-    .stMarkdown a:hover { color: var(--accent-glow) !important; text-decoration: underline !important; }
+    .stMarkdown a:hover { color: var(--teal) !important; text-decoration: underline !important; }
 
     /* ── Sidebar ── */
     [data-testid="stSidebar"] {
@@ -366,7 +368,7 @@ def inject_css():
     .stNumberInput > div > div > div > button:hover {
         background: var(--bg-hover) !important;
         border-color: var(--accent-dim) !important;
-        color: var(--accent-glow) !important;
+        color: var(--accent) !important;
     }
 
     /* ── Misc ── */

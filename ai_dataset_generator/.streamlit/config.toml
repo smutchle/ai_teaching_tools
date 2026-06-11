@@ -1,0 +1,17 @@
+[theme]
+# Force a light theme with Virginia Tech branding, regardless of the
+# user's system / browser color-scheme preference.
+base = "light"
+
+# VT Chicago Maroon — primary brand color (buttons, active tabs, accents)
+primaryColor = "#861F41"
+
+# Backgrounds
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F1F0"
+
+# Text — VT near-black
+textColor = "#1A1A1A"
+
+# Fonts
+font = "sans serif"

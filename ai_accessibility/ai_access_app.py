@@ -37,7 +37,6 @@ st.set_page_config(
     page_title="WCAG Accessibility Converter",
     layout="wide",
 )
-
 # Supported file types and their processors
 # Note: PDFs use Adobe Auto-Tag API by default for production-grade accessibility
 # Falls back to basic PDFProcessor if Adobe credentials/SDK not available
