@@ -2,6 +2,7 @@ import random
 from datetime import datetime, timezone
 
 import streamlit as st
+from vt_banner import render_vt_banner
 
 from utils.llm import DEFAULT_INSTRUCTIONS, PROVIDERS, QUESTIONS_PER_CHUNK, generate_questions
 from utils.pdf_utils import process_files
@@ -21,6 +22,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+render_vt_banner()
 
 st.markdown("""
 <style>

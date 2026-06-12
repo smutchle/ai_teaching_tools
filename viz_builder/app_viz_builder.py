@@ -1,4 +1,5 @@
 import streamlit as st  # 🎈
+from vt_banner import render_vt_banner
 import traceback
 import sys
 import io
@@ -196,7 +197,7 @@ def repair_with_llm(code, error_info, image_filename=None):
 
     CRITICAL: DO NOT include any st.set_option() calls in your code.
     DO NOT use st.set_option('deprecation.showPyplotGlobalUse', False) - this option no longer exists in Streamlit and will cause an error.
-    DO NOT use st.set_page_config() as it's already set by the parent app.  
+    DO NOT use st.set_page_config() as it's already set by the parent app.
     """
 
     # Use image if available for repair
@@ -494,6 +495,7 @@ def handle_image_upload(uploaded_file):
 
 def main():
     st.set_page_config(page_title="Educational Visualization Platform", layout="wide") # 🖥️
+    render_vt_banner()
     initialize_state()
 
     st.title("🎓 Educational Visualization Platform")

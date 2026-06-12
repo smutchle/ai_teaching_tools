@@ -1,4 +1,5 @@
 import streamlit as st
+from vt_banner import render_vt_banner
 import os
 import base64
 import tempfile
@@ -469,6 +470,7 @@ def main():
         layout="wide",
         initial_sidebar_state="expanded"
     )
+    render_vt_banner()
     st.title("📝 Note Converter")
     st.markdown("""
     Upload your handwritten PDF notes to convert them to accessible digital formats including Quarto, LaTeX, Word and PDF documents.

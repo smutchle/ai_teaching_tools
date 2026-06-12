@@ -3,6 +3,7 @@ import time
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+from vt_banner import render_vt_banner
 
 from utils.quiz_state import (
     READING_DURATION,
@@ -22,6 +23,7 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
 )
+render_vt_banner()
 
 st.markdown("""
 <style>

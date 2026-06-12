@@ -1,4 +1,5 @@
 import streamlit as st
+from vt_banner import render_vt_banner
 
 st.set_page_config(
     page_title="QuizBlast",
@@ -6,6 +7,7 @@ st.set_page_config(
     layout="centered",
     initial_sidebar_state="collapsed",
 )
+render_vt_banner()
 
 st.markdown("""
 <style>

@@ -16,6 +16,7 @@ import sys
 from pathlib import Path
 
 import streamlit as st
+from vt_banner import render_vt_banner
 
 
 _THIS = Path(__file__).resolve()
@@ -61,6 +62,7 @@ def main() -> None:
         layout="wide",
         initial_sidebar_state="expanded",
     )
+    render_vt_banner()
     run_page = st.Page(_run, title="Run", default=True)
     job_monitor_page = st.Page(_transcript, title="Job Monitor")
     bundle_page = st.Page(_bundle, title="Job Outputs")

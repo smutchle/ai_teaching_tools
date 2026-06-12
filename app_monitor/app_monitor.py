@@ -1,4 +1,5 @@
 import streamlit as st
+from vt_banner import render_vt_banner
 import subprocess
 import pandas as pd
 import psutil
@@ -8,6 +9,7 @@ from urllib.parse import urlparse
 import time
 
 st.set_page_config(page_title="Streamlit Process Monitor", layout="wide")
+render_vt_banner()
 def get_streamlit_processes():
     """Find all running streamlit processes"""
     streamlit_processes = []

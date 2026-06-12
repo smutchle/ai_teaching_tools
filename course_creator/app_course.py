@@ -4,6 +4,7 @@ import uuid
 
 import pandas as pd
 import streamlit as st
+from vt_banner import render_vt_banner
 
 from config import PROVIDER_CONFIG, OLLAMA_END_POINT
 from styles import inject_css
@@ -28,6 +29,7 @@ st.set_page_config(
     page_title="AI Course Builder",
     page_icon=_page_icon,
 )
+render_vt_banner()
 
 inject_css()
 

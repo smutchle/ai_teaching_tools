@@ -2,6 +2,7 @@
 Streamlit application for managing and generating datasets.
 """
 import streamlit as st
+from vt_banner import render_vt_banner
 import json
 import os
 from pathlib import Path
@@ -238,6 +239,7 @@ Generate the fixed JSON configuration now:"""
 
 # Streamlit UI
 st.set_page_config(page_title="Dataset Generator", layout="wide")
+render_vt_banner()
 st.title("📊 Dataset Generator for Instruction")
 
 # Initialize session state

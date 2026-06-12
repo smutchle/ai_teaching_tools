@@ -12,6 +12,7 @@ import zipfile
 from pathlib import Path
 
 import streamlit as st
+from vt_banner import render_vt_banner
 from dotenv import load_dotenv
 
 # Add project root to path for imports
@@ -37,6 +38,7 @@ st.set_page_config(
     page_title="WCAG Accessibility Converter",
     layout="wide",
 )
+render_vt_banner()
 # Supported file types and their processors
 # Note: PDFs use Adobe Auto-Tag API by default for production-grade accessibility
 # Falls back to basic PDFProcessor if Adobe credentials/SDK not available
