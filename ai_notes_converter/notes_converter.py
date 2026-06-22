@@ -5,6 +5,7 @@ import base64
 import tempfile
 import shutil
 import uuid
+import time
 import logging
 from pathlib import Path
 from pdf2image import convert_from_path
@@ -24,9 +25,63 @@ client = Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
 # Get model from environment variable with fallback
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
 
+# Prefix for all temp dirs created by this app (used for both creation and reaping)
+TEMP_DIR_PREFIX = "noteconv_"
+
+# Maximum age (hours) before an orphaned temp dir is reaped on startup
+TEMP_DIR_MAX_AGE_HOURS = float(os.getenv("TEMP_DIR_MAX_AGE_HOURS", "24"))
+
+
+def reap_stale_temp_dirs(max_age_hours=TEMP_DIR_MAX_AGE_HOURS):
+    """Delete orphaned noteconv_* temp dirs older than max_age_hours.
+
+    Streamlit has no reliable session-teardown hook, and temp dirs survive
+    process exit, so this startup sweep is the safety net that bounds disk
+    usage regardless of crashes, kills, or abandoned sessions.
+
+    Args:
+        max_age_hours: Age threshold in hours; dirs older than this are removed.
+    """
+    temp_root = Path(tempfile.gettempdir())
+    cutoff = time.time() - (max_age_hours * 3600)
+    for path in temp_root.glob(f"{TEMP_DIR_PREFIX}*"):
+        try:
+            if path.is_dir() and path.stat().st_mtime < cutoff:
+                shutil.rmtree(path, ignore_errors=True)
+                logger.info(f"Reaped stale temp dir: {path}")
+        except OSError as e:
+            logger.warning(f"Could not reap stale temp dir {path}: {e}")
+
+
 # Initialize session state
 if 'session_id' not in st.session_state:
     st.session_state.session_id = str(uuid.uuid4())
+
+# Versioned key for the file_uploader; bumped on reset to force a clean remount
+if 'uploader_key' not in st.session_state:
+    st.session_state.uploader_key = 0
+
+# Sweep old temp dirs once per session (new browser sessions trigger the reaper)
+if 'temp_reaper_ran' not in st.session_state:
+    reap_stale_temp_dirs()
+    st.session_state.temp_reaper_ran = True
+
+def reset_session():
+    """Reset the UI to its initial state by clearing all session data.
+
+    Removes the active temp directory, wipes every session_state key, and lets
+    the top-of-script initializers recreate a fresh session_id on the next rerun.
+    """
+    old_dir = st.session_state.get('temp_dir_path')
+    if old_dir:
+        shutil.rmtree(old_dir, ignore_errors=True)
+    # Bump the uploader key so the file_uploader widget remounts empty. Just
+    # clearing session_state leaves the widget's own state (and its file) intact.
+    next_uploader_key = st.session_state.get('uploader_key', 0) + 1
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.session_state.uploader_key = next_uploader_key
+    st.rerun()
 
 def pdf_to_images(pdf_path, max_pages=None):
     """Convert PDF pages to images for Claude vision API."""
@@ -216,6 +271,34 @@ Please respond with ONLY the title, nothing else."""
     except Exception:
         return "Converted Handwritten Notes"
 
+def sanitize_body_content(text):
+    """Neutralize Markdown lines that Pandoc would misread as YAML metadata.
+
+    Quarto's qmd reader treats a line of exactly ``---`` (preceded by a blank
+    line) as the start of an embedded YAML metadata block, closed by ``---`` or
+    ``...``. When AI-extracted notes contain a horizontal rule, the text caught
+    between two such rules gets parsed as YAML -- and tokens like ``*ISC`` are
+    read as YAML alias references, raising "Unknown alias ISC" and aborting the
+    render. We rewrite any all-dashes/dots horizontal-rule line to ``***``,
+    which renders identically but is never treated as a metadata fence.
+
+    Args:
+        text: Raw extracted content for a single page.
+
+    Returns:
+        The content with metadata-fence-triggering rules replaced.
+    """
+    sanitized_lines = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        # A line of only hyphens (>=3) is a thematic break that doubles as a
+        # YAML open/close fence; a line of only dots can act as a YAML close.
+        if len(stripped) >= 3 and (set(stripped) == {"-"} or set(stripped) == {"."}):
+            sanitized_lines.append("***")
+        else:
+            sanitized_lines.append(line)
+    return "\n".join(sanitized_lines)
+
 def create_quarto_document(pages_content, make_accessible=False, remove_page_breaks=False, document_title=None):
     """Create a Quarto .qmd document from extracted pages.
 
@@ -289,16 +372,34 @@ format:
                 # LaTeX/xelatex doesn't handle absolute Unix paths well
                 document += f"![{img_description}]({img_filename}){{width=100%}}\n\n"
 
-        # Add the text content
-        document += content + "\n\n"
+        # Add the text content (sanitized so stray horizontal rules in the
+        # extracted notes aren't misparsed as embedded YAML metadata blocks)
+        document += sanitize_body_content(content) + "\n\n"
 
         if make_accessible:
             document += ":::\n\n"
 
     return document
 
-def render_quarto(qmd_path, output_format, work_dir):
-    """Render Quarto document to specified format."""
+def render_quarto(qmd_path, output_format, work_dir, return_error=False):
+    """Render Quarto document to specified format.
+
+    Args:
+        qmd_path: Path to the .qmd source file.
+        output_format: One of "pdf", "docx", "latex".
+        work_dir: Working directory for the render.
+        return_error: When True, return a ``(output_file, error_text)`` tuple
+            and suppress Streamlit error output, so the caller can drive a
+            self-healing retry. When False (default), preserve the original
+            behavior: surface errors via ``st.error`` and return the path or None.
+
+    Returns:
+        The output ``Path`` (or None) when ``return_error`` is False; otherwise a
+        ``(Path_or_None, error_text)`` tuple where ``error_text`` is "" on success.
+    """
+    def _result(output_file, error_text=""):
+        return (output_file, error_text) if return_error else output_file
+
     try:
         if output_format == "pdf":
             cmd = ["quarto", "render", qmd_path, "--to", "pdf"]
@@ -307,16 +408,23 @@ def render_quarto(qmd_path, output_format, work_dir):
         elif output_format == "latex":
             cmd = ["quarto", "render", qmd_path, "--to", "latex"]
         else:
-            return None
+            return _result(None, f"Unsupported output format: {output_format}")
 
         result = subprocess.run(cmd, cwd=work_dir, capture_output=True, text=True)
 
         if result.returncode != 0:
-            st.error(f"Quarto rendering error (exit code {result.returncode}):")
-            st.error(f"STDERR: {result.stderr}")
+            error_text = (
+                f"Quarto rendering error (exit code {result.returncode}):\n"
+                f"STDERR:\n{result.stderr}\n"
+            )
             if result.stdout:
-                st.error(f"STDOUT: {result.stdout}")
-            return None
+                error_text += f"STDOUT:\n{result.stdout}\n"
+            if not return_error:
+                st.error(f"Quarto rendering error (exit code {result.returncode}):")
+                st.error(f"STDERR: {result.stderr}")
+                if result.stdout:
+                    st.error(f"STDOUT: {result.stdout}")
+            return _result(None, error_text)
 
         # Find the output file - Quarto may sanitize the filename
         # So we need to search for the actual output file instead of guessing
@@ -331,7 +439,7 @@ def render_quarto(qmd_path, output_format, work_dir):
         elif output_format == "latex":
             extension = ".tex"
         else:
-            return None
+            return _result(None, f"Unsupported output format: {output_format}")
 
         # Find the output file by checking modification time
         # Quarto creates/overwrites files after the .qmd file
@@ -342,7 +450,7 @@ def render_quarto(qmd_path, output_format, work_dir):
             file_mtime = output_file.stat().st_mtime
             # If the output file was modified after (or at the same time as) the qmd file, it's the rendered version
             if file_mtime >= qmd_mtime:
-                return output_file
+                return _result(output_file)
 
         # If not found with expected name, search for any file with the right extension
         candidates = []
@@ -357,16 +465,78 @@ def render_quarto(qmd_path, output_format, work_dir):
         if candidates:
             # Return the most recently modified file
             output_file = max(candidates, key=lambda f: f.stat().st_mtime)
-            return output_file
+            return _result(output_file)
         else:
-            st.error(f"Output file not found in {work_dir_path}")
-            st.error(f"Looking for files with extension: {extension}")
             all_files = list(work_dir_path.glob("*"))
-            st.error(f"Files in directory: {[f.name for f in all_files]}")
-            return None
+            error_text = (
+                f"Output file not found in {work_dir_path}\n"
+                f"Looking for files with extension: {extension}\n"
+                f"Files in directory: {[f.name for f in all_files]}"
+            )
+            if not return_error:
+                st.error(f"Output file not found in {work_dir_path}")
+                st.error(f"Looking for files with extension: {extension}")
+                st.error(f"Files in directory: {[f.name for f in all_files]}")
+            return _result(None, error_text)
 
     except Exception as e:
-        st.error(f"Error rendering Quarto document: {str(e)}")
+        if not return_error:
+            st.error(f"Error rendering Quarto document: {str(e)}")
+        return _result(None, f"Error rendering Quarto document: {str(e)}")
+
+def self_heal_qmd(qmd_content, error_text):
+    """Ask the LLM to repair a Quarto document that failed to render.
+
+    Sends the full failing .qmd plus the render error back to Claude and asks
+    for a corrected version. Intended for a single repair round (the caller is
+    responsible for not looping).
+
+    Args:
+        qmd_content: The full source of the .qmd document that failed to render.
+        error_text: The Quarto/LaTeX error output captured from the failed render.
+
+    Returns:
+        The corrected .qmd content as a string, or None if repair failed.
+    """
+    prompt = f"""A Quarto document failed to render to PDF. Below is the full \
+.qmd source followed by the exact error output from the render. Diagnose the \
+cause and return a corrected version of the entire document that will render \
+successfully.
+
+Rules:
+- Fix ONLY what is needed to make the render succeed (e.g. malformed YAML, \
+unescaped LaTeX special characters, broken Markdown, stray fences, invalid \
+math). Preserve all original content, headings, equations, and meaning.
+- Keep the YAML frontmatter structure and output formats intact.
+- Return the COMPLETE corrected .qmd document and nothing else. Do not wrap it \
+in code fences or add explanations.
+
+=== RENDER ERROR ===
+{error_text}
+
+=== QMD SOURCE ===
+{qmd_content}
+"""
+
+    try:
+        message = client.messages.create(
+            model=CLAUDE_MODEL,
+            max_tokens=32000,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        content_block = message.content[0]
+        if isinstance(content_block, TextBlock):
+            fixed = content_block.text.strip()
+            # Strip an accidental ```/```quarto code fence wrapper if present
+            if fixed.startswith("```"):
+                lines = fixed.split("\n")
+                lines = lines[1:]  # drop opening fence line
+                if lines and lines[-1].strip() == "```":
+                    lines = lines[:-1]
+                fixed = "\n".join(lines).strip()
+            return fixed if fixed else None
+        return None
+    except Exception:
         return None
 
 def check_quarto_installation():
@@ -471,7 +641,7 @@ def main():
         initial_sidebar_state="expanded"
     )
     render_vt_banner()
-    st.title("📝 Note Converter")
+    st.title("📝 AI Handwritten Notes Converter")
     st.markdown("""
     Upload your handwritten PDF notes to convert them to accessible digital formats including Quarto, LaTeX, Word and PDF documents.
 
@@ -520,17 +690,21 @@ def main():
             help="Creates a continuous document by removing page break markers between scanned pages. Disable to preserve original page structure."
         )
 
-        # Adobe Auto-Tag option
-        adobe_available = check_adobe_credentials()
-        enable_autotag = st.checkbox(
-            "Adobe PDF Auto-Tag",
-            value=adobe_available,
-            disabled=not adobe_available,
-            help="Uses Adobe PDF Services API to add production-grade accessibility tags (PDF/UA) to the rendered PDF (very limited budget). "
-                 "Requires PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env file."
-        )
-        if not adobe_available:
-            st.caption("Adobe credentials not configured. Set PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env")
+        # Adobe Auto-Tag option (DISABLED -- requires a paid Adobe PDF Services
+        # account). Left in the codebase, commented out, so it can be re-enabled
+        # by restoring this block, the call site in the PDF render section, and
+        # the pdfservices-sdk dependency in requirements.txt.
+        enable_autotag = False
+        # adobe_available = check_adobe_credentials()
+        # enable_autotag = st.checkbox(
+        #     "Adobe PDF Auto-Tag",
+        #     value=adobe_available,
+        #     disabled=not adobe_available,
+        #     help="Uses Adobe PDF Services API to add production-grade accessibility tags (PDF/UA) to the rendered PDF (very limited budget). "
+        #          "Requires PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env file."
+        # )
+        # if not adobe_available:
+        #     st.caption("Adobe credentials not configured. Set PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env")
 
         st.markdown("---")
         st.markdown("### About This Tool")
@@ -545,34 +719,50 @@ def main():
         Output documents comply with WCAG 2.1 Level AA standards when "Enable Accessibility Features" is checked.
         """)
 
+        st.markdown("---")
+        if st.button(
+            "🔄 Reset",
+            help="Clear the uploaded file, conversion results, and all session data, returning the app to its initial state.",
+            use_container_width=True
+        ):
+            reset_session()
+
     # File upload
     st.markdown("### Step 1: Upload Your Document")
     uploaded_file = st.file_uploader(
         "Select a PDF file containing handwritten notes to convert",
         type=["pdf"],
-        help="Upload a PDF file with handwritten notes. The file will be processed page-by-page to extract text, equations, and figures."
+        help="Upload a PDF file with handwritten notes. The file will be processed page-by-page to extract text, equations, and figures.",
+        key=f"pdf_uploader_{st.session_state.uploader_key}"
     )
 
     if uploaded_file is not None:
         # Extract original filename without extension
         original_filename = Path(uploaded_file.name).stem
 
-        # Clean up old session data if switching to a new file
-        if st.session_state.get('original_filename') != original_filename:
-            # Clear previous file's data
-            for key in ['qmd_content', 'qmd_path', 'temp_dir_path', 'pdf_data', 'docx_data', 'tex_data', 'conversion_complete']:
-                if key in st.session_state:
-                    del st.session_state[key]
-            # Clean up old temp directory
-            if 'temp_dir_path' in st.session_state:
-                try:
-                    shutil.rmtree(st.session_state.temp_dir_path, ignore_errors=True)
-                except Exception:
-                    pass
+        # Switching to a new file: clear cached outputs and remove the old temp
+        # dir, then create exactly one fresh temp dir for this file. This runs
+        # only when the uploaded file changes -- NOT on every Streamlit rerun --
+        # so interactions no longer orphan a new temp dir each click.
+        if st.session_state.get('active_filename') != original_filename:
+            # Remove the old temp dir FIRST, while the key still points to it
+            old_dir = st.session_state.get('temp_dir_path')
+            if old_dir:
+                shutil.rmtree(old_dir, ignore_errors=True)
+            # Clear previous file's cached data and tracking keys
+            for key in ['qmd_content', 'qmd_path', 'temp_dir_path', 'pdf_data',
+                        'docx_data', 'tex_data', 'conversion_complete', 'original_filename',
+                        'pdf_render_failed']:
+                st.session_state.pop(key, None)
+            # Create the session/file-specific temp directory exactly once
+            session_temp_dir = tempfile.mkdtemp(
+                prefix=f"{TEMP_DIR_PREFIX}{st.session_state.session_id[:8]}_"
+            )
+            st.session_state.temp_dir_path = session_temp_dir
+            st.session_state.active_filename = original_filename
 
-        # Create session-specific temporary directory for processing
-        session_temp_dir = tempfile.mkdtemp(prefix=f"noteconv_{st.session_state.session_id[:8]}_")
-        temp_dir_path = Path(session_temp_dir)
+        # Reuse the existing temp dir across reruns for the same file
+        temp_dir_path = Path(st.session_state.temp_dir_path)
 
         try:
             # Save uploaded file with original name
@@ -620,7 +810,11 @@ def main():
                     with open(qmd_path, "w", encoding="utf-8") as f:
                         f.write(qmd_content)
 
-                # Store in session state to persist across reruns
+                # Store in session state to persist across reruns. Clear any
+                # cached renders and the self-heal flag from a prior conversion
+                # so the new document renders fresh.
+                for key in ['pdf_data', 'docx_data', 'tex_data', 'pdf_render_failed']:
+                    st.session_state.pop(key, None)
                 st.session_state.qmd_content = qmd_content
                 st.session_state.qmd_path = str(qmd_path)
                 st.session_state.temp_dir_path = str(temp_dir_path)
@@ -641,9 +835,70 @@ def main():
                 st.markdown("### Step 3: Download Your Document")
                 st.markdown("Choose one or more formats to download your converted accessible document.")
 
+                # Render the PDF (with one-round self-healing) BEFORE building the
+                # download columns. A successful repair rewrites the .qmd on disk
+                # and in session_state, so the .qmd/.tex/.docx outputs below all
+                # reflect the healed document. If healing fails, the raw .qmd (and
+                # any salvageable .tex) are still offered below.
+                if 'pdf_data' not in st.session_state and not st.session_state.get('pdf_render_failed'):
+                    with st.spinner("🔄 Rendering PDF document..."):
+                        pdf_output, render_error = render_quarto(
+                            st.session_state.qmd_path, "pdf",
+                            st.session_state.temp_dir_path, return_error=True
+                        )
+
+                    # Self-healing: one round only (no loop).
+                    if not pdf_output:
+                        st.warning(
+                            "⚠️ PDF rendering failed. Starting automated self-healing — "
+                            "sending the document and the render error to the AI to repair "
+                            "it, then retrying the render (one attempt)..."
+                        )
+                        with st.spinner("🩹 Self-healing the document and retrying the render..."):
+                            fixed_qmd = self_heal_qmd(st.session_state.qmd_content, render_error)
+                            if fixed_qmd and fixed_qmd != st.session_state.qmd_content:
+                                # Persist the repaired document and drop stale derived
+                                # outputs so every format re-renders from the fix.
+                                with open(st.session_state.qmd_path, "w", encoding="utf-8") as f:
+                                    f.write(fixed_qmd)
+                                st.session_state.qmd_content = fixed_qmd
+                                for k in ['docx_data', 'tex_data']:
+                                    st.session_state.pop(k, None)
+                                pdf_output, render_error = render_quarto(
+                                    st.session_state.qmd_path, "pdf",
+                                    st.session_state.temp_dir_path, return_error=True
+                                )
+
+                        if pdf_output:
+                            st.success("✅ Self-healing succeeded — the document was repaired and rendered to PDF.")
+                        else:
+                            st.session_state.pdf_render_failed = True
+                            st.error(
+                                "❌ PDF rendering still failed after one self-healing attempt. "
+                                "The Quarto (.qmd) source and, if available, the LaTeX (.tex) "
+                                "output are still provided below."
+                            )
+                            with st.expander("🔎 Show render error"):
+                                st.code(render_error or "No error details available.")
+
+                    if pdf_output:
+                        with open(pdf_output, "rb") as f:
+                            pdf_bytes = f.read()
+                        # Adobe Auto-Tag DISABLED (requires paid account).
+                        # Re-enable by restoring the sidebar checkbox block
+                        # and uncommenting the call below.
+                        # if enable_autotag:
+                        #     with st.spinner("🏷️ Applying Adobe Auto-Tag for PDF/UA accessibility..."):
+                        #         try:
+                        #             pdf_bytes = autotag_pdf_with_adobe(pdf_bytes)
+                        #         except Exception as e:
+                        #             logger.error(f"Adobe Auto-Tag failed unexpectedly: {e}", exc_info=True)
+                        #             st.warning(f"⚠️ Adobe Auto-Tag failed: {e}. PDF saved without accessibility tags.")
+                        st.session_state.pdf_data = pdf_bytes
+
                 col1, col2, col3, col4 = st.columns(4)
 
-                # Download .qmd
+                # Download .qmd (reflects the healed source if self-healing ran)
                 with col1:
                     st.download_button(
                         label="📄 Quarto (.qmd)",
@@ -654,25 +909,8 @@ def main():
                         key="download_qmd"
                     )
 
-                # Render and download PDF
+                # Download PDF (rendered above)
                 with col2:
-                    if 'pdf_data' not in st.session_state:
-                        with st.spinner("🔄 Rendering PDF document..."):
-                            pdf_output = render_quarto(st.session_state.qmd_path, "pdf", st.session_state.temp_dir_path)
-                            if pdf_output:
-                                with open(pdf_output, "rb") as f:
-                                    pdf_bytes = f.read()
-                                if enable_autotag:
-                                    with st.spinner("🏷️ Applying Adobe Auto-Tag for PDF/UA accessibility..."):
-                                        try:
-                                            pdf_bytes = autotag_pdf_with_adobe(pdf_bytes)
-                                        except Exception as e:
-                                            logger.error(f"Adobe Auto-Tag failed unexpectedly: {e}", exc_info=True)
-                                            st.warning(f"⚠️ Adobe Auto-Tag failed: {e}. PDF saved without accessibility tags.")
-                                st.session_state.pdf_data = pdf_bytes
-                            else:
-                                st.error("❌ PDF rendering failed. Ensure Quarto is installed correctly.")
-
                     if 'pdf_data' in st.session_state:
                         st.download_button(
                             label="📕 PDF Document",
@@ -683,7 +921,7 @@ def main():
                             key="download_pdf"
                         )
                     else:
-                        st.warning("⚠️ PDF unavailable - Quarto installation required")
+                        st.warning("⚠️ PDF unavailable - rendering failed")
 
                 # Render and download Word
                 with col3:
@@ -711,6 +949,13 @@ def main():
                     if 'tex_data' not in st.session_state:
                         with st.spinner("🔄 Rendering LaTeX source..."):
                             tex_output = render_quarto(st.session_state.qmd_path, "latex", st.session_state.temp_dir_path)
+                            # Salvage: if the dedicated LaTeX render failed, fall back
+                            # to any .tex the PDF pipeline left behind (keep-tex: true),
+                            # so a failed self-heal still yields a usable .tex.
+                            if not tex_output:
+                                tex_candidates = list(Path(st.session_state.temp_dir_path).glob("*.tex"))
+                                if tex_candidates:
+                                    tex_output = max(tex_candidates, key=lambda f: f.stat().st_mtime)
                             if tex_output:
                                 with open(tex_output, "r", encoding="utf-8") as f:
                                     st.session_state.tex_data = f.read()
@@ -730,11 +975,13 @@ def main():
         except Exception as e:
             st.error(f"❌ An error occurred during processing: {str(e)}")
             st.info("💡 Please check your file and try again. If the problem persists, ensure Quarto is installed correctly.")
-            # Cleanup on error
-            try:
-                shutil.rmtree(session_temp_dir, ignore_errors=True)
-            except Exception:
-                pass
+            # Cleanup on error: remove the temp dir AND clear its tracking keys so
+            # a fresh dir is created on the next attempt (avoids pointing at a
+            # deleted directory on rerun).
+            old_dir = st.session_state.pop('temp_dir_path', None)
+            st.session_state.pop('active_filename', None)
+            if old_dir:
+                shutil.rmtree(old_dir, ignore_errors=True)
 
 if __name__ == "__main__":
     main()
