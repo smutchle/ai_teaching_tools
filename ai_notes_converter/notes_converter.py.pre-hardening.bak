@@ -2,7 +2,6 @@ import streamlit as st
 from vt_banner import render_vt_banner
 import os
 import base64
-import re
 import tempfile
 import shutil
 import uuid
@@ -121,14 +120,13 @@ CRITICAL RULES:
 - Do NOT change the structure or organization
 - Do NOT add page numbers, headers, or any new content
 - Preserve ALL mathematical notation exactly (only fix syntax errors in LaTeX)
-- \\tag{{N}} is only valid inside display math ($$...$$); if you see \\tag inside inline math ($...$), rewrite it as plain text (N)
 - Keep all {{{{FIGURE:...}}}} markers exactly as they are
 
 Here is the extracted text to review:
 
 {extracted_text}
 
-Return the corrected text wrapped EXACTLY between the markers <CORRECTED> and </CORRECTED>. Output NOTHING outside the markers -- no commentary, no analysis, no explanation of what you changed."""
+Please return the corrected text with ONLY obvious OCR errors fixed. Do not add any page numbers or headers."""
 
     message = client.messages.create(
         model=CLAUDE_MODEL,
@@ -142,22 +140,10 @@ Return the corrected text wrapped EXACTLY between the markers <CORRECTED> and </
     )
 
     content_block = message.content[0]
-    if not isinstance(content_block, TextBlock):
+    if isinstance(content_block, TextBlock):
+        return content_block.text
+    else:
         raise ValueError(f"Expected TextBlock but got {type(content_block)}")
-
-    response_text = content_block.text
-    # Only trust text inside the sentinels. Anything outside them (or a
-    # response without them) is commentary that must never reach the document
-    # -- an earlier version of this pass leaked "Looking at the text, I
-    # notice..." analysis straight into the rendered notes.
-    match = re.search(r"<CORRECTED>\s*\n?(.*?)\n?\s*</CORRECTED>", response_text, re.DOTALL)
-    if match:
-        return match.group(1)
-    logger.warning(
-        f"OCR correction for page {page_num} returned no <CORRECTED> markers; "
-        "keeping the uncorrected extraction."
-    )
-    return extracted_text
 
 
 def extract_text_from_page(image, page_num, temp_dir, preserve_figures=True):
@@ -185,8 +171,6 @@ def extract_text_from_page(image, page_num, temp_dir, preserve_figures=True):
 IMPORTANT INSTRUCTIONS:
 - Preserve the structure and organization of the content
 - Convert ALL mathematical expressions and equations to LaTeX format (use $...$ for inline math and $$...$$ for display math)
-- Equation numbers: use \\tag{{N}} ONLY inside display math ($$...$$). NEVER put \\tag inside inline math ($...$) -- it is invalid LaTeX there and breaks PDF rendering. If an equation number appears outside display math, write it as plain text (N) instead
-- Every $ and $$ must be correctly paired; never leave an unclosed math delimiter
 - Identify and preserve any headings, lists, or structured content
 - Be thorough and capture all visible text and formulas
 - Do NOT add page numbers, headers, or any metadata not present in the image
@@ -291,62 +275,22 @@ Please respond with ONLY the title, nothing else."""
     except Exception:
         return "Converted Handwritten Notes"
 
-# Inline math span: a single $...$ that is not part of a $$ display delimiter.
-# Kept single-line (no DOTALL) so a stray unmatched $ can't pair across
-# display-math blocks or paragraphs.
-_INLINE_MATH_RE = re.compile(r"(?<!\$)\$(?!\$)((?:\\.|[^$\\])+?)\$(?!\$)")
-# amsmath \tag{...} / \tag*{...}
-_TAG_RE = re.compile(r"\\tag\*?\s*\{([^{}]*)\}")
-# Leftover figure placeholders: {{FIGURE: ...}} or [FIGURE: ...]
-_FIGURE_MARKER_RE = re.compile(r"\{\{\s*FIGURE:[^}]*\}\}|\[\s*FIGURE:[^\]]*\]")
-
-
-def fix_latex_math_errors(text):
-    """Mechanically repair LaTeX constructs known to abort a PDF render.
-
-    amsmath's ``\\tag`` is only legal in display math; the extraction model
-    occasionally numbers an equation with a standalone inline span like
-    ``$\\tag{17}$``, which makes xelatex fail fatally ("\\tag not allowed
-    here"). Inside inline math spans only, rewrite ``\\tag{N}`` to a plain
-    parenthesized ``(N)``, which is valid anywhere. Display math ($$...$$) is
-    left untouched -- \\tag is correct there.
-    """
-    def _repl(match):
-        return "$" + _TAG_RE.sub(r"(\1)", match.group(1)) + "$"
-    return _INLINE_MATH_RE.sub(_repl, text)
-
-
-def strip_figure_markers(text):
-    """Remove leftover ``{{FIGURE: ...}}`` placeholders from extracted text.
-
-    When figures are preserved, the page image is embedded separately, so a
-    surviving marker would just render as literal ``{{FIGURE: ...}}`` text.
-    """
-    return _FIGURE_MARKER_RE.sub("", text)
-
-
 def sanitize_body_content(text):
-    """Mechanically neutralize extracted content that would break the render.
+    """Neutralize Markdown lines that Pandoc would misread as YAML metadata.
 
-    Deterministic repairs for failure classes the LLM occasionally produces,
-    applied to every page regardless of which model pass generated it:
-
-    1. Horizontal rules -> ``***``: Quarto's qmd reader treats a line of
-       exactly ``---`` (preceded by a blank line) as the start of an embedded
-       YAML metadata block, closed by ``---`` or ``...``. Text caught between
-       two such rules gets parsed as YAML -- tokens like ``*ISC`` are read as
-       YAML alias references, aborting the render. ``***`` renders identically
-       but is never a metadata fence.
-    2. ``\\tag`` in inline math -> plain ``(N)`` (see fix_latex_math_errors);
-       otherwise xelatex aborts with "\\tag not allowed here".
-    3. Leftover ``{{FIGURE: ...}}`` placeholders are stripped (see
-       strip_figure_markers).
+    Quarto's qmd reader treats a line of exactly ``---`` (preceded by a blank
+    line) as the start of an embedded YAML metadata block, closed by ``---`` or
+    ``...``. When AI-extracted notes contain a horizontal rule, the text caught
+    between two such rules gets parsed as YAML -- and tokens like ``*ISC`` are
+    read as YAML alias references, raising "Unknown alias ISC" and aborting the
+    render. We rewrite any all-dashes/dots horizontal-rule line to ``***``,
+    which renders identically but is never treated as a metadata fence.
 
     Args:
         text: Raw extracted content for a single page.
 
     Returns:
-        The content with render-breaking constructs repaired.
+        The content with metadata-fence-triggering rules replaced.
     """
     sanitized_lines = []
     for line in text.splitlines():
@@ -357,10 +301,7 @@ def sanitize_body_content(text):
             sanitized_lines.append("***")
         else:
             sanitized_lines.append(line)
-    text = "\n".join(sanitized_lines)
-    text = fix_latex_math_errors(text)
-    text = strip_figure_markers(text)
-    return text
+    return "\n".join(sanitized_lines)
 
 def create_quarto_document(pages_content, make_accessible=False, remove_page_breaks=False, document_title=None):
     """Create a Quarto .qmd document from extracted pages.
@@ -444,34 +385,6 @@ format:
 
     return document
 
-def extract_latex_log_errors(work_dir, qmd_stem, max_lines=60):
-    """Pull the actual error lines out of the LaTeX .log left by a failed run.
-
-    Quarto's stderr often buries or truncates the underlying LaTeX error; the
-    ``<stem>.log`` file contains the precise message and source line (e.g.
-    "! Package amsmath Error: \\tag not allowed here." with "l.397 ..."). Each
-    error line starting with ``!`` is captured with a few lines of context so
-    the self-heal prompt sees exactly what LaTeX rejected.
-
-    Returns a string ("" if no log or no errors found).
-    """
-    log_path = Path(work_dir) / f"{qmd_stem}.log"
-    if not log_path.exists():
-        return ""
-    try:
-        lines = log_path.read_text(errors="replace").splitlines()
-    except OSError:
-        return ""
-    captured = []
-    for idx, line in enumerate(lines):
-        if line.startswith("!"):
-            captured.extend(lines[idx:idx + 8])
-            captured.append("...")
-        if len(captured) >= max_lines:
-            break
-    return "\n".join(captured[:max_lines])
-
-
 def render_quarto(qmd_path, output_format, work_dir, return_error=False):
     """Render Quarto document to specified format.
 
@@ -510,9 +423,6 @@ def render_quarto(qmd_path, output_format, work_dir, return_error=False):
             )
             if result.stdout:
                 error_text += f"STDOUT:\n{result.stdout}\n"
-            latex_errors = extract_latex_log_errors(work_dir, Path(qmd_path).stem)
-            if latex_errors:
-                error_text += f"LATEX LOG ERRORS:\n{latex_errors}\n"
             if not return_error:
                 st.error(f"Quarto rendering error (exit code {result.returncode}):")
                 st.error(f"STDERR: {result.stderr}")
@@ -976,23 +886,6 @@ def main():
                         )
                         with st.spinner("🩹 Self-healing the document and retrying the render..."):
                             fixed_qmd = self_heal_qmd(st.session_state.qmd_content, render_error)
-                            if fixed_qmd:
-                                # Belt-and-braces: mechanically repair known
-                                # render-killers in the healed document too.
-                                # (Not sanitize_body_content -- its horizontal-
-                                # rule rewrite would clobber the YAML
-                                # frontmatter fences of a full document.)
-                                fixed_qmd = strip_figure_markers(fix_latex_math_errors(fixed_qmd))
-                            if fixed_qmd == st.session_state.qmd_content:
-                                st.warning(
-                                    "⚠️ Self-healing returned the document unchanged — "
-                                    "the repair step could not identify a fix."
-                                )
-                            elif fixed_qmd is None:
-                                st.warning(
-                                    "⚠️ Self-healing did not return a repaired document "
-                                    "(the repair request failed)."
-                                )
                             if fixed_qmd and fixed_qmd != st.session_state.qmd_content:
                                 # Persist the repaired document and drop stale derived
                                 # outputs so every format re-renders from the fix.

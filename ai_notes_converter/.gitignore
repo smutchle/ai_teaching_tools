@@ -29,6 +29,9 @@ test_output*
 *_files/
 /.quarto/
 
+# Usage metrics data (runtime-generated, per-deployment)
+usage_metrics.csv
+
 # Temporary files
 *.tmp
 .DS_Store
