@@ -24,3 +24,8 @@ cd $AI_BASE_DIR/ai_dataset_generator
 cd $AI_BASE_DIR/ai_accessibility
 ./run_in_background.sh
 
+# Runs in its own 'podcastify' conda env (Kokoro needs Python 3.11 + numpy<2),
+# which its run_in_background.sh activates for itself.
+cd $AI_BASE_DIR/ai_podcast_generator
+./run_in_background.sh
+

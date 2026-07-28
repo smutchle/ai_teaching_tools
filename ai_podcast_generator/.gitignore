@@ -1,0 +1,8 @@
+output/
+streamlit.log
+.streamlit.pid
+__pycache__/
+*.pyc
+
+# Generated once and cached; regenerated on demand
+assets/intro_music.wav

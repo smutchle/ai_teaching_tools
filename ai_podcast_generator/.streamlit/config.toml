@@ -1,0 +1,23 @@
+# Streamlit reads this because run_in_background.sh cd's into the app directory
+# before launching.
+
+[theme]
+# The app is light-only. Its own CSS hardcodes light values - the stepper pips,
+# the hint text, the VT maroon accent - so a dark render puts dark-grey text on
+# a near-white chip and the whole step indicator becomes unreadable.
+base = "light"
+primaryColor = "#FF4B4B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#31333F"
+
+# `base` sets the palette the app inherits, but the frontend still chooses
+# between the light and dark variants from the viewer's system colour scheme or
+# their pick in Settings -> Theme, and there is no `theme.dark.base` to pin.
+# Mirroring the light palette here makes the dark branch render light too, so
+# the choice cannot produce a dark app however it is reached.
+[theme.dark]
+primaryColor = "#FF4B4B"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F0F2F6"
+textColor = "#31333F"

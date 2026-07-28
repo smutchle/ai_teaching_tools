@@ -1,0 +1,19 @@
+# Install into the dedicated 'podcastify' conda env (Python 3.11):
+#   conda create -y -n podcastify python=3.11
+#   conda activate podcastify
+#   pip install -r requirements.txt
+#
+# Speech moved from Kokoro-82M to the ElevenLabs API, so kokoro and torch are no
+# longer needed and neither is a GPU. The numpy<2 pin went with them: it existed
+# only because kokoro/misaki were not numpy 2 clean.
+
+streamlit>=1.40
+soundfile>=0.13        # decode cached music, write WAV before the ffmpeg encode
+numpy>=1.26            # PCM assembly, fades, mixing
+pymupdf>=1.24          # PDF text extraction
+anthropic>=0.75        # client for the Anthropic API (Claude Opus 5)
+python-dotenv>=1.0
+requests>=2.32         # ElevenLabs REST calls + MCP JSON-RPC to zimage
+
+# System dependency: ffmpeg must be on PATH for MP3 encoding and for resampling
+# the generated intro music to the episode's sample rate.
