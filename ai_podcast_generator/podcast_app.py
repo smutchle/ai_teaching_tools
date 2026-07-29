@@ -38,6 +38,7 @@ from lib.script_writer import (
     generate_thumbnail_prompt,
     generate_titles,
     generate_transcript,
+    perform_transcript,
     polish_transcript,
     reformat_transcript,
 )
@@ -757,6 +758,13 @@ def _write_script(spec: PodcastSpec) -> None:
     with st.spinner("Second pass: smoothing the dialogue so it sounds spoken."):
         transcript = polish_transcript(
             client, spec, transcript, progress_for("Smoothing")
+        )
+
+    # Third pass: delivery markup - audio tags, emphasis, hesitation. Runs
+    # last so it annotates the words that will actually be spoken.
+    with st.spinner("Third pass: directing the performance - tags, emphasis, pauses."):
+        transcript = perform_transcript(
+            client, spec, transcript, progress_for("Directing")
         )
 
     placeholder.empty()

@@ -376,6 +376,12 @@ IMPRECISION. Let people be as loose as they are out loud: "the thing where", "I
 mean", "sort of", a sentence that restarts partway through, a self-correction
 mid-turn. Sparingly, and not as a mannerism shared by every host.
 
+THINKING NOISES. An "um" or an "uh" belongs where a speaker is genuinely
+working something out - reaching for a number, changing tack mid-sentence,
+answering a question they had not seen coming. A handful per episode, at real
+decision points. Never as seasoning sprinkled over every turn, and never at
+the start of consecutive turns.
+
 REPEAT WORDS. Speakers say the same word again. Do not cycle through platform,
 system, framework, solution to avoid repeating yourself - that is a writing
 habit and it makes a listener think four different things are being discussed.
@@ -416,10 +422,21 @@ synthesiser that reads every character literally:
     reactions: [laughs] [chuckles] [sighs] [exhales] [scoffs] [groans] [gasps]
     feeling:   [excited] [amused] [curious] [skeptical] [surprised] [thoughtful]
                [hesitant] [impressed] [frustrated] [sarcastic] [deadpan] [wry]
-    delivery:  [whispers] [softly] [slowly] [quickly] [emphatic] [trails off]
+    delivery:  [whispers] [softly] [slowly] [quickly] [emphatic] [rushed]
+               [drawn out] [short pause] [long pause]
   Other tags of the same shape are fine - one to three lowercase words. Never
   two tags in a row, and do not tag every turn; a tag means something only if
-  the untagged lines around it are neutral.
+  the untagged lines around it are neutral. A tag's effect fades after a
+  sentence or two, so restate the mood partway through a long turn that has to
+  hold it.
+- PUNCTUATION IS PERFORMANCE, not grammar. The synthesiser plays an ellipsis
+  as a real hesitation ("It... well, it might work"), a word in CAPITALS as
+  spoken emphasis ("that took HOURS"), and a dash ending a turn as a genuine
+  cut-off. Use all three where the delivery calls for them, and sparingly - a
+  script where every line shouts emphasises nothing.
+- INTERRUPTIONS, PERFORMED. When one host cuts in, end the interrupted turn on
+  a dash mid-thought and open the interrupting turn with [jumping in] or
+  [interrupting], so it renders as a barge-in rather than a polite hand-off.
 - Do NOT use round brackets or asterisks for delivery. "(pause)", "(laughs)"
   and "*sighs*" are read out word for word. Square brackets only.
 - Spell out symbols and abbreviations as they should be said: "percent" not "%",
@@ -741,6 +758,110 @@ def polish_transcript(
         "sounds like it was spoken, not written. You never change the facts, "
         "you never soften a disagreement, and you never tidy away a short line.",
         user=build_polish_prompt(spec, draft),
+        on_progress=on_progress,
+    )
+    try:
+        return parse_transcript(raw, spec.personas)
+    except ValueError:
+        return transcript
+
+
+# ---------------------------------------------------------------------------
+# Performance pass
+# ---------------------------------------------------------------------------
+#
+# Modelled on the prompt behind ElevenLabs' own "Enhance" button, which they
+# publish in the v3 prompting guide. The writing and polish passes produce the
+# words; this pass directs how the words are delivered - audio tags, emphasis
+# capitals, hesitation ellipses - and is forbidden from touching the words
+# themselves. ElevenLabs run exactly this step as a separate LLM call, and for
+# the same reason the polish pass is separate here: a pass that owns delivery
+# alone applies it line by line, where a writing pass asked to also perform
+# tags a few early turns and forgets.
+#
+# eleven_v3 has no per-turn settings; tags in the text are the ONLY per-line
+# delivery control, which is what makes this pass the difference between a
+# flat read and a performed one.
+
+_PERFORMANCE_RULES = """\
+WHAT YOU MAY DO:
+- Insert audio tags: square brackets, one to three lowercase words, each
+  describing something you can HEAR in a voice. Place a tag immediately before
+  the words it colours ("[skeptical] That seems high.") or immediately after
+  the sentence it reacts to ("Two million dollars. [laughs]").
+    reactions: [laughs] [chuckles] [sighs] [exhales] [scoffs] [gasps] [groans]
+    feeling:   [excited] [amused] [curious] [skeptical] [surprised]
+               [thoughtful] [hesitant] [impressed] [frustrated] [sarcastic]
+               [deadpan] [warmly] [nervous] [dismissive]
+    delivery:  [whispers] [softly] [slowly] [quickly] [emphatic] [rushed]
+               [drawn out] [short pause] [long pause]
+  Other tags of the same shape are welcome. The draft may already carry some
+  tags: keep, move or replace them as the performance calls for.
+- Add emphasis by putting a word that is already there in CAPITALS. Add
+  hesitation or weight with an ellipsis (...). Change a full stop to a
+  question mark or an exclamation mark where the line is clearly asked or
+  exclaimed.
+- Where a turn ends on a dash (an interruption), open the next turn with
+  [jumping in] or [interrupting] so it plays as a barge-in.
+
+WHAT YOU MUST NOT DO:
+- Never add, remove, reorder or respell a word. The dialogue is final; you are
+  marking up its delivery, not editing it.
+- Never tag anything that is not a sound a voice makes. No [standing], no
+  [grinning], no [music], no prose directions like [pauses for a long moment].
+- Never put two tags in a row.
+- Never use round brackets or asterisks; the synthesiser reads those aloud.
+
+DENSITY AND JUDGEMENT:
+- Mark the peaks and the genuine reactions, and leave the level ground alone.
+  Most lines carry no tag at all; a tag only reads as a real reaction when the
+  lines around it are neutral. Aimed at a whole episode, that is a few tags
+  per minute of speech, not per line.
+- A tag's effect fades after a sentence or two. In a long turn that has to
+  hold a mood, restate the tag partway through.
+- Range matters: the same [chuckles] forty times reads as a tic. Draw on the
+  whole emotional vocabulary, matched to what each line is actually doing.
+- Keep each host's temperament in mind: a laugh belongs to the line that
+  earned it, not to a quota."""
+
+
+def build_performance_prompt(draft: str) -> str:
+    return f"""\
+Below is a finished podcast script, ready for a speech synthesiser that
+PERFORMS square-bracketed audio tags rather than reading them aloud, and that
+plays capitals as emphasis and ellipses as hesitation. Your job is the
+performance direction: mark HOW every line is delivered without changing what
+is said.
+
+{_PERFORMANCE_RULES}
+
+Keep every speaker name and the "Name: spoken words" line format exactly as
+given, with a blank line between turns.
+
+Reply with the annotated script only - no preamble, no notes.
+
+SCRIPT:
+{draft}
+"""
+
+
+def perform_transcript(
+    client: LLMClient,
+    spec: PodcastSpec,
+    transcript: Transcript,
+    on_progress: ProgressCallback | None = None,
+) -> Transcript:
+    """Third pass: annotate delivery - audio tags, emphasis, hesitation.
+
+    Falls back to the unannotated script if the markup comes back unparseable,
+    for the same reason polish does: a flat read beats no episode.
+    """
+    draft = render_transcript(transcript)
+    raw = client.complete(
+        system="You are a performance director marking up a script for an "
+        "expressive speech synthesiser. You direct delivery - tags, emphasis, "
+        "pauses - and you never rewrite the dialogue itself.",
+        user=build_performance_prompt(draft),
         on_progress=on_progress,
     )
     try:

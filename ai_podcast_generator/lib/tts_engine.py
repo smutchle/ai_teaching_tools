@@ -54,32 +54,33 @@ MUSIC_MODEL = "music_v2"
 DIALOGUE_MODEL = "eleven_v3"
 DIALOGUE_CHAR_LIMIT = 2_000
 
-# The v3 models reject previous_text / next_text outright:
-#   "Providing previous_text or next_text is not yet supported with the
-#    'eleven_v3' model" (400 unsupported_model)
-# Expressiveness is worth more here than cross-turn prosody continuity, so v3
-# stays the default and the context is simply omitted for it. A deny-list rather
-# than an allow-list: only these are known to reject the fields, and a model that
-# quietly ignores them costs nothing.
-_NO_CONTEXT_MODELS = frozenset({"eleven_v3", "eleven_ttv_v3"})
+# The v3 family differs from every other model in two ways this module cares
+# about: it rejects previous_text / next_text outright ("Providing previous_text
+# or next_text is not yet supported with the 'eleven_v3' model", 400
+# unsupported_model), and stability is its only live voice setting. Both checks
+# key off this set. Expressiveness is worth more here than cross-turn prosody
+# continuity, so v3 stays the default and the context is simply omitted for it.
+_V3_MODELS = frozenset({"eleven_v3", "eleven_ttv_v3"})
 
-# Delivery, pinned rather than left to the model's defaults. eleven_v3 exposes
-# stability as three discrete modes: 0.0 "Creative" (expressive, prone to
-# hallucination), 0.5 "Natural" (closest to the original voice recording), and
-# 1.0 "Robust" (highly stable but, per ElevenLabs, "less responsive to
-# directional prompts... similar to v2").
+# Stability is the ONLY delivery dial eleven_v3 has, and it takes three
+# discrete modes: 0.0 "Creative" (most emotional and expressive, occasionally
+# hallucinates a stray sound), 0.5 "Natural" (balanced, closest to the original
+# recording), and 1.0 "Robust" (v2-like, "less responsive to directional
+# prompts" - it largely ignores audio tags).
 #
-# This sat at Robust for a while as a fix for wild swings in register between
-# turns. That was the wrong lever: the swings were mostly an 8.5 dB loudness
-# spread, which _match_loudness now handles directly, and Robust bought the
-# evenness by making the read woodenly literal - it also ignores the audio tags
-# below. Natural is the setting ElevenLabs recommends for expressive work.
-# `style` is exaggeration and stays at zero; that is a separate dial and turning
-# it up is what produces melodrama.
-#
-# Checked before assuming otherwise: none of the 22 voices on this account
-# carries saved settings, so without these every request fell through to the
-# model default.
+# This value has walked down the scale as each mode proved too flat in the ear:
+# Robust bought turn-to-turn evenness by making the read woodenly literal, and
+# Natural still produced a read the account owner called lifeless. Creative is
+# the mode the v3 prompting guide pairs with audio tags ("for maximum
+# expressiveness with audio tags, use Creative or Natural"). The known cost is
+# the occasional hallucinated noise, which a regenerate fixes; if that trade
+# sours, 0.5 is the fallback.
+V3_STABILITY = 0.0
+
+# The v2-family dials. Per the voice-settings docs, similarity, style, speed
+# and speaker boost are each "not available for the Eleven v3 model" - the API
+# accepts them silently and ignores them - so v3 requests send stability alone
+# and this dict serves only non-v3 models.
 DEFAULT_VOICE_SETTINGS: dict[str, object] = {
     "stability": 0.5,
     "similarity_boost": 0.75,
@@ -190,14 +191,20 @@ class SpeechClient:
         `speed` is forwarded for models that honour it; eleven_v3 does not.
         Episode pacing is set by `_apply_tempo` after synthesis instead.
         """
+        # v3 honours stability alone; the other dials are v2-only and ignored.
+        settings: dict[str, object] = (
+            {"stability": V3_STABILITY}
+            if self._model in _V3_MODELS
+            else {**DEFAULT_VOICE_SETTINGS, "speed": speed}
+        )
         payload: dict[str, object] = {
             "text": text,
             "model_id": self._model,
-            "voice_settings": {**DEFAULT_VOICE_SETTINGS, "speed": speed},
+            "voice_settings": settings,
         }
         # Prosody context, where the model accepts it. Omitted rather than sent
         # as empty strings, which read as "there was silence here".
-        if self._model not in _NO_CONTEXT_MODELS:
+        if self._model not in _V3_MODELS:
             if previous_text:
                 payload["previous_text"] = previous_text
             if next_text:
@@ -251,11 +258,10 @@ class SpeechClient:
         payload: dict[str, object] = {
             "inputs": [{"text": text, "voice_id": vid} for vid, text in lines],
             "model_id": DIALOGUE_MODEL,
-            # Accepted, though it is not confirmed that it takes effect; the
-            # endpoint returns 200 either way and the docs do not spell it out.
-            "settings": {
-                k: v for k, v in DEFAULT_VOICE_SETTINGS.items() if k != "speed"
-            },
+            # The OpenAPI spec gives `settings` exactly one field, stability;
+            # anything else sent here is ignored. Request-global, so per-turn
+            # delivery is steered entirely by the audio tags in each line.
+            "settings": {"stability": V3_STABILITY},
         }
 
         last_error: Exception | None = None

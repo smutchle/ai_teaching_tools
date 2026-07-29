@@ -191,21 +191,28 @@ continuous inside each. Only the seams between batches get a gap; inside one the
 model places its own transitions. Batches still render in parallel, and a failure
 falls back to per-turn synthesis so an episode stays renderable.
 
-**Sounding human.** From ElevenLabs' guidance, after a round where the voices
+**Sounding human.** From ElevenLabs' guidance, after rounds where the voices
 came out robotic:
 
-- **`stability` is Natural (0.5), not Robust (1.0).** ElevenLabs describe Robust
-  as *"less responsive to directional prompts... similar to v2"*. It had been set
-  here to damp wild swings between turns, which was the wrong lever — the swings
-  were mostly an 8.5 dB loudness spread that `_match_loudness` handles directly,
-  and Robust bought evenness by making the read wooden.
-- **Audio tags are allowed again**, narrowly: `[laughs]`, `[laughing]`,
-  `[sighs]`, `[exhales]`. v3 *performs* these rather than reading them aloud.
-  `strip_stage_directions` had been deleting them — a Kokoro-era rule, since
-  Kokoro did read them out. Anything outside the whitelist is still stripped,
-  because an unrecognised tag gets spoken.
-- **`style` stays at 0.** That is the exaggeration dial; turning it up is what
-  produces melodrama.
+- **`stability` is Creative (0.0).** It has walked down the whole scale. Robust
+  (1.0) is described by ElevenLabs as *"less responsive to directional
+  prompts... similar to v2"* — it ignores audio tags and bought turn-to-turn
+  evenness by making the read wooden (the evenness it was chasing was really an
+  8.5 dB loudness spread that `_match_loudness` handles directly). Natural
+  (0.5) still read as lifeless. Creative is the mode the v3 prompting guide
+  pairs with audio tags, at the cost of an occasional hallucinated noise a
+  regenerate fixes.
+- **Stability is the only setting v3 honours.** Per the voice-settings docs,
+  similarity, style, speed and speaker boost are each *"not available for the
+  Eleven v3 model"* — the API accepts and ignores them — so v3 requests send
+  `stability` alone. Per-line delivery is steered entirely by audio tags in
+  the text, which is why the performance pass below exists.
+- **Audio tags are open vocabulary**, filtered by shape rather than whitelist:
+  one to three lowercase words in square brackets reaches the synthesiser
+  (`[laughs]`, `[skeptical]`, `[jumping in]`, `[long pause]`); citations and
+  prose stage directions are stripped. v3 *performs* tags rather than reading
+  them aloud, and punctuation is performance too — ellipses render as
+  hesitation, CAPITALS as emphasis, a dash ending a turn as a real cut-off.
 
 **Speed is applied after synthesis, not asked of the model.** `voice_settings.speed`
 is accepted by both endpoints and **does nothing on eleven_v3** — measured, three
@@ -285,12 +292,17 @@ mentions fell to **11% of turns** while **61%** carried framework substance, and
 the episode covered what it is, how to use it, strengths, limits and who should
 care — closing on *"The primitives are good. The edges are yours."*
 
-### The smoothing pass
+### The smoothing and performance passes
 
-Every script goes through the LLM **twice**. The first pass writes it; a second
-pass (`polish_transcript`) sees only the finished draft and rewrites it to sound
-spoken rather than written. Both the fresh-script and reformat paths run it, and
-so does **Rewrite from scratch** — they all funnel through `_write_script`.
+Every script goes through the LLM **three times**. The first pass writes it; a
+second pass (`polish_transcript`) sees only the finished draft and rewrites it
+to sound spoken rather than written; a third (`perform_transcript`) marks up
+delivery — audio tags, emphasis capitals, hesitation ellipses — without
+touching a word of the dialogue. The performance pass is modelled on the
+prompt behind ElevenLabs' own "Enhance" button, which they publish in the v3
+prompting guide, and runs last so it annotates the words that will actually be
+spoken. Both the fresh-script and reformat paths run all three, and so does
+**Rewrite from scratch** — they all funnel through `_write_script`.
 
 It is a separate call on purpose. The writing prompt is already carrying the
 cast, the style, the length budget, the interaction rules and the source
