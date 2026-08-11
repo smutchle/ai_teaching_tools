@@ -334,7 +334,7 @@ def render_run_page(*, project_root: Path) -> None:
         state_key_provider="tier_low_provider",
         state_key_model="tier_low_model",
         ollama_fallback_model=_cfg.OLLAMA_MODEL,
-        default=TierChoice(provider="anthropic", model="claude-haiku-4-5-20251001"),
+        default=TierChoice(provider="anthropic", model=_cfg.ANTHROPIC_MODEL_HAIKU),
     )
 
     # Dynamic default: read from the live policy form so changing the policy's

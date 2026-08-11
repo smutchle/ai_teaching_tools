@@ -15,15 +15,25 @@ from typing import Sequence
 import httpx
 import streamlit as st
 
+import config as _cfg
+
 
 _PROVIDERS = ["ollama", "arc", "anthropic"]
 
-# Curated cloud-model lists. Edit here when new model ids ship.
-_ANTHROPIC_MODELS = [
-    "claude-opus-4-7",
-    "claude-sonnet-4-6",
-    "claude-haiku-4-5-20251001",
-]
+
+def _anthropic_models() -> list[str]:
+    """Anthropic model ids offered in the picker, sourced from `.env`/config
+    (ANTHROPIC_MODEL_OPUS / _SONNET / _HAIKU) so editing `.env` changes the
+    dropdown. De-duplicated, order preserved (opus, sonnet, haiku)."""
+    ordered = [
+        _cfg.ANTHROPIC_MODEL_OPUS,
+        _cfg.ANTHROPIC_MODEL_SONNET,
+        _cfg.ANTHROPIC_MODEL_HAIKU,
+    ]
+    seen: set[str] = set()
+    return [m for m in ordered if m and not (m in seen or seen.add(m))]
+
+
 _ARC_MODELS = ["gpt-oss-120b"]
 
 
@@ -56,7 +66,7 @@ def _ollama_models(host: str = "http://localhost:11434") -> list[str]:
 
 def _models_for(provider: str, fallback: str) -> list[str]:
     if provider == "anthropic":
-        return _ANTHROPIC_MODELS
+        return _anthropic_models()
     if provider == "arc":
         return _ARC_MODELS
     if provider == "ollama":

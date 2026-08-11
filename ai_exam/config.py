@@ -44,6 +44,7 @@ def _env(name: str, default: str | None = None, *, required: bool = False) -> st
 ANTHROPIC_API_KEY: str = _env("ANTHROPIC_API_KEY")
 ANTHROPIC_MODEL_OPUS: str = _env("ANTHROPIC_MODEL_OPUS", "claude-opus-4-7")
 ANTHROPIC_MODEL_SONNET: str = _env("ANTHROPIC_MODEL_SONNET", "claude-sonnet-4-6")
+ANTHROPIC_MODEL_HAIKU: str = _env("ANTHROPIC_MODEL_HAIKU", "claude-haiku-4-5-20251001")
 
 # ARC (OpenAI-compatible endpoint) — required if any persona is routed to "arc".
 ARC_ENDPOINT: str = _env("ARC_ENDPOINT", "https://llm-api.arc.vt.edu/api/v1")
@@ -103,11 +104,11 @@ MODEL_REGISTRY: dict[str, ModelChoice] = {
 # Users can flip everything via override_tiers / override_provider, in which
 # case the narrator follows.
 MODEL_REGISTRY["narrator"] = ModelChoice(
-    provider="anthropic", model="claude-haiku-4-5-20251001",
+    provider="anthropic", model=ANTHROPIC_MODEL_HAIKU,
 )
 # Spec Suggester is also a one-shot UI utility — cheap, fast, Haiku.
 MODEL_REGISTRY["spec_suggester"] = ModelChoice(
-    provider="anthropic", model="claude-haiku-4-5-20251001",
+    provider="anthropic", model=ANTHROPIC_MODEL_HAIKU,
 )
 
 
