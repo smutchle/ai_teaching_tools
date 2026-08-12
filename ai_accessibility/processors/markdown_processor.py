@@ -396,7 +396,7 @@ class MarkdownProcessor(BaseProcessor):
                     "content": f"Math equation: {math_content}\n\nDescribe what this represents:"
                 }]
             )
-            return response.content[0].text.strip().lower()
+            return ClaudeClient.extract_text(response).strip().lower()
         except Exception:
             return None
 

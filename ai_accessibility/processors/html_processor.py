@@ -523,7 +523,7 @@ class HTMLProcessor(BaseProcessor):
                     "content": f"Math expression: {math_content}\n\nDescribe what this represents:"
                 }]
             )
-            return response.content[0].text.strip()
+            return ClaudeClient.extract_text(response).strip()
         except Exception:
             return None
 

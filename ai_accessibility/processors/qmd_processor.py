@@ -499,7 +499,7 @@ class QMDProcessor(MarkdownProcessor):
                     "content": f"Code:\n{code[:500]}\n\nGenerate a caption:"
                 }]
             )
-            return response.content[0].text.strip().replace('"', "'")
+            return ClaudeClient.extract_text(response).strip().replace('"', "'")
         except Exception:
             return None
 
@@ -515,7 +515,7 @@ class QMDProcessor(MarkdownProcessor):
                     "content": f"Code:\n{code[:500]}\n\nGenerate alt text:"
                 }]
             )
-            return response.content[0].text.strip().replace('"', "'")
+            return ClaudeClient.extract_text(response).strip().replace('"', "'")
         except Exception:
             return None
 
@@ -531,7 +531,7 @@ class QMDProcessor(MarkdownProcessor):
                     "content": f"Code:\n{code[:500]}\n\nGenerate a table caption:"
                 }]
             )
-            return response.content[0].text.strip().replace('"', "'")
+            return ClaudeClient.extract_text(response).strip().replace('"', "'")
         except Exception:
             return None
 

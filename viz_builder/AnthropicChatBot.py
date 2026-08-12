@@ -47,7 +47,15 @@ class AnthropicChatBot:
                     raise e
 
     def _process_response(self, response):
-        content = response.content[0].text
+        # Models with extended thinking enabled prepend a thinking block, so the
+        # text is not guaranteed to be at index 0; scan for the first text block.
+        content = next(
+            (block.text for block in response.content if block.type == "text"),
+            None,
+        )
+        if content is None:
+            block_types = [block.type for block in response.content]
+            raise TypeError(f"Expected a text block in response but got {block_types}")
         content = content.encode("utf-8").decode("utf-8").strip()
         return content
 

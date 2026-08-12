@@ -5,10 +5,35 @@ import base64
 from typing import Optional
 from dotenv import load_dotenv
 from anthropic import Anthropic
+from anthropic.types import Message, TextBlock
 
 
 class ClaudeClient:
     """Wrapper for Claude API with accessibility-focused prompts."""
+
+    @staticmethod
+    def extract_text(response: Message) -> str:
+        """Return the text of the first TextBlock in an API response.
+
+        Models with extended thinking enabled prepend a ThinkingBlock (and may
+        interleave other block types), so the text is not guaranteed to be at
+        index 0. This scans for the first genuine TextBlock instead of assuming
+        its position.
+
+        Args:
+            response: The Message returned by messages.create.
+
+        Returns:
+            The text of the first TextBlock in response.content.
+
+        Raises:
+            TypeError: If the response contains no TextBlock.
+        """
+        for block in response.content:
+            if isinstance(block, TextBlock):
+                return block.text
+        block_types = [type(b).__name__ for b in response.content]
+        raise TypeError(f"Expected a TextBlock in response but got {block_types}")
 
     def __init__(self):
         load_dotenv()
@@ -83,7 +108,7 @@ Respond with ONLY the alt text, nothing else."""
             messages=messages
         )
 
-        return response.content[0].text.strip()
+        return self.extract_text(response).strip()
 
     def analyze_heading_structure(self, content: str, format_type: str) -> dict:
         """
@@ -123,7 +148,7 @@ Respond in JSON format:
         import json
         import re
         try:
-            response_text = response.content[0].text
+            response_text = self.extract_text(response)
             # Strip markdown code blocks if present
             json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
             if json_match:
@@ -181,7 +206,7 @@ Respond in JSON format as a list:
         import json
         import re
         try:
-            response_text = response.content[0].text
+            response_text = self.extract_text(response)
             # Strip markdown code blocks if present
             json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
             if json_match:
@@ -219,7 +244,7 @@ Respond with ONLY the caption text, nothing else."""
             }]
         )
 
-        return response.content[0].text.strip()
+        return self.extract_text(response).strip()
 
     def analyze_document_accessibility(self, content: str, format_type: str) -> dict:
         """
@@ -270,7 +295,7 @@ Respond in JSON format:
         import json
         import re
         try:
-            response_text = response.content[0].text
+            response_text = self.extract_text(response)
             # Strip markdown code blocks if present
             json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
             if json_match:
@@ -336,7 +361,7 @@ Respond in JSON format:
         import json
         import re
         try:
-            response_text = response.content[0].text
+            response_text = self.extract_text(response)
             # Strip markdown code blocks if present
             json_match = re.search(r'```(?:json)?\s*([\s\S]*?)\s*```', response_text)
             if json_match:

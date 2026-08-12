@@ -25,6 +25,30 @@ METRICS_CSV_PATH: Path = Path(__file__).parent / "usage_metrics.csv"
 CSV_FIELDS: list[str] = ["timestamp", "num_pdfs", "total_pages", "department"]
 
 
+def first_text_block(message) -> TextBlock:
+    """Return the first TextBlock in an API response's content.
+
+    Models with extended thinking enabled prepend a ThinkingBlock (and may
+    interleave other block types), so the text is not guaranteed to be at
+    index 0. This scans for the first genuine TextBlock instead of assuming
+    its position.
+
+    Args:
+        message: The anthropic.types.Message returned by messages.create.
+
+    Returns:
+        The first TextBlock found in message.content.
+
+    Raises:
+        TypeError: If the response contains no TextBlock.
+    """
+    for block in message.content:
+        if isinstance(block, TextBlock):
+            return block
+    block_types = [type(b).__name__ for b in message.content]
+    raise TypeError(f"Expected a TextBlock in response but got {block_types}")
+
+
 @dataclass(frozen=True)
 class UsageRecord:
     """A single conversion event captured for usage reporting."""
@@ -72,11 +96,7 @@ Respond with ONLY the department name, copied exactly from the list above. If th
         messages=[{"role": "user", "content": prompt}],
     )
 
-    content_block = message.content[0]
-    if not isinstance(content_block, TextBlock):
-        raise TypeError(f"Expected TextBlock but got {type(content_block)}")
-
-    answer = content_block.text.strip().strip('"').strip("'")
+    answer = first_text_block(message).text.strip().strip('"').strip("'")
     for department in VT_DEPARTMENTS:
         if department.lower() == answer.lower():
             return department

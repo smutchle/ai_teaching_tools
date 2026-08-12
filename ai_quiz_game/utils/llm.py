@@ -127,7 +127,16 @@ def _generate_claude(text: str, n: int, instructions: str) -> list:
         system=_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": _build_prompt(n, instructions, text)}],
     )
-    return _parse_questions(response.content[0].text.strip())
+    # Models with extended thinking enabled prepend a thinking block, so the
+    # text is not guaranteed to be at index 0; scan for the first text block.
+    text_block = next(
+        (block.text for block in response.content if block.type == "text"),
+        None,
+    )
+    if text_block is None:
+        block_types = [block.type for block in response.content]
+        raise TypeError(f"Expected a text block in response but got {block_types}")
+    return _parse_questions(text_block.strip())
 
 
 QUESTIONS_PER_CHUNK = 25

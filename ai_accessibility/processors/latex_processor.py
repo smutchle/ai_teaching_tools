@@ -198,7 +198,7 @@ class LaTeXProcessor(BaseProcessor):
                     "content": f"URL: {url}\nCurrent unhelpful text: '{current_text}'\nGenerate descriptive link text:"
                 }]
             )
-            return response.content[0].text.strip()
+            return ClaudeClient.extract_text(response).strip()
         except Exception:
             return self._extract_domain_name(url)
 
@@ -323,7 +323,7 @@ class LaTeXProcessor(BaseProcessor):
                     "content": f"Table content:\n{table_content[:500]}\n\nGenerate a caption:"
                 }]
             )
-            return response.content[0].text.strip()
+            return ClaudeClient.extract_text(response).strip()
         except Exception:
             return None
 
@@ -339,7 +339,7 @@ class LaTeXProcessor(BaseProcessor):
                     "content": f"Table content:\n{table_content[:500]}\n\nSuggest {num_cols} column headers:"
                 }]
             )
-            headers_text = response.content[0].text.strip()
+            headers_text = ClaudeClient.extract_text(response).strip()
             headers = [h.strip() for h in headers_text.split('|')]
             if len(headers) == num_cols:
                 return headers
@@ -450,7 +450,7 @@ class LaTeXProcessor(BaseProcessor):
                     "content": f"Figure filename: {image_name}\nContext: {context[:300]}\n\nGenerate a caption:"
                 }]
             )
-            return response.content[0].text.strip()
+            return ClaudeClient.extract_text(response).strip()
         except Exception:
             return None
 
@@ -512,7 +512,7 @@ class LaTeXProcessor(BaseProcessor):
                     "content": f"LaTeX equation: {math_content}\n\nDescribe what this represents:"
                 }]
             )
-            return response.content[0].text.strip().lower()
+            return ClaudeClient.extract_text(response).strip().lower()
         except Exception:
             return None
 

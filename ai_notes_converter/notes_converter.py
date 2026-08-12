@@ -12,11 +12,10 @@ from datetime import datetime
 from pathlib import Path
 from pdf2image import convert_from_path
 from anthropic import Anthropic, APIError
-from anthropic.types import TextBlock
 from dotenv import load_dotenv
 import subprocess
 
-from usage_metrics import UsageRecord, infer_department, record_conversion
+from usage_metrics import UsageRecord, first_text_block, infer_department, record_conversion
 from vt_departments import UNKNOWN_DEPARTMENT
 
 logger = logging.getLogger(__name__)
@@ -141,11 +140,7 @@ Return the corrected text wrapped EXACTLY between the markers <CORRECTED> and </
         ],
     )
 
-    content_block = message.content[0]
-    if not isinstance(content_block, TextBlock):
-        raise ValueError(f"Expected TextBlock but got {type(content_block)}")
-
-    response_text = content_block.text
+    response_text = first_text_block(message).text
     # Only trust text inside the sentinels. Anything outside them (or a
     # response without them) is commentary that must never reach the document
     # -- an earlier version of this pass leaked "Looking at the text, I
@@ -218,11 +213,7 @@ Please provide the extracted content in a clean, readable format without adding 
         ],
     )
 
-    content_block = message.content[0]
-    if isinstance(content_block, TextBlock):
-        extracted_text = content_block.text
-    else:
-        raise ValueError(f"Expected TextBlock but got {type(content_block)}")
+    extracted_text = first_text_block(message).text
 
     # Check if there are any figure markers indicating we should preserve the image
     image_references = []
@@ -280,14 +271,10 @@ Please respond with ONLY the title, nothing else."""
             ],
         )
 
-        content_block = message.content[0]
-        if isinstance(content_block, TextBlock):
-            title = content_block.text.strip()
-            # Remove quotes if present
-            title = title.strip('"').strip("'")
-            return title
-        else:
-            return "Converted Handwritten Notes"
+        title = first_text_block(message).text.strip()
+        # Remove quotes if present
+        title = title.strip('"').strip("'")
+        return title
     except Exception:
         return "Converted Handwritten Notes"
 
@@ -618,18 +605,15 @@ in code fences or add explanations.
             max_tokens=32000,
             messages=[{"role": "user", "content": prompt}],
         )
-        content_block = message.content[0]
-        if isinstance(content_block, TextBlock):
-            fixed = content_block.text.strip()
-            # Strip an accidental ```/```quarto code fence wrapper if present
-            if fixed.startswith("```"):
-                lines = fixed.split("\n")
-                lines = lines[1:]  # drop opening fence line
-                if lines and lines[-1].strip() == "```":
-                    lines = lines[:-1]
-                fixed = "\n".join(lines).strip()
-            return fixed if fixed else None
-        return None
+        fixed = first_text_block(message).text.strip()
+        # Strip an accidental ```/```quarto code fence wrapper if present
+        if fixed.startswith("```"):
+            lines = fixed.split("\n")
+            lines = lines[1:]  # drop opening fence line
+            if lines and lines[-1].strip() == "```":
+                lines = lines[:-1]
+            fixed = "\n".join(lines).strip()
+        return fixed if fixed else None
     except Exception:
         return None
 
