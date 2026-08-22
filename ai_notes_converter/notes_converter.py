@@ -15,7 +15,8 @@ from anthropic import Anthropic, APIError
 from dotenv import load_dotenv
 import subprocess
 
-from usage_metrics import UsageRecord, first_text_block, infer_department, record_conversion
+from llm import TruncatedResponseError, create_text_message
+from usage_metrics import UsageRecord, infer_department, record_conversion
 from vt_departments import UNKNOWN_DEPARTMENT
 
 logger = logging.getLogger(__name__)
@@ -129,18 +130,15 @@ Here is the extracted text to review:
 
 Return the corrected text wrapped EXACTLY between the markers <CORRECTED> and </CORRECTED>. Output NOTHING outside the markers -- no commentary, no analysis, no explanation of what you changed."""
 
-    message = client.messages.create(
+    # 8192 leaves room for extended thinking on top of a full-page rewrite;
+    # create_text_message escalates further if the response still truncates.
+    response_text = create_text_message(
+        client=client,
         model=CLAUDE_MODEL,
-        max_tokens=4096,
-        messages=[
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
+        content=prompt,
+        max_tokens=8192,
+        purpose=f"page {page_num} OCR correction",
     )
-
-    response_text = first_text_block(message).text
     # Only trust text inside the sentinels. Anything outside them (or a
     # response without them) is commentary that must never reach the document
     # -- an earlier version of this pass leaked "Looking at the text, I
@@ -189,31 +187,26 @@ IMPORTANT INSTRUCTIONS:
 
 Please provide the extracted content in a clean, readable format without adding page numbers or headers."""
 
-    message = client.messages.create(
+    extracted_text = create_text_message(
+        client=client,
         model=CLAUDE_MODEL,
-        max_tokens=4096,
-        messages=[
+        content=[
             {
-                "role": "user",
-                "content": [
-                    {
-                        "type": "image",
-                        "source": {
-                            "type": "base64",
-                            "media_type": "image/png",
-                            "data": image_b64,
-                        },
-                    },
-                    {
-                        "type": "text",
-                        "text": prompt
-                    }
-                ],
+                "type": "image",
+                "source": {
+                    "type": "base64",
+                    "media_type": "image/png",
+                    "data": image_b64,
+                },
+            },
+            {
+                "type": "text",
+                "text": prompt
             }
         ],
+        max_tokens=8192,
+        purpose=f"page {page_num} extraction",
     )
-
-    extracted_text = first_text_block(message).text
 
     # Check if there are any figure markers indicating we should preserve the image
     image_references = []
@@ -260,22 +253,20 @@ Content:
 Please respond with ONLY the title, nothing else."""
 
     try:
-        message = client.messages.create(
+        # A 100-token cap could be swallowed whole by extended thinking on a
+        # dense sample, leaving no title text in the response at all.
+        title = create_text_message(
+            client=client,
             model=CLAUDE_MODEL,
-            max_tokens=100,
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
-        )
-
-        title = first_text_block(message).text.strip()
+            content=prompt,
+            max_tokens=1024,
+            purpose="document title",
+        ).strip()
         # Remove quotes if present
         title = title.strip('"').strip("'")
         return title
-    except Exception:
+    except (APIError, TruncatedResponseError) as e:
+        logger.warning(f"Title generation failed ({e}); using the default title.")
         return "Converted Handwritten Notes"
 
 # Inline math span: a single $...$ that is not part of a $$ display delimiter.
@@ -600,12 +591,13 @@ in code fences or add explanations.
 """
 
     try:
-        message = client.messages.create(
+        fixed = create_text_message(
+            client=client,
             model=CLAUDE_MODEL,
+            content=prompt,
             max_tokens=32000,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        fixed = first_text_block(message).text.strip()
+            purpose="qmd render repair",
+        ).strip()
         # Strip an accidental ```/```quarto code fence wrapper if present
         if fixed.startswith("```"):
             lines = fixed.split("\n")
@@ -614,7 +606,8 @@ in code fences or add explanations.
                 lines = lines[:-1]
             fixed = "\n".join(lines).strip()
         return fixed if fixed else None
-    except Exception:
+    except (APIError, TruncatedResponseError) as e:
+        logger.warning(f"LLM qmd repair failed: {e}")
         return None
 
 def check_quarto_installation():
@@ -909,7 +902,7 @@ def main():
                     )[:4000]
                     try:
                         department = infer_department(client, CLAUDE_MODEL, notes_sample)
-                    except APIError as e:
+                    except (APIError, TruncatedResponseError) as e:
                         department = UNKNOWN_DEPARTMENT
                         st.warning(
                             f"⚠️ Department inference failed ({e}); "

@@ -16,37 +16,13 @@ from pathlib import Path
 
 import pandas as pd
 from anthropic import Anthropic
-from anthropic.types import TextBlock
 
+from llm import create_text_message
 from vt_departments import UNKNOWN_DEPARTMENT, VT_DEPARTMENTS
 
 METRICS_CSV_PATH: Path = Path(__file__).parent / "usage_metrics.csv"
 
 CSV_FIELDS: list[str] = ["timestamp", "num_pdfs", "total_pages", "department"]
-
-
-def first_text_block(message) -> TextBlock:
-    """Return the first TextBlock in an API response's content.
-
-    Models with extended thinking enabled prepend a ThinkingBlock (and may
-    interleave other block types), so the text is not guaranteed to be at
-    index 0. This scans for the first genuine TextBlock instead of assuming
-    its position.
-
-    Args:
-        message: The anthropic.types.Message returned by messages.create.
-
-    Returns:
-        The first TextBlock found in message.content.
-
-    Raises:
-        TypeError: If the response contains no TextBlock.
-    """
-    for block in message.content:
-        if isinstance(block, TextBlock):
-            return block
-    block_types = [type(b).__name__ for b in message.content]
-    raise TypeError(f"Expected a TextBlock in response but got {block_types}")
 
 
 @dataclass(frozen=True)
@@ -73,7 +49,7 @@ def infer_department(client: Anthropic, model: str, notes_sample: str) -> str:
 
     Raises:
         anthropic.APIError: If the classification API call fails.
-        TypeError: If the API returns a non-text content block.
+        llm.TruncatedResponseError: If the model produces no text at all.
     """
     department_list = "\n".join(f"- {d}" for d in VT_DEPARTMENTS)
     prompt = f"""You are classifying a set of converted academic notes by the Virginia Tech department they most likely belong to.
@@ -90,13 +66,16 @@ Choose the single most likely department from this exact list:
 
 Respond with ONLY the department name, copied exactly from the list above. If the content does not clearly fit any department, respond with "{UNKNOWN_DEPARTMENT}"."""
 
-    message = client.messages.create(
+    # The budget must cover extended thinking as well as the answer: a dense
+    # notes sample makes the model think, and a 50-token cap left nothing for
+    # the department name itself.
+    answer = create_text_message(
+        client=client,
         model=model,
-        max_tokens=50,
-        messages=[{"role": "user", "content": prompt}],
-    )
-
-    answer = first_text_block(message).text.strip().strip('"').strip("'")
+        content=prompt,
+        max_tokens=1024,
+        purpose="department inference",
+    ).strip().strip('"').strip("'")
     for department in VT_DEPARTMENTS:
         if department.lower() == answer.lower():
             return department
