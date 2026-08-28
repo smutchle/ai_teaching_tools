@@ -11,6 +11,14 @@ and succeeds, a hard one provokes thinking and starves the answer.
 ``create_text_message`` is the fix: it gives every call room for thinking plus
 its answer, and when a response still comes back truncated it retries once with
 a much larger budget before giving up loudly.
+
+Every call is made with ``client.messages.stream``. The SDK refuses a
+non-streaming request whose ``max_tokens`` implies a generation that could run
+past its 10-minute HTTP timeout -- it raises "Streaming is required for
+operations that may take longer than 10 minutes" client-side, before any
+request is sent, and that error is not an ``APIError`` so callers guarding on
+``APIError`` never see it coming. Streaming removes the ceiling entirely, so
+the large budgets the repair and extraction calls need are safe.
 """
 
 from __future__ import annotations
@@ -23,9 +31,10 @@ from anthropic.types import Message, TextBlock
 
 logger = logging.getLogger(__name__)
 
-# Ceiling for the retry budget. Kept under the SDK's non-streaming HTTP timeout
-# comfort zone; none of these calls need more than this to finish an answer.
-MAX_RETRY_TOKENS: int = 16000
+# Ceiling for the retry budget. Requests stream, so this is not bounded by the
+# SDK's non-streaming timeout -- none of these calls need more than this to
+# finish an answer.
+MAX_RETRY_TOKENS: int = 64000
 
 # Multiplier applied to the caller's budget when a response comes back truncated.
 RETRY_BUDGET_FACTOR: int = 4
@@ -77,7 +86,7 @@ def create_text_message(
     max_tokens: int,
     purpose: str,
 ) -> str:
-    """Send one message and return its text, retrying once if it was truncated.
+    """Send one streamed message and return its text, retrying once if truncated.
 
     Both failure shapes are handled: a response with no TextBlock at all
     (thinking consumed the whole budget) and a response whose text was cut off
@@ -107,11 +116,12 @@ def create_text_message(
 
     last_message: Message | None = None
     for attempt, budget in enumerate(budgets, start=1):
-        last_message = client.messages.create(
+        with client.messages.stream(
             model=model,
             max_tokens=budget,
             messages=[{"role": "user", "content": content}],
-        )
+        ) as stream:
+            last_message = stream.get_final_message()
         text_block = find_text_block(last_message)
 
         if text_block is not None and last_message.stop_reason != "max_tokens":
