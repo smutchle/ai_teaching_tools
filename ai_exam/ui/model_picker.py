@@ -1,10 +1,19 @@
 """Two-tier model picker for the Streamlit Run page.
 
-Each tier (HIGH / LOW) gets a (provider, model) pair. The provider drives a
-short, curated model list for Anthropic and ARC, and a dynamic list pulled
-from `localhost:11434/api/tags` for Ollama (filtered to exclude embedding
-models). When Ollama is unreachable the picker falls back to whatever value
-is in `OLLAMA_MODEL` from `.env`.
+Each tier (HIGH / LOW) gets a (provider, model) pair. The provider drives the
+model list:
+
+- **anthropic** — curated, sourced from `ANTHROPIC_MODEL_OPUS/_SONNET/_HAIKU`
+  in `.env`.
+- **arc** — pulled live from the ARC proxy's OpenAI-compatible `/models`
+  endpoint (`ARC_ENDPOINT`, bearer `ARC_API_KEY`). ARC's roster moves — model
+  aliases are added and re-pointed without notice — so it is never hardcoded.
+- **ollama** — pulled live from `localhost:11434/api/tags`, minus embedding
+  models.
+
+Both live lists fall back to the single configured id from `.env`
+(`ARC_MODEL` / `OLLAMA_MODEL`) when the service is unreachable, so the picker
+still renders something usable offline.
 """
 
 from __future__ import annotations
@@ -34,7 +43,41 @@ def _anthropic_models() -> list[str]:
     return [m for m in ordered if m and not (m in seen or seen.add(m))]
 
 
-_ARC_MODELS = ["gpt-oss-120b"]
+def _arc_models(endpoint: str) -> list[str]:
+    """List every model the ARC proxy currently serves.
+
+    ARC is OpenAI-compatible, so `GET {endpoint}/models` returns
+    `{"data": [{"id": ...}, ...]}`. Every id there is routable, including the
+    `preset` entries (thinking variants, `thinkinglatest`, `vision`), so
+    nothing is filtered out — the proxy is the authority on what exists.
+
+    Cached for 5 minutes via `st.cache_data`; the roster changes rarely and
+    this is a network round-trip on every Run-page rerun otherwise. Returns
+    `[]` when ARC is unreachable or no key is configured — the caller
+    substitutes the `.env` default.
+    """
+
+    @st.cache_data(ttl=300.0, show_spinner=False)
+    def _query(endpoint_: str) -> list[str]:
+        # Read the key inside so it never becomes part of the cache key.
+        if not _cfg.ARC_API_KEY:
+            return []
+        try:
+            r = httpx.get(
+                f"{endpoint_.rstrip('/')}/models",
+                headers={"Authorization": f"Bearer {_cfg.ARC_API_KEY}"},
+                timeout=8.0,
+            )
+            r.raise_for_status()
+            payload = r.json()
+        except (httpx.HTTPError, ValueError):
+            # ARC is an optional provider; an outage or a missing/expired key
+            # must not take the Run page down. Caller falls back to ARC_MODEL.
+            return []
+        ids: list[str] = [m.get("id", "") for m in payload.get("data", [])]
+        return sorted({i for i in ids if i}, key=str.lower)
+
+    return _query(endpoint)
 
 
 @dataclass(frozen=True)
@@ -68,7 +111,7 @@ def _models_for(provider: str, fallback: str) -> list[str]:
     if provider == "anthropic":
         return _anthropic_models()
     if provider == "arc":
-        return _ARC_MODELS
+        return _arc_models(_cfg.ARC_ENDPOINT) or [_cfg.ARC_MODEL]
     if provider == "ollama":
         models = _ollama_models()
         if not models:
@@ -102,6 +145,11 @@ def render_tier_picker(
             label_visibility="collapsed",
         )
     models = _models_for(provider, ollama_fallback_model)
+    if provider == "arc" and not _arc_models(_cfg.ARC_ENDPOINT):
+        st.caption(
+            f":orange[Could not reach ARC at {_cfg.ARC_ENDPOINT} "
+            f"(or ARC_API_KEY is unset) — showing the `.env` default only.]"
+        )
     with cols[1]:
         cur_model = st.session_state.get(state_key_model, default.model)
         # If the saved model isn't valid for the newly-chosen provider, snap

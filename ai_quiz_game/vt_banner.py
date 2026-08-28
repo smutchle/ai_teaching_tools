@@ -1,7 +1,8 @@
 """Shared Virginia Tech banner for Streamlit apps (portal.datasci.vt.edu).
 
 Renders a thin maroon VT banner fixed to the top of every page, with the
-Virginia Tech horizontal logo on the left and a single "Home" link.
+Virginia Tech horizontal logo on the left, a "Home" link beside it, and a
+"Questions, Comments or Help" mailto link pinned to the upper right.
 
 The logo is embedded below as a base64 PNG so this file is fully self-contained
 and survives the flat rsync to /shared/apps with no external asset dependency.
@@ -12,11 +13,16 @@ Usage (call once, immediately after st.set_page_config):
     render_vt_banner()
 """
 
+from urllib.parse import quote
+
 import streamlit as st
 
 VT_MAROON = "#861F41"
 VT_ORANGE = "#E87722"
 HOME_URL = "http://portal.datasci.vt.edu"
+HELP_EMAIL = "smutchle@vt.edu"
+HELP_SUBJECT = "Questions, Comments or Help: ADS Portal"
+HELP_LABEL = "Questions, Comments or Help"
 
 _LOGO_B64 = (
     "iVBORw0KGgoAAAANSUhEUgAAAu8AAACOCAYAAACBtOaHAAArfElEQVR4nO2dQXbbOLO23++enlt3qonRK7DuCsysIOoVmL2CoCec"
@@ -186,12 +192,16 @@ _BANNER_HTML = """
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   }}
   #vt-banner img {{ height: 26px; }}
-  #vt-banner a.vt-home {{
+  #vt-banner a.vt-home, #vt-banner a.vt-help {{
       color: #ffffff; text-decoration: none; font-weight: 600;
       font-size: 0.95rem;
       font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, sans-serif;
   }}
-  #vt-banner a.vt-home:hover {{ color: {orange}; }}
+  #vt-banner a.vt-home:hover, #vt-banner a.vt-help:hover {{ color: {orange}; }}
+  /* pin to the right, clearing Streamlit's own top-right toolbar */
+  #vt-banner a.vt-help {{
+      margin-left: auto; margin-right: 60px; white-space: nowrap;
+  }}
   /* push the app body (and sidebar) down so nothing hides under the banner */
   .block-container {{ padding-top: 3.5rem; }}
   section[data-testid="stSidebar"] > div {{ padding-top: 2.5rem; }}
@@ -199,15 +209,26 @@ _BANNER_HTML = """
 <div id="vt-banner">
   <img src="data:image/png;base64,{logo}" alt="Virginia Tech">
   <a class="vt-home" href="{home}" target="_self">Home</a>
+  <a class="vt-help" href="mailto:{help_email}?subject={help_subject}" title="{help_label}">&#9993;&#65039; {help_label}</a>
 </div>
 """
 
 
-def render_vt_banner(home_url: str = HOME_URL) -> None:
+def render_vt_banner(
+    home_url: str = HOME_URL,
+    help_email: str = HELP_EMAIL,
+    help_subject: str = HELP_SUBJECT,
+) -> None:
     """Render the maroon VT banner at the top of the current page."""
     st.markdown(
         _BANNER_HTML.format(
-            maroon=VT_MAROON, orange=VT_ORANGE, logo=_LOGO_B64, home=home_url
+            maroon=VT_MAROON,
+            orange=VT_ORANGE,
+            logo=_LOGO_B64,
+            home=home_url,
+            help_email=help_email,
+            help_subject=quote(help_subject, safe=""),
+            help_label=HELP_LABEL,
         ),
         unsafe_allow_html=True,
     )
