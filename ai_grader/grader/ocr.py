@@ -7,7 +7,8 @@ page *begins* a new student's submission (it carries a filled-in Name header),
 and (d) locate each answer vertically on the page so graded comments can be
 anchored near the right answer later.
 
-Consecutive pages are then grouped into per-student evals.
+Consecutive pages are then grouped into per-student evals on those
+`is_start` boundaries, which the Review UI lets the grader correct by hand.
 """
 from __future__ import annotations
 
@@ -36,37 +37,42 @@ Transcribe faithfully; do not invent answers the student did not write. Return v
 
 
 def ocr_page(llm: LLMClient, exam_path: str, page_index: int) -> dict:
-    """OCR one page. Returns a dict with the schema described in PAGE_PROMPT."""
+    """OCR one page. Returns a dict with the schema described in PAGE_PROMPT,
+    plus an "error" string that is empty on success.
+    """
     png = pdfutil.render_page_png(exam_path, page_index)
     data = llm.vision_json(PAGE_PROMPT, [png], max_tokens=8000)
     if not isinstance(data, dict):
-        # Resilient fallback: treat as a continuation page with no structure.
-        data = {}
+        raise RuntimeError(
+            "vision model did not return a JSON object for this page "
+            "(check that OPENAI_VISION_MODEL names a multimodal model)"
+        )
+    is_start = bool(data.get("is_new_submission", False))
     return {
-        "is_new_submission": bool(data.get("is_new_submission", False)),
+        "is_new_submission": is_start,
+        "is_start": is_start,          # user-editable split boundary
         "student_name": (data.get("student_name") or "").strip(),
         "markdown": (data.get("markdown") or "").strip(),
         "answers": data.get("answers") if isinstance(data.get("answers"), list) else [],
+        "error": "",
     }
 
 
-def run_ocr(llm: LLMClient, exam_path: str, roster: list[dict], concurrency: int = 5,
-            progress: Callable[[int, int, str], None] | None = None) -> list[dict]:
-    """OCR every page of the exam and group pages into evals.
+def _failed_page(msg: str) -> dict:
+    return {"is_new_submission": False, "is_start": False, "student_name": "",
+            "markdown": "", "answers": [], "error": msg}
 
-    Returns a list of eval dicts:
-      {
-        "id": "eval_1",
-        "page_indices": [0, 1],
-        "ocr_markdown": "...",
-        "detected_name": "Emily Nguyen",
-        "student_key": "Emily Nguyen" | "",   # matched roster display name; blank if no confident match
-        "anchors": [ {"question": "1", "page": 0, "y": 0.35}, ... ],
-        "grade": null
-      }
+
+def ocr_pages(llm: LLMClient, exam_path: str, concurrency: int = 5,
+              progress: Callable[[int, int, str], None] | None = None) -> list[dict]:
+    """OCR every page of the exam, in page order.
+
+    Per-page vision calls are independent, so up to `concurrency` run at once.
+    A page that fails is recorded with its error message rather than silently
+    becoming an empty continuation page — an empty page looks exactly like a
+    working continuation page, which is how a whole exam collapses into one
+    submission without anything obviously going wrong.
     """
-    # Per-page vision calls are independent, so OCR up to `concurrency` pages at
-    # once, then reassemble in page order (grouping into evals is order-sensitive).
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     n = pdfutil.page_count(exam_path)
@@ -79,43 +85,63 @@ def run_ocr(llm: LLMClient, exam_path: str, roster: list[dict], concurrency: int
             i = futures[fut]
             try:
                 pages[i] = fut.result()
-            except Exception:  # noqa: BLE001 - treat a failed page as an empty continuation
-                pages[i] = {"is_new_submission": False, "student_name": "",
-                            "markdown": "", "answers": []}
+            except Exception as e:  # noqa: BLE001 - one bad page must not abort the run
+                pages[i] = _failed_page(f"{type(e).__name__}: {e}")
             done += 1
             if progress:
                 progress(done - 1, n, f"OCR page {done} of {n}")
+    return pages
 
-    # ---- Group into evals ---------------------------------------------------
+
+def failed_pages(pages: list[dict]) -> list[int]:
+    """0-based indices of pages whose OCR failed."""
+    return [i for i, p in enumerate(pages) if p.get("error")]
+
+
+def build_evals(pages: list[dict], roster: list[dict],
+                prior: list[dict] | None = None) -> list[dict]:
+    """Group consecutive pages into per-student evals on the `is_start` flags.
+
+    `is_start` starts out as the vision model's `is_new_submission` and can be
+    corrected by hand in the UI; page 0 always starts a submission. Passing the
+    previous eval list as `prior` carries student assignments across a re-split,
+    and carries a grade over only when that submission's pages are unchanged.
+
+    Returns a list of eval dicts:
+      {
+        "id": "eval_1",
+        "page_indices": [0, 1],
+        "ocr_markdown": "...",
+        "detected_name": "Emily Nguyen",
+        "student_key": "Nguyen, Emily" | "",  # roster name; blank if no confident match
+        "anchors": [ {"question": "1", "page": 0, "y": 0.35}, ... ],
+        "grade": null
+      }
+    """
+    by_first: dict[int, dict] = {}
+    for ev in (prior or []):
+        idxs = ev.get("page_indices") or []
+        if idxs:
+            by_first[idxs[0]] = ev
+
     evals: list[dict] = []
     current: dict | None = None
-
-    def start_eval(page_idx: int) -> dict:
-        return {
-            "id": "",
-            "page_indices": [],
-            "ocr_markdown": "",
-            "detected_name": "",
-            "student_key": "",
-            "anchors": [],
-            "grade": None,
-        }
-
     for i, pg in enumerate(pages):
-        starts = pg["is_new_submission"] or current is None
-        if starts:
-            if current is not None:
-                evals.append(current)
-            current = start_eval(i)
-        # append this page to the current eval
+        if current is None or pg.get("is_start"):
+            current = {
+                "id": "", "page_indices": [], "ocr_markdown": "",
+                "detected_name": "", "student_key": "", "anchors": [], "grade": None,
+            }
+            evals.append(current)
         local_page = len(current["page_indices"])
         current["page_indices"].append(i)
-        if current["ocr_markdown"]:
-            current["ocr_markdown"] += f"\n\n---\n\n*(page {local_page + 1})*\n\n"
-        current["ocr_markdown"] += pg["markdown"]
-        if not current["detected_name"] and pg["student_name"]:
+        if pg.get("markdown"):
+            if current["ocr_markdown"]:
+                current["ocr_markdown"] += f"\n\n---\n\n*(page {local_page + 1})*\n\n"
+            current["ocr_markdown"] += pg["markdown"]
+        if not current["detected_name"] and pg.get("student_name"):
             current["detected_name"] = pg["student_name"]
-        for a in pg["answers"]:
+        for a in pg.get("answers") or []:
             try:
                 current["anchors"].append({
                     "question": str(a.get("question", "")).strip(),
@@ -124,13 +150,21 @@ def run_ocr(llm: LLMClient, exam_path: str, roster: list[dict], concurrency: int
                 })
             except (TypeError, ValueError):
                 continue
-    if current is not None:
-        evals.append(current)
 
-    # ---- Finalize: ids + roster match --------------------------------------
     for idx, ev in enumerate(evals, start=1):
         ev["id"] = f"eval_{idx}"
-        matched = roster_mod.match_name(ev["detected_name"], roster)
-        ev["student_key"] = matched or ""
-
+        old = by_first.get(ev["page_indices"][0])
+        if old and old.get("student_key"):
+            ev["student_key"] = old["student_key"]
+        else:
+            ev["student_key"] = roster_mod.match_name(ev["detected_name"], roster) or ""
+        if old and old.get("page_indices") == ev["page_indices"]:
+            ev["grade"] = old.get("grade")
     return evals
+
+
+def eval_for_page(evals: list[dict], page_index: int) -> dict | None:
+    for ev in evals:
+        if page_index in (ev.get("page_indices") or []):
+            return ev
+    return None

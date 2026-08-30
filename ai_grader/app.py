@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import io
 import os
+import re
 import zipfile
 
 import pandas as pd
@@ -45,6 +46,25 @@ def save_uploaded(uploaded, dest_name: str) -> str:
     with open(path, "wb") as f:
         f.write(uploaded.getbuffer())
     return dest_name
+
+
+def _slug(text: str) -> str:
+    """Filename-safe token: letters, digits and underscores only."""
+    return re.sub(r"[^A-Za-z0-9]+", "", text or "")
+
+
+def _unique_name(fname: str, used: set[str]) -> str:
+    """Names alone are not unique (no student id), so de-duplicate filenames."""
+    if fname not in used:
+        used.add(fname)
+        return fname
+    stem, ext = os.path.splitext(fname)
+    i = 2
+    while f"{stem}_{i}{ext}" in used:
+        i += 1
+    out = f"{stem}_{i}{ext}"
+    used.add(out)
+    return out
 
 
 def load_roster_safe() -> list[dict]:
@@ -98,6 +118,7 @@ with tab_config:
                 try:
                     st.session_state.state = state_mod.load_state(wd_input)
                     st.session_state.uploaded_ids = {}
+                    st.session_state.ocr_page_idx = 0
                     st.success(f"Loaded project from {wd_input}")
                     st.rerun()
                 except Exception as e:  # noqa: BLE001
@@ -145,8 +166,8 @@ with tab_config:
 
     # --- Roster CSV
     st.markdown(
-        "**Class roster** — CSV with **`last_name, first_name, student_id, email`** "
-        "columns (exact names, any order)."
+        "**Class roster** — single-column CSV, one student per line, written "
+        '**`"last_name, first_name"`** in double quotes. A `name` header row is optional.'
     )
     roster_up = st.file_uploader("Roster CSV", type=["csv"], key="roster_up")
     if roster_up is not None and st.session_state.uploaded_ids.get("roster") != roster_up.file_id:
@@ -220,18 +241,33 @@ with tab_config:
 # =====================================================================
 # TAB 2 — OCR & SPLIT
 # =====================================================================
+@st.cache_data(show_spinner=False)
+def page_image(pdf_path: str, mtime: float, page_index: int, dpi: int = 120) -> bytes:
+    """Rendered page PNG, cached. `mtime` busts the cache when the PDF changes."""
+    return pdfutil.render_page_png(pdf_path, page_index, dpi=dpi)
+
+
+def rebuild_evals() -> None:
+    """Re-group pages into submissions after a split boundary was edited."""
+    st_ = get_state()
+    st_["evals"] = ocr.build_evals(st_.get("pages", []), load_roster_safe(),
+                                   prior=st_.get("evals", []))
+
+
 with tab_ocr:
     c = cfg()
-    st.subheader("Step 1 — OCR & split the scanned exam")
     exam_path = state_mod.abspath(c["working_dir"], c.get("exam_pdf", ""))
     roster = load_roster_safe()
     options = [""] + roster_mod.roster_options(roster)
+    has_exam = bool(exam_path and os.path.exists(exam_path))
 
-    disabled = not (exam_path and os.path.exists(exam_path))
-    if disabled:
+    st.subheader("Step 1 — OCR & split the scanned exam")
+    if not has_exam:
         st.info("Upload an Exam PDF on the Config tab first.")
+    if not roster:
+        st.info("Upload a roster CSV on the Config tab to enable student assignment.")
 
-    if st.button("🔍 Perform OCR", type="primary", disabled=disabled):
+    if st.button("🔍 Perform OCR", type="primary", disabled=not has_exam):
         prog = st.progress(0.0)
         status = st.empty()
 
@@ -241,50 +277,174 @@ with tab_ocr:
 
         try:
             llm = get_llm()
-            evals = ocr.run_ocr(llm, exam_path, roster, progress=_cb)
-            get_state()["evals"] = evals
-            status.write(f"Done — split into {len(evals)} submission(s).")
+            pages = ocr.ocr_pages(llm, exam_path, progress=_cb)
+            st_ = get_state()
+            st_["pages"] = pages
+            st_["evals"] = ocr.build_evals(pages, roster)
+            st.session_state.ocr_page_idx = 0
+            status.write(f"Done — {len(pages)} page(s) → {len(st_['evals'])} submission(s).")
             do_save()
             st.rerun()
         except Exception as e:  # noqa: BLE001
             st.error(f"OCR failed: {e}")
 
+    pages = get_state().get("pages", [])
     evals = get_state().get("evals", [])
-    if evals:
+
+    if pages:
+        bad = ocr.failed_pages(pages)
+        if bad:
+            st.error(
+                f"{len(bad)} page(s) failed to OCR: "
+                + ", ".join(str(i + 1) for i in bad[:20])
+                + ("…" if len(bad) > 20 else "")
+                + f". First error: {pages[bad[0]]['error']}"
+            )
+        blank = [i for i, p in enumerate(pages) if not p.get("error") and not p.get("markdown")]
+        if blank:
+            st.warning(
+                f"{len(blank)} page(s) came back with no transcription "
+                f"({', '.join(str(i + 1) for i in blank[:20])}"
+                + ("…" if len(blank) > 20 else "")
+                + "). If this is most of the exam, the configured vision model is "
+                "probably not multimodal — set OPENAI_VISION_MODEL to a vision model."
+            )
+
+        n_pages = len(pages)
+        unassigned = [e for e in evals if not e.get("student_key")]
         st.divider()
-        st.subheader(f"Step 2 — Review {len(evals)} submission(s)")
+        st.subheader(f"Step 2 — Review {n_pages} page(s) → {len(evals)} submission(s)")
         st.caption(
-            "Assign each submission to a student (required). The dropdown is "
-            "pre-filled from OCR when a confident match was found; override as needed."
+            "Page through the scan below. Tick **starts a new submission** on each page "
+            "that carries a student's Name header to fix the split, and pick the student "
+            "for the submission the current page belongs to. Every submission needs a student."
         )
-        unassigned = 0
-        for ev in evals:
-            pages = ", ".join(str(p + 1) for p in ev["page_indices"])
-            detected = ev.get("detected_name") or "—"
-            current = ev.get("student_key", "")
-            idx = options.index(current) if current in options else 0
-            col1, col2 = st.columns([2, 3])
-            with col1:
-                sel = st.selectbox(
-                    f"**{ev['id']}** · pages {pages} · OCR name: *{detected}*",
-                    options, index=idx, key=f"sel_{ev['id']}",
-                    format_func=lambda x: x or "— select student —",
+        if unassigned:
+            st.warning(f"{len(unassigned)} submission(s) still need a student assigned.")
+
+        # ---- navigation ----------------------------------------------------
+        st.session_state.setdefault("ocr_page_idx", 0)
+        st.session_state.ocr_page_idx = min(st.session_state.ocr_page_idx, n_pages - 1)
+
+        def _step(delta: int) -> None:
+            st.session_state.ocr_page_idx = max(
+                0, min(n_pages - 1, st.session_state.ocr_page_idx + delta))
+
+        def _goto(page_index: int) -> None:
+            st.session_state.ocr_page_idx = max(0, min(n_pages - 1, page_index))
+
+        def _next_unassigned() -> None:
+            cur = st.session_state.ocr_page_idx
+            starts = [e["page_indices"][0] for e in evals if not e.get("student_key")]
+            if starts:
+                _goto(next((p for p in starts if p > cur), starts[0]))
+
+        nav1, nav2, nav3, nav4 = st.columns([1, 1, 4, 2])
+        nav1.button("◀ Prev", on_click=_step, args=(-1,), disabled=n_pages < 2,
+                    use_container_width=True, key="ocr_prev")
+        nav2.button("Next ▶", on_click=_step, args=(1,), disabled=n_pages < 2,
+                    use_container_width=True, key="ocr_next")
+        with nav3:
+            if n_pages > 1:
+                # Seed the widget's stored value first: a `value=` argument is
+                # ignored once the key exists, so the slider would ignore Prev/
+                # Next and the jump buttons.
+                st.session_state["ocr_page_slider"] = st.session_state.ocr_page_idx + 1
+                st.slider("Page", 1, n_pages, key="ocr_page_slider",
+                          on_change=lambda: _goto(st.session_state.ocr_page_slider - 1),
+                          label_visibility="collapsed")
+        nav4.button("⏭ Next unassigned", on_click=_next_unassigned,
+                    disabled=not unassigned, use_container_width=True,
+                    key="ocr_next_unassigned")
+
+        i = st.session_state.ocr_page_idx
+        pg = pages[i]
+        ev = ocr.eval_for_page(evals, i)
+
+        img_col, ctl_col = st.columns([3, 2], gap="large")
+
+        # ---- the page image ------------------------------------------------
+        with img_col:
+            st.markdown(f"**Page {i + 1} of {n_pages}**")
+            try:
+                st.image(page_image(exam_path, os.path.getmtime(exam_path), i),
+                         use_container_width=True)
+            except Exception as e:  # noqa: BLE001
+                st.error(f"Could not render page {i + 1}: {e}")
+
+        # ---- controls for this page / its submission -----------------------
+        with ctl_col:
+            def _toggle_start() -> None:
+                pages[st.session_state.ocr_page_idx]["is_start"] = \
+                    st.session_state[f"start_{st.session_state.ocr_page_idx}"]
+                rebuild_evals()
+
+            st.session_state[f"start_{i}"] = bool(pg.get("is_start")) or i == 0
+            st.checkbox(
+                "📄 This page **starts a new submission**",
+                key=f"start_{i}", on_change=_toggle_start,
+                disabled=(i == 0),
+                help="Page 1 always starts the first submission. Tick this on every "
+                     "page that shows a student's Name header.",
+            )
+            model_said = "yes" if pg.get("is_new_submission") else "no"
+            st.caption(f"Vision model said new submission: **{model_said}** · "
+                       f"name read: *{pg.get('student_name') or '—'}*")
+
+            if pg.get("error"):
+                st.error(f"OCR error on this page: {pg['error']}")
+
+            st.divider()
+            if ev is None:
+                st.warning("This page is not part of any submission.")
+            else:
+                span = ev["page_indices"]
+                st.markdown(
+                    f"**Submission {ev['id']}** — pages "
+                    f"{span[0] + 1}–{span[-1] + 1} ({len(span)} page(s))"
                 )
-                ev["student_key"] = sel
-                if not sel:
-                    unassigned += 1
+                st.caption(f"OCR name for this submission: *{ev.get('detected_name') or '—'}*")
+
+                sel_key = f"sel_{ev['id']}_{span[0]}"
+
+                def _assign(eval_id: str = ev["id"], key: str = sel_key) -> None:
+                    for e in get_state().get("evals", []):
+                        if e["id"] == eval_id:
+                            e["student_key"] = st.session_state[key]
+
+                current = ev.get("student_key", "")
+                st.session_state[sel_key] = current if current in options else ""
+                st.selectbox(
+                    "Student", options, key=sel_key, on_change=_assign,
+                    format_func=lambda x: x or "— select student —",
+                    disabled=not roster,
+                )
+                if not ev.get("student_key"):
                     st.markdown(":red[**Required — assign a student**]")
-            with col2:
+
                 graded = ev.get("grade")
                 if graded and not graded.get("error"):
-                    st.caption(f"Graded: raw {graded['raw_total']} → final {graded['final_total']}")
-            with st.expander(f"OCR markdown — {ev['id']}"):
-                st.markdown(ev.get("ocr_markdown") or "*(empty)*")
-            st.divider()
+                    st.success(f"Graded: raw {graded['raw_total']} → "
+                               f"final {graded['final_total']}")
 
-        if unassigned:
-            st.warning(f"{unassigned} submission(s) still need a student assigned before grading.")
+            with st.expander("OCR markdown — this page"):
+                st.markdown(pg.get("markdown") or "*(empty)*")
 
+        # ---- all submissions at a glance -----------------------------------
+        st.divider()
+        st.markdown("**All submissions** — click a row's button to jump to its first page.")
+        for e in evals:
+            span = e["page_indices"]
+            b_col, t_col = st.columns([1, 6])
+            b_col.button(f"→ p{span[0] + 1}", key=f"jump_{e['id']}",
+                         on_click=_goto, args=(span[0],), use_container_width=True)
+            mark = "✅" if e.get("student_key") else "⚠️"
+            who = e.get("student_key") or f"*unassigned* (OCR read: {e.get('detected_name') or '—'})"
+            t_col.markdown(
+                f"{mark} **{e['id']}** · pages {span[0] + 1}–{span[-1] + 1} · {who}"
+            )
+
+        st.divider()
         if st.button("💾 Save", type="primary", key="save_ocr"):
             do_save()
             st.rerun()
@@ -410,20 +570,21 @@ with tab_download:
         st.info("Grade submissions first (Grading tab).")
     else:
         st.caption(f"{len(graded)} graded submission(s) ready. "
-                   "Files are named `last_name_first_name_studentid.pdf`.")
+                   "Files are named `last_name_first_name.pdf`.")
         if st.button("🖨️ Render & build ZIP", type="primary"):
             out_dir = os.path.join(c["working_dir"], "graded")
             os.makedirs(out_dir, exist_ok=True)
+            used_names: set[str] = set()
             buf = io.BytesIO()
             prog = st.progress(0.0)
             with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
                 for i, e in enumerate(graded):
                     row = roster_mod.find_row(roster, e["student_key"]) or {}
-                    ln = (row.get("last_name") or "last").replace(" ", "")
-                    fn = (row.get("first_name") or "first").replace(" ", "")
-                    sid = row.get("student_id") or "id"
-                    fname = f"{ln}_{fn}_{sid}.pdf"
-                    display = e["student_key"]
+                    ln = _slug(row.get("last_name") or e["student_key"] or "last")
+                    fn = _slug(row.get("first_name") or "")
+                    stem = f"{ln}_{fn}" if fn else ln
+                    fname = _unique_name(f"{stem}.pdf", used_names)
+                    display = roster_mod.friendly_name(row or e["student_key"])
                     out_path = os.path.join(out_dir, fname)
                     pdfutil.annotate_graded_pdf(
                         exam_path, e["page_indices"], e["grade"], display,

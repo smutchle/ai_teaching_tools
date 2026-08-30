@@ -1,4 +1,16 @@
-"""Roster loading and name matching."""
+"""Roster loading and name matching.
+
+The roster is a **single-column CSV** of student names, one per line, written
+"last, first" (quoted, since the name itself contains a comma):
+
+    "Nguyen, Emily"
+    "O'Brien, Sean Patrick"
+
+A header row is optional — a first row that is a generic column label (``name``,
+``student``, ...) and carries no comma is skipped. Names read off the scanned
+papers by the vision model are never assumed to match a roster entry exactly;
+:func:`match_name` fuzzy-matches and returns ``None`` when it is not confident.
+"""
 from __future__ import annotations
 
 import csv
@@ -6,33 +18,68 @@ import difflib
 import os
 import re
 
-REQUIRED_FIELDS = ["last_name", "first_name", "student_id", "email"]
+# A lone first row equal to one of these (case-insensitive) is treated as a
+# header, not a student. Anything containing a comma is always data.
+HEADER_LABELS = {
+    "name", "names", "student", "students", "student name", "student_name",
+    "full name", "full_name",
+}
+
+
+def _split_name(raw: str) -> tuple[str, str]:
+    """Split a roster cell into ``(last_name, first_name)``.
+
+    "Nguyen, Emily" -> ("Nguyen", "Emily"). Without a comma we fall back to
+    treating the final whitespace-separated token as the last name.
+    """
+    raw = (raw or "").strip()
+    if "," in raw:
+        last, _, first = raw.partition(",")
+        return last.strip(), first.strip()
+    parts = raw.split()
+    if len(parts) >= 2:
+        return parts[-1], " ".join(parts[:-1])
+    return raw, ""
+
+
+def _make_row(raw: str) -> dict:
+    last, first = _split_name(raw)
+    return {"name": raw.strip(), "last_name": last, "first_name": first}
 
 
 def load_roster(csv_path: str) -> list[dict]:
-    """Load the roster CSV. Requires last_name, first_name, student_id, email
-    columns (any order). Returns a list of row dicts.
+    """Load the single-column roster CSV.
+
+    Returns a list of ``{"name", "last_name", "first_name"}`` dicts in file
+    order. Only the first column of each row is read; blank rows are skipped.
     """
     if not csv_path or not os.path.exists(csv_path):
         return []
     with open(csv_path, newline="", encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        headers = [h.strip() for h in (reader.fieldnames or [])]
-        missing = [c for c in REQUIRED_FIELDS if c not in headers]
-        if missing:
-            raise ValueError(
-                f"Roster CSV is missing required column(s): {', '.join(missing)}. "
-                f"Required (any order): {', '.join(REQUIRED_FIELDS)}."
-            )
-        rows = []
-        for r in reader:
-            rows.append({k: (r.get(k) or "").strip() for k in REQUIRED_FIELDS})
-    return rows
+        cells = [(r[0].strip() if r else "") for r in csv.reader(f)]
+    cells = [c for c in cells if c]
+    if not cells:
+        raise ValueError(
+            "Roster CSV is empty. Expected one student name per line, "
+            'written "last, first" (in double quotes).'
+        )
+    if "," not in cells[0] and cells[0].lower() in HEADER_LABELS:
+        cells = cells[1:]
+    return [_make_row(c) for c in cells]
 
 
 def display_name(row: dict) -> str:
-    """'first_name last_name' — the dropdown label."""
-    return f"{row['first_name']} {row['last_name']}".strip()
+    """The canonical key / dropdown label — the roster name verbatim."""
+    return row["name"]
+
+
+def friendly_name(row_or_display: dict | str) -> str:
+    """'First Last' — for prompts, PDF headers and other prose."""
+    if isinstance(row_or_display, dict):
+        last, first = row_or_display["last_name"], row_or_display["first_name"]
+    else:
+        last, first = _split_name(row_or_display)
+    return f"{first} {last}".strip()
 
 
 def roster_options(roster: list[dict]) -> list[str]:
@@ -46,8 +93,8 @@ def _norm(s: str) -> str:
 def match_name(detected: str, roster: list[dict], cutoff: float = 0.72) -> str | None:
     """Fuzzy-match an OCR'd name to a roster entry.
 
-    Returns the 'first last' display name, or None if no confident match
-    (leave the field blank per the spec).
+    Returns the roster display name ("last, first"), or None if no confident
+    match (leave the field blank per the spec).
     """
     if not detected or not roster:
         return None
@@ -58,19 +105,21 @@ def match_name(detected: str, roster: list[dict], cutoff: float = 0.72) -> str |
     best_score = 0.0
     best_display: str | None = None
     for row in roster:
-        disp = display_name(row)
-        cand_full = _norm(disp)                       # firstlast
-        cand_rev = _norm(f"{row['last_name']}{row['first_name']}")
+        last, first = _norm(row["last_name"]), _norm(row["first_name"])
         score = max(
-            difflib.SequenceMatcher(None, target, cand_full).ratio(),
-            difflib.SequenceMatcher(None, target, cand_rev).ratio(),
+            difflib.SequenceMatcher(None, target, first + last).ratio(),
+            difflib.SequenceMatcher(None, target, last + first).ratio(),
         )
         # Bonus if both first and last name tokens appear in the detected text.
-        if _norm(row["first_name"]) in target and _norm(row["last_name"]) in target:
+        if first and last and first in target and last in target:
             score = max(score, 0.95)
+        # A one-word roster entry (or one-word OCR read) still matches on the
+        # surname alone, but less confidently.
+        elif last and last in target:
+            score = max(score, 0.80)
         if score > best_score:
             best_score = score
-            best_display = disp
+            best_display = display_name(row)
 
     return best_display if best_score >= cutoff else None
 

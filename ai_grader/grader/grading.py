@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from typing import Callable
 
+from . import roster as roster_mod
 from .llm import LLMClient
 
 # The base "constitution" for the grading assistant. It is deliberately strict
@@ -150,6 +151,14 @@ def grade_eval(llm: LLMClient, eval_rec: dict, *, quiz_name: str, rubric_text: s
     }
 
 
+def _display_for(ev: dict) -> str:
+    """'First Last' for the grading prompt / progress line."""
+    key = ev.get("student_key") or ""
+    if key:
+        return roster_mod.friendly_name(key)
+    return ev.get("detected_name") or ev["id"]
+
+
 def grade_all(llm: LLMClient, evals: list[dict], *, quiz_name: str, rubric_text: str,
               grounding_text: str, additional: str, max_points: int,
               roster: list[dict], concurrency: int = 5,
@@ -170,7 +179,7 @@ def grade_all(llm: LLMClient, evals: list[dict], *, quiz_name: str, rubric_text:
     workers = max(1, min(int(concurrency), total))
 
     def _one(ev: dict) -> tuple[dict, dict]:
-        display = ev["student_key"] or ev.get("detected_name") or ev["id"]
+        display = _display_for(ev)
         grade = grade_eval(
             llm, ev, quiz_name=quiz_name, rubric_text=rubric_text,
             grounding_text=grounding_text, additional=additional,
@@ -183,7 +192,7 @@ def grade_all(llm: LLMClient, evals: list[dict], *, quiz_name: str, rubric_text:
         futures = {pool.submit(_one, ev): ev for ev in gradable}
         for fut in as_completed(futures):
             ev = futures[fut]
-            display = ev["student_key"] or ev.get("detected_name") or ev["id"]
+            display = _display_for(ev)
             try:
                 _, grade = fut.result()
             except Exception as e:  # noqa: BLE001 - never let one paper abort the batch

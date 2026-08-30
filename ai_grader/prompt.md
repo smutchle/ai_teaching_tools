@@ -18,7 +18,7 @@ Note: This entire UI should be backed by a single .JSON file stored in the Worki
 - ARC API Key (optional override of .env setting)
 - Working dir (you create this dir in /tmp but display and edit it with a "Load" button)
 - Quiz/Exam Name
-- Class roster (add docs that say it needs to have last_name,first_name,student_id,email fields with those exact names (in any order) in .CSV format)
+- Class roster (add docs that say it is a single-column .CSV of student names, one per line, each written "last_name, first_name" in double quotes; a `name` header row is optional). Names read off the scans by the vision model are fuzzy-matched to the roster — never assume an exact match.
 - Exam upload (single file PDF only)
 - Rubric & answers upload (single file PDF only)
 - Grounding materials (multiple PDF upload) 
@@ -36,7 +36,7 @@ On the next grading tab, there should be a button that says "Grade" that has the
 
 Once grading is finished, the system should apply the curve.  If the actual min avg score <  min average score, add the required points to each deduction to meet the new average.  Don't have fractions.  Use ceil or floor to make integers.  Then finally, apply the min/max point ranges as needed. Grading should include having the LLM comments incorporated into the output (in red) and the final score.
 
-On the last tab, have a "Download" function that downloads all the rendered PDFs graded with the student name `last_name_first_name_student_id.pdf` as the filename.
+On the last tab, have a "Download" function that downloads all the rendered PDFs graded with the student name `last_name_first_name.pdf` as the filename.
 
 There are sample inputs in /home/smutchle/Work/data_science/vt/ai_grader/example for testing.
 

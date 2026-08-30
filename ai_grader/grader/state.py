@@ -39,7 +39,8 @@ def default_config() -> dict[str, Any]:
 def default_state() -> dict[str, Any]:
     return {
         "config": default_config(),
-        "evals": [],   # populated by OCR; see grader.ocr for the schema
+        "pages": [],   # per-page OCR results; see grader.ocr.ocr_pages
+        "evals": [],   # pages grouped into submissions; see grader.ocr.build_evals
     }
 
 
@@ -73,6 +74,7 @@ def load_state(working_dir: str) -> dict[str, Any]:
     state["config"].update(loaded.get("config", {}))
     # Force working_dir to the directory we actually loaded from.
     state["config"]["working_dir"] = working_dir
+    state["pages"] = loaded.get("pages", [])
     state["evals"] = loaded.get("evals", [])
     return state
 

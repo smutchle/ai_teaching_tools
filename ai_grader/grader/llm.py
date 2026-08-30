@@ -24,6 +24,12 @@ _APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(_APP_DIR, ".env"))
 
 
+# The ARC proxy's "vision" alias currently routes to gpt-oss-120b, a text-only
+# model that silently DROPS image content instead of erroring — pages come back
+# as "I'm unable to view the image". Kimi-K3 is the multimodal model there.
+DEFAULT_VISION_MODEL = "Kimi-K3"
+
+
 class LLMClient:
     """Thin wrapper around the OpenAI SDK pointed at the ARC proxy."""
 
@@ -36,7 +42,7 @@ class LLMClient:
                 "API key override in the Config tab."
             )
         self.text_model = os.getenv("OPENAI_MODEL", "thinkinglatest")
-        self.vision_model = os.getenv("OPENAI_VISION_MODEL", "vision")
+        self.vision_model = os.getenv("OPENAI_VISION_MODEL", DEFAULT_VISION_MODEL)
         self.client = OpenAI(base_url=endpoint, api_key=api_key, timeout=600.0)
 
     # ------------------------------------------------------------------ core
