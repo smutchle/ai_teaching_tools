@@ -13,7 +13,6 @@ class AnthropicChatBot:
         api_key,
         model="claude-3-5-sonnet-latest",
         use_chat_history=False,
-        temperature=0.0,
         num_retries=10,
         max_tokens=8192
     ):
@@ -22,7 +21,6 @@ class AnthropicChatBot:
         self.chat_history = []
         self.model = model
         self.max_tokens = max_tokens
-        self.temperature = temperature
         self.num_retries = num_retries
 
     def _make_request(self, messages):
@@ -32,7 +30,6 @@ class AnthropicChatBot:
                 response = self.client.messages.create(
                     model=self.model,
                     max_tokens=self.max_tokens,
-                    temperature=self.temperature,
                     messages=messages,
                 )
                 return response

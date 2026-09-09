@@ -17,7 +17,7 @@ def _build_llm(provider: str, model: str, api_key: Optional[str], endpoint: Opti
     """Instantiate the appropriate LangChain chat model."""
     if provider == "Anthropic":
         from langchain_anthropic import ChatAnthropic
-        kwargs = {"model": model, "max_tokens": 16000, "temperature": 0.7}
+        kwargs = {"model": model, "max_tokens": 16000}
         if api_key:
             kwargs["api_key"] = api_key
         return ChatAnthropic(**kwargs)

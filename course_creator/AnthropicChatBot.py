@@ -12,7 +12,6 @@ class AnthropicChatBot:
         api_key,
         model="claude-sonnet-4-0",
         use_chat_history=False,
-        temperature=0.7,
         num_retries=10,
         max_tokens=64000
     ):
@@ -21,7 +20,6 @@ class AnthropicChatBot:
         self.chat_history = []
         self.model = model
         self.max_tokens = max_tokens
-        self.temperature = temperature
         self.num_retries = num_retries
 
     def _make_request(self, messages):
@@ -31,7 +29,6 @@ class AnthropicChatBot:
                 with self.client.messages.stream(
                     model=self.model,
                     max_tokens=self.max_tokens,
-                    temperature=self.temperature,
                     messages=messages,
                 ) as stream:
                     return stream.get_final_message()

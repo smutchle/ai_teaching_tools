@@ -63,8 +63,7 @@ def get_chatbot(llm_provider, api_key_override=None):
         return AnthropicChatBot(
             api_key=api_key,
             model=model,
-            use_chat_history=False,
-            temperature=0.0
+            use_chat_history=False
         )
     else:  # Ollama (default)
         model = os.getenv("OLLAMA_MODEL", "gemma3:27b")
@@ -170,10 +169,9 @@ def generate_dataset_description(config_text, llm_provider="Ollama", api_key_ove
     """Generate a markdown description of the dataset using LLM."""
     chatbot = get_chatbot(llm_provider, api_key_override)
 
-    # Adjust temperature for description generation
-    if llm_provider == "Claude":
-        chatbot.temperature = 0.3
-    else:
+    # Adjust temperature for description generation (Ollama only; Claude models
+    # reject the temperature parameter)
+    if llm_provider != "Claude":
         chatbot.temperature = 0.3
 
     prompt = f"""You are a data science documentation writer. Given a dataset configuration in JSON format, write a clear, concise markdown description of the dataset.
