@@ -74,6 +74,32 @@ def _fmt(x, fallback=""):
     return x if (x is not None and str(x).strip()) else fallback
 
 
+def error_grade(message: str) -> dict:
+    """A grade record standing in for a paper that was NOT graded.
+
+    It carries no score of its own: `error` is what the rest of the app keys
+    off, so the paper is excluded from the curve and routed to hand grading
+    instead of being handed back to the student as a zero.
+    """
+    return {
+        "questions": [],
+        "raw_total": 0,
+        "curve_added": 0,
+        "curved_total": 0,
+        "final_total": 0,
+        "overall_comment": message,
+        "error": True,
+    }
+
+
+def needs_grading(ev: dict) -> bool:
+    """True if this submission still has to be graded (or re-graded)."""
+    if not ev.get("student_key"):
+        return False
+    grade = ev.get("grade")
+    return grade is None or bool(grade.get("error"))
+
+
 def grade_eval(llm: LLMClient, eval_rec: dict, *, quiz_name: str, rubric_text: str,
                grounding_text: str, additional: str, max_points: int,
                student_display: str) -> dict:
@@ -82,6 +108,14 @@ def grade_eval(llm: LLMClient, eval_rec: dict, *, quiz_name: str, rubric_text: s
     Resilient: on malformed model output, returns a zeroed grade with an error
     note rather than raising, so one bad paper never aborts a whole batch.
     """
+    if not (eval_rec.get("ocr_markdown") or "").strip():
+        # Sending an empty transcription to the model produces a confident-looking
+        # zero for a paper nobody has actually read. Flag it for hand grading.
+        return error_grade(
+            "[Not graded - the OCR produced no readable text for this submission. "
+            "Grade it by hand from the scanned pages.]"
+        )
+
     user = GRADING_USER_TEMPLATE.format(
         quiz_name=_fmt(quiz_name, "(unnamed)"),
         max_points=max_points,
@@ -101,15 +135,8 @@ def grade_eval(llm: LLMClient, eval_rec: dict, *, quiz_name: str, rubric_text: s
         err = ""
 
     if not isinstance(data, dict) or not isinstance(data.get("questions"), list):
-        return {
-            "questions": [],
-            "raw_total": 0,
-            "curve_added": 0,
-            "curved_total": 0,
-            "final_total": 0,
-            "overall_comment": f"[Grading error — please re-run this paper. {err}]".strip(),
-            "error": True,
-        }
+        return error_grade(
+            f"[Grading error - please re-run this paper. {err}]".strip())
 
     questions = []
     raw_total = 0
@@ -161,31 +188,48 @@ def _display_for(ev: dict) -> str:
 
 def grade_all(llm: LLMClient, evals: list[dict], *, quiz_name: str, rubric_text: str,
               grounding_text: str, additional: str, max_points: int,
-              roster: list[dict], concurrency: int = 5,
-              progress: Callable[[int, int, str], None] | None = None) -> None:
-    """Grade every eval in place (only those with an assigned student).
+              roster: list[dict], concurrency: int = 0, only_ungraded: bool = True,
+              on_result: Callable[[dict], None] | None = None,
+              progress: Callable[[int, int, str], None] | None = None) -> dict:
+    """Grade evals in place (only those with an assigned student).
 
     Grading is I/O-bound (each paper is one streaming LLM request), so up to
     `concurrency` papers are graded at once with a thread pool. The shared
     OpenAI client is thread-safe. Progress is reported from this (calling)
     thread as each paper finishes, so it is safe to update the Streamlit UI.
+
+    `only_ungraded` grades just the papers that still need it - never graded, or
+    graded with an error - so a partially finished run can be resumed and a
+    handful of failures re-tried without paying to re-grade the whole class.
+
+    `on_result` fires on the calling thread after each paper's grade is stored,
+    which is what lets the caller checkpoint state to disk paper by paper. A
+    failing `on_result` is swallowed: losing the checkpoint must not lose the
+    grades still in memory.
+
+    Returns a summary dict. The batch is written into `evals` as it goes, so
+    even an exception escaping this function leaves every completed grade in
+    place.
     """
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
-    gradable = [e for e in evals if e.get("student_key")]
+    candidates = [e for e in evals if e.get("student_key")]
+    gradable = [e for e in candidates if needs_grading(e)] if only_ungraded else candidates
+    summary = {"attempted": len(gradable), "ok": 0, "failed": 0,
+               "skipped": len(candidates) - len(gradable),
+               "unassigned": len(evals) - len(candidates)}
     if not gradable:
-        return
+        return summary
     total = len(gradable)
+    concurrency = concurrency or getattr(llm, "max_inflight", 3)
     workers = max(1, min(int(concurrency), total))
 
-    def _one(ev: dict) -> tuple[dict, dict]:
-        display = _display_for(ev)
-        grade = grade_eval(
+    def _one(ev: dict) -> dict:
+        return grade_eval(
             llm, ev, quiz_name=quiz_name, rubric_text=rubric_text,
             grounding_text=grounding_text, additional=additional,
-            max_points=max_points, student_display=display,
+            max_points=max_points, student_display=_display_for(ev),
         )
-        return ev, grade
 
     done = 0
     with ThreadPoolExecutor(max_workers=workers) as pool:
@@ -194,18 +238,20 @@ def grade_all(llm: LLMClient, evals: list[dict], *, quiz_name: str, rubric_text:
             ev = futures[fut]
             display = _display_for(ev)
             try:
-                _, grade = fut.result()
+                grade = fut.result()
             except Exception as e:  # noqa: BLE001 - never let one paper abort the batch
-                grade = {
-                    "questions": [], "raw_total": 0, "curve_added": 0,
-                    "curved_total": 0, "final_total": 0,
-                    "overall_comment": f"[Grading error — please re-run this paper. {e}]",
-                    "error": True,
-                }
+                grade = error_grade(f"[Grading error - please re-run this paper. {e}]")
             ev["grade"] = grade
+            summary["failed" if grade.get("error") else "ok"] += 1
             done += 1
+            if on_result:
+                try:
+                    on_result(ev)
+                except Exception:  # noqa: BLE001 - a failed checkpoint is not a failed grade
+                    pass
             if progress:
                 progress(done - 1, total, f"Graded {display} ({done}/{total})")
+    return summary
 
 
 # --------------------------------------------------------------------- curve
@@ -225,8 +271,12 @@ def apply_curve(evals: list[dict], *, max_points: int, min_points: int,
     max_points. Integer points only.
     """
     graded = [e for e in evals if e.get("grade") and not e["grade"].get("error")]
+    graded_ids = {id(e) for e in graded}
+    n_ungraded = sum(1 for e in evals if id(e) not in graded_ids)
     summary = {"n": len(graded), "raw_avg": 0.0, "added": 0,
-               "final_avg": 0.0, "target_reached": True}
+               "final_avg": 0.0, "target_reached": True,
+               "n_submissions": len(evals), "n_ungraded": n_ungraded,
+               "partial": n_ungraded > 0}
     if not graded:
         return summary
 

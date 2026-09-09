@@ -12,7 +12,9 @@ from __future__ import annotations
 import base64
 import json
 import os
+import random
 import re
+import threading
 import time
 from typing import Any
 
@@ -29,6 +31,53 @@ load_dotenv(os.path.join(_APP_DIR, ".env"))
 # as "I'm unable to view the image". Kimi-K3 is the multimodal model there.
 DEFAULT_VISION_MODEL = "Kimi-K3"
 
+# The ARC proxy caps how many requests one user may have in flight per model and
+# rejects the excess with HTTP 400 - the same status it uses for a bad model
+# name. Exceeding the cap therefore looks exactly like a misconfiguration, and
+# every rejected page is a page that never gets transcribed. Keep in-flight
+# requests at or below this and the rejections stop happening at all.
+DEFAULT_MAX_INFLIGHT = 3
+
+# Statuses that never succeed on retry. 400 is deliberately absent: the proxy
+# overloads it for both permanent and transient conditions, so it is classified
+# by message below.
+PERMANENT_STATUS = {401, 403, 404, 405, 422}
+
+# A 400 mentioning any of these is the proxy throttling us - retry it.
+TRANSIENT_400 = ("concurrent", "session limit", "rate limit", "ratelimit",
+                 "too many", "capacity", "busy", "overloaded", "try again",
+                 "timeout", "temporarily")
+
+# A 400 mentioning any of these is a configuration error - fail immediately.
+PERMANENT_400 = ("model not found", "does not exist", "unknown model",
+                 "invalid model", "no such model", "unsupported model",
+                 "invalid api key", "incorrect api key")
+
+
+def _is_permanent(status: int | None, message: str) -> bool:
+    """Whether an error is a misconfiguration rather than proxy turbulence.
+
+    When a 400 is ambiguous we treat it as transient: retrying a genuinely
+    permanent error costs a few seconds, while misreading a throttle as
+    permanent aborts an entire exam mid-run.
+    """
+    if status in PERMANENT_STATUS:
+        return True
+    if status == 400:
+        low = message.lower()
+        if any(m in low for m in TRANSIENT_400):
+            return False
+        return any(m in low for m in PERMANENT_400)
+    return False
+
+
+class PermanentLLMError(RuntimeError):
+    """A misconfiguration that retrying cannot fix (bad model name or API key)."""
+
+
+class ConcurrencyLimitError(RuntimeError):
+    """The proxy refused because too many of our requests are already in flight."""
+
 
 class LLMClient:
     """Thin wrapper around the OpenAI SDK pointed at the ARC proxy."""
@@ -43,38 +92,62 @@ class LLMClient:
             )
         self.text_model = os.getenv("OPENAI_MODEL", "thinkinglatest")
         self.vision_model = os.getenv("OPENAI_VISION_MODEL", DEFAULT_VISION_MODEL)
+        try:
+            self.max_inflight = max(1, int(os.getenv("OPENAI_MAX_INFLIGHT",
+                                                     DEFAULT_MAX_INFLIGHT)))
+        except ValueError:
+            self.max_inflight = DEFAULT_MAX_INFLIGHT
+        # Every request goes through this gate, so no amount of caller-side
+        # concurrency can push us past what the proxy will accept.
+        self._gate = threading.Semaphore(self.max_inflight)
         self.client = OpenAI(base_url=endpoint, api_key=api_key, timeout=600.0)
 
     # ------------------------------------------------------------------ core
     def _chat(self, model: str, messages: list[dict], *, max_tokens: int = 8000,
-              temperature: float = 0.0, retries: int = 4) -> str:
+              temperature: float = 0.0, retries: int = 6) -> str:
         # The ARC proxy caps buffered (non-streaming) responses and treats them
         # as all-or-nothing on timeout, so we always stream and accumulate.
         last_err: Exception | None = None
         for attempt in range(retries):
+            throttled = False
             try:
-                stream = self.client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    stream=True,
-                )
-                parts: list[str] = []
-                for chunk in stream:
-                    if not chunk.choices:
-                        continue
-                    delta = chunk.choices[0].delta
-                    if delta and delta.content:
-                        parts.append(delta.content)
+                with self._gate:
+                    stream = self.client.chat.completions.create(
+                        model=model,
+                        messages=messages,
+                        max_tokens=max_tokens,
+                        temperature=temperature,
+                        stream=True,
+                    )
+                    parts: list[str] = []
+                    for chunk in stream:
+                        if not chunk.choices:
+                            continue
+                        delta = chunk.choices[0].delta
+                        if delta and delta.content:
+                            parts.append(delta.content)
                 content = "".join(parts).strip()
                 if content:
                     return content
                 last_err = RuntimeError("empty response")
             except Exception as e:  # noqa: BLE001 - deliberately broad; we retry
+                status = getattr(e, "status_code", None) or getattr(
+                    getattr(e, "response", None), "status_code", None)
+                if _is_permanent(status, str(e)):
+                    # Surfacing this immediately is the difference between one
+                    # clear error and a whole exam quietly transcribing to nothing.
+                    raise PermanentLLMError(
+                        f"model '{model}' rejected the request ({status}): {e}. "
+                        "Check OPENAI_MODEL / OPENAI_VISION_MODEL in .env."
+                    ) from e
+                throttled = status == 400 or status == 429
                 last_err = e
-            # exponential backoff: 2s, 4s, 8s, 16s
-            time.sleep(2 ** (attempt + 1))
+            if attempt < retries - 1:
+                # Exponential backoff with jitter. Without jitter, workers
+                # throttled at the same moment retry in lockstep and collide
+                # again. Throttling gets a longer floor than a generic blip.
+                base = min(60.0, (4 if throttled else 2) ** (attempt + 1))
+                time.sleep(base * (0.5 + random.random()))
         raise RuntimeError(f"LLM call failed after {retries} attempts: {last_err}")
 
     # ------------------------------------------------------------------ text
@@ -112,6 +185,53 @@ class LLMClient:
                     max_tokens: int = 8000) -> Any:
         raw = self.vision(prompt, images_png, max_tokens=max_tokens)
         return extract_json(raw)
+
+    def check_vision(self) -> None:
+        """Verify the configured vision model exists and accepts an image.
+
+        Called once before a run rather than discovering the problem 100 pages
+        and several hundred failed requests later. Raises PermanentLLMError with
+        an actionable message; transient trouble is left to the run itself.
+        """
+        import io as _io
+        import struct
+        import zlib
+
+        def _tiny_png() -> bytes:
+            # 8x8 white PNG, built inline so the check needs no page to render.
+            raw = b"".join(b"\x00" + b"\xff" * 24 for _ in range(8))
+            def chunk(tag: bytes, data: bytes) -> bytes:
+                return (struct.pack(">I", len(data)) + tag + data
+                        + struct.pack(">I", zlib.crc32(tag + data) & 0xFFFFFFFF))
+            buf = _io.BytesIO()
+            buf.write(b"\x89PNG\r\n\x1a\n")
+            buf.write(chunk(b"IHDR", struct.pack(">IIBBBBB", 8, 8, 8, 2, 0, 0, 0)))
+            buf.write(chunk(b"IDAT", zlib.compress(raw)))
+            buf.write(chunk(b"IEND", b""))
+            return buf.getvalue()
+
+        try:
+            self._chat(
+                self.vision_model,
+                [{"role": "user", "content": [
+                    {"type": "text", "text": "Reply with the single word OK."},
+                    {"type": "image_url", "image_url": {
+                        "url": "data:image/png;base64,"
+                               + base64.b64encode(_tiny_png()).decode()}},
+                ]}],
+                max_tokens=64, retries=1,
+            )
+        except PermanentLLMError as e:
+            raise PermanentLLMError(
+                f"The vision model '{self.vision_model}' is not usable: {e} "
+                "Set OPENAI_VISION_MODEL in .env to a multimodal model "
+                f"(e.g. {DEFAULT_VISION_MODEL})."
+            ) from e
+        except Exception:  # noqa: BLE001
+            # Anything else - a slow proxy, an empty reply to a blank test image -
+            # is not evidence of a broken model. Only a hard rejection is, and
+            # blocking a good run on a flaky probe would be its own outage.
+            return
 
 
 def extract_json(raw: str) -> Any:

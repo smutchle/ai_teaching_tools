@@ -9,10 +9,12 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import tempfile
 from typing import Any
 
 STATE_FILENAME = "state.json"
+BACKUP_FILENAME = "state.json.bak"
 
 DEFAULT_ADDITIONAL_INSTRUCTIONS = (
     "Allow some deviation from the rubric on short-answer if the answer fits the "
@@ -39,8 +41,9 @@ def default_config() -> dict[str, Any]:
 def default_state() -> dict[str, Any]:
     return {
         "config": default_config(),
-        "pages": [],   # per-page OCR results; see grader.ocr.ocr_pages
-        "evals": [],   # pages grouped into submissions; see grader.ocr.build_evals
+        "pages": [],           # per-page OCR results; see grader.ocr.ocr_pages
+        "evals": [],           # pages grouped into submissions; see grader.ocr.build_evals
+        "curve_summary": {},   # last curve result; see grader.grading.apply_curve
     }
 
 
@@ -53,11 +56,25 @@ def state_path(working_dir: str) -> str:
     return os.path.join(working_dir, STATE_FILENAME)
 
 
+def backup_path(working_dir: str) -> str:
+    return os.path.join(working_dir, BACKUP_FILENAME)
+
+
 def save_state(state: dict[str, Any]) -> str:
-    """Persist state to <working_dir>/state.json. Returns the path."""
+    """Persist state to <working_dir>/state.json. Returns the path.
+
+    The previous state.json is kept as state.json.bak first, and the new one is
+    written to a temp file and moved into place, so an interrupted or failed
+    save can never leave the project without a readable state to fall back on.
+    """
     working_dir = state["config"]["working_dir"]
     os.makedirs(working_dir, exist_ok=True)
     path = state_path(working_dir)
+    if os.path.exists(path):
+        try:
+            shutil.copy2(path, backup_path(working_dir))
+        except OSError:
+            pass  # a missing backup must never block the save itself
     tmp = path + ".tmp"
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(state, f, indent=2, ensure_ascii=False)
@@ -66,16 +83,25 @@ def save_state(state: dict[str, Any]) -> str:
 
 
 def load_state(working_dir: str) -> dict[str, Any]:
-    """Load state.json from a working dir, merging over defaults."""
+    """Load state.json from a working dir, merging over defaults.
+
+    Falls back to state.json.bak if the main file is unreadable, so a state.json
+    truncated by a crash mid-write does not cost the whole project.
+    """
     path = state_path(working_dir)
-    with open(path, encoding="utf-8") as f:
-        loaded = json.load(f)
+    try:
+        with open(path, encoding="utf-8") as f:
+            loaded = json.load(f)
+    except (OSError, json.JSONDecodeError):
+        with open(backup_path(working_dir), encoding="utf-8") as f:
+            loaded = json.load(f)
     state = default_state()
     state["config"].update(loaded.get("config", {}))
     # Force working_dir to the directory we actually loaded from.
     state["config"]["working_dir"] = working_dir
     state["pages"] = loaded.get("pages", [])
     state["evals"] = loaded.get("evals", [])
+    state["curve_summary"] = loaded.get("curve_summary", {})
     return state
 
 
