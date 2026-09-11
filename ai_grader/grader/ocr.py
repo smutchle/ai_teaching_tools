@@ -15,7 +15,7 @@ from __future__ import annotations
 from typing import Callable
 
 from . import pdfutil, roster as roster_mod
-from .llm import LLMClient, PermanentLLMError
+from .llm import LLMClient, PermanentLLMError, extract_json
 
 PAGE_PROMPT = """You are an OCR and document-structure engine for grading scanned, hand-filled exam papers. \
 Every student's paper starts with a header line containing a "Name:" field with the student's handwritten name. \
@@ -73,13 +73,28 @@ def _read_boundary(data: dict) -> tuple[bool, str]:
     return _coerce_bool(data.get("is_new_submission")) or bool(name), name
 
 
+# How much of the model's raw reply we keep on a page record. Kept only when
+# something went wrong, so the instructor can see *what the scan actually said*
+# instead of being told only that it failed - that is the difference between
+# "re-run and hope" and "the model replied 'I cannot view images'".
+RAW_LIMIT = 6000
+
+
+def _clip(text: str) -> str:
+    text = (text or "").strip()
+    return text if len(text) <= RAW_LIMIT else text[:RAW_LIMIT] + "\n…[truncated]"
+
+
 def ocr_page(llm: LLMClient, exam_path: str, page_index: int) -> dict:
     """OCR one page. Returns a dict with the schema described in PAGE_PROMPT,
-    plus an "error" string that is empty on success.
+    plus an "error" string that is empty on success and a "raw" string holding
+    the model's own reply whenever the result is unusable.
     """
     png = pdfutil.render_page_png(exam_path, page_index)
+    raw = ""
     try:
-        data = llm.vision_json(PAGE_PROMPT, [png], max_tokens=8000)
+        raw = llm.vision(PAGE_PROMPT, [png], max_tokens=8000)
+        data = extract_json(raw)
         if not isinstance(data, dict):
             raise RuntimeError(
                 "vision model did not return a JSON object for this page "
@@ -90,9 +105,18 @@ def ocr_page(llm: LLMClient, exam_path: str, page_index: int) -> dict:
     except Exception as full_err:      # noqa: BLE001
         # Transcription failed. Recover at least the split boundary with a tiny
         # second call, so this page cannot silently swallow the next student.
-        data = llm.vision_json(BOUNDARY_PROMPT, [png], max_tokens=200)
-        if not isinstance(data, dict):
+        raw2 = ""
+        try:
+            raw2 = llm.vision(BOUNDARY_PROMPT, [png], max_tokens=200)
+            data = extract_json(raw2)
+        except PermanentLLMError:
             raise
+        except Exception as boundary_err:  # noqa: BLE001
+            return _failed_page(f"{type(full_err).__name__}: {full_err}",
+                                raw=raw or raw2 or str(boundary_err))
+        if not isinstance(data, dict):
+            return _failed_page(f"{type(full_err).__name__}: {full_err}",
+                                raw=raw or raw2)
         is_start, name = _read_boundary(data)
         return {
             "is_new_submission": is_start,
@@ -101,23 +125,28 @@ def ocr_page(llm: LLMClient, exam_path: str, page_index: int) -> dict:
             "student_name": name,
             "markdown": "",
             "answers": [],
+            "raw": _clip(raw or raw2),
             "error": f"transcription failed ({full_err}); split boundary recovered "
                      "separately, but this page has no text to grade",
         }
 
     is_start, name = _read_boundary(data)
+    markdown = (data.get("markdown") or "").strip()
     return {
         "is_new_submission": is_start,
         "is_start": is_start,          # user-editable split boundary
         "boundary_confident": True,
         "student_name": name,
-        "markdown": (data.get("markdown") or "").strip(),
+        "markdown": markdown,
         "answers": data.get("answers") if isinstance(data.get("answers"), list) else [],
+        # A page that read cleanly needs no raw copy; one that came back empty
+        # does - that is exactly the case where the reply explains itself.
+        "raw": "" if markdown else _clip(raw),
         "error": "",
     }
 
 
-def _failed_page(msg: str) -> dict:
+def _failed_page(msg: str, raw: str = "") -> dict:
     """A page we could not read at all.
 
     `is_start` is True on purpose. We do not know whether this page begins a
@@ -130,7 +159,7 @@ def _failed_page(msg: str) -> dict:
     """
     return {"is_new_submission": False, "is_start": True,
             "boundary_confident": False, "student_name": "",
-            "markdown": "", "answers": [], "error": msg}
+            "markdown": "", "answers": [], "raw": _clip(raw), "error": msg}
 
 
 def ocr_pages(llm: LLMClient, exam_path: str, concurrency: int = 0,

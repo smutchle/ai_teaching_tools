@@ -10,6 +10,7 @@ tolerant JSON extractor so a stray token from the model never crashes a run.
 from __future__ import annotations
 
 import base64
+import hashlib
 import json
 import os
 import random
@@ -71,6 +72,59 @@ def _is_permanent(status: int | None, message: str) -> bool:
     return False
 
 
+# The proxy's concurrency cap is per API key, not per browser session, so the
+# gate that enforces it has to be per API key too - process-wide, shared by
+# every session using that key. A semaphore owned by each LLMClient would let
+# five simultaneous instructors put 5 x max_inflight requests in flight and
+# collect 400s that look like a broken model name.
+_GATES: dict[str, "_Gate"] = {}
+_GATES_LOCK = threading.Lock()
+
+
+class _Gate:
+    """A semaphore plus enough bookkeeping to show the queue in the UI."""
+
+    def __init__(self, limit: int) -> None:
+        self.limit = limit
+        self._sem = threading.Semaphore(limit)
+        self._lock = threading.Lock()
+        self.in_use = 0
+        self.waiting = 0
+
+    def __enter__(self) -> "_Gate":
+        with self._lock:
+            self.waiting += 1
+        self._sem.acquire()
+        with self._lock:
+            self.waiting -= 1
+            self.in_use += 1
+        return self
+
+    def __exit__(self, *exc) -> None:
+        with self._lock:
+            self.in_use -= 1
+        self._sem.release()
+
+    def stats(self) -> tuple[int, int, int]:
+        with self._lock:
+            return self.in_use, self.waiting, self.limit
+
+
+def _gate_for(endpoint: str, api_key: str, limit: int) -> _Gate:
+    """The one gate shared by every session using this endpoint and key.
+
+    Keyed by a digest rather than the key itself so a stray repr of this dict
+    cannot leak credentials.
+    """
+    ident = hashlib.sha256(f"{endpoint}\n{api_key}".encode()).hexdigest()
+    with _GATES_LOCK:
+        gate = _GATES.get(ident)
+        if gate is None:
+            gate = _Gate(limit)
+            _GATES[ident] = gate
+        return gate
+
+
 class PermanentLLMError(RuntimeError):
     """A misconfiguration that retrying cannot fix (bad model name or API key)."""
 
@@ -88,7 +142,7 @@ class LLMClient:
         if not endpoint or not api_key:
             raise RuntimeError(
                 "Missing OPENAI_ENDPOINT / OPENAI_APIKEY. Set them in .env or the "
-                "API key override in the Config tab."
+                "API key panel in the sidebar."
             )
         self.text_model = os.getenv("OPENAI_MODEL", "thinkinglatest")
         self.vision_model = os.getenv("OPENAI_VISION_MODEL", DEFAULT_VISION_MODEL)
@@ -98,9 +152,14 @@ class LLMClient:
         except ValueError:
             self.max_inflight = DEFAULT_MAX_INFLIGHT
         # Every request goes through this gate, so no amount of caller-side
-        # concurrency can push us past what the proxy will accept.
-        self._gate = threading.Semaphore(self.max_inflight)
+        # concurrency - from this session or any other one sharing the key -
+        # can push us past what the proxy will accept.
+        self._gate = _gate_for(endpoint, api_key, self.max_inflight)
         self.client = OpenAI(base_url=endpoint, api_key=api_key, timeout=600.0)
+
+    def gate_stats(self) -> tuple[int, int, int]:
+        """(in flight, queued, limit) across every session sharing this key."""
+        return self._gate.stats()
 
     # ------------------------------------------------------------------ core
     def _chat(self, model: str, messages: list[dict], *, max_tokens: int = 8000,

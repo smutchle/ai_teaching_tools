@@ -49,9 +49,9 @@ needs_grading/
 
 unaccounted_pages/
     Scanned pages that belong to NO submission - they are in no other PDF here.
-    Identify the student, fix the split on the OCR & Split tab and export again,
-    or grade these pages by hand. This folder is absent when every page is
-    accounted for, which is the normal case.
+    Identify the student, fix the split in the Check the scan panel and rebuild
+    the download, or grade these pages by hand. This folder is absent when every
+    page is accounted for, which is the normal case.
 
 unassigned/
     Papers that were never matched to a roster student. Same cover sheet, named
@@ -304,8 +304,9 @@ def build_bundle(exam_path: str, evals: list[dict], roster: list[dict], *,
             sub_dir = os.path.join(out_dir, UNACCOUNTED)
             os.makedirs(sub_dir, exist_ok=True)
             out_path = os.path.join(sub_dir, fname)
-            note = ("These scan pages belong to no submission. Fix the split on the "
-                    "OCR & Split tab and export again, or grade them by hand.")
+            note = ("These scan pages belong to no submission. Fix the split in the "
+                    "Check the scan panel and rebuild the download, or grade them "
+                    "by hand.")
             try:
                 pdfutil.write_unaccounted_pdf(exam_path, rec["orphan_pages"], out_path)
             except Exception as e:  # noqa: BLE001

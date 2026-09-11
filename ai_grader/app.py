@@ -2,34 +2,109 @@
 
 Run:  streamlit run app.py   (inside the `ai_grader` conda env)
 
-Pipeline: Config -> OCR/split -> Grade (+curve) -> Download graded PDFs.
-The whole project lives in one working directory under /tmp, backed by a single
-state.json that can be saved/loaded at any time.
+One page, one button. Fill in the exam details, drop in the scan and the
+rubric, press **Scan & grade everything**, and the app runs the whole pipeline —
+scan & split, a consistency check, grading, curve, and the download bundle —
+reporting where it is the entire time.
+
+The one place it deliberately stops is when the scan cannot be trusted: it then
+shows what the scan actually produced, page by page, and hands control back so
+the split, the transcription and the student assignments can be fixed before a
+single paper is graded. A wrong split silently merges two students into one
+grade, so it is worth the interruption.
+
+Everything lives in one working directory backed by a single state.json that is
+checkpointed after every page and every paper.
 """
 from __future__ import annotations
 
 import os
+import secrets
+import time
 
 import pandas as pd
 import streamlit as st
 
 from grader import (export, grading, ocr, pdfutil, roster as roster_mod,
                     state as state_mod)
-from grader.llm import LLMClient, PermanentLLMError as LLMConfigError
+from grader.llm import LLMClient, PermanentLLMError
 from vt_banner import render_vt_banner
 
 st.set_page_config(page_title="AI Grader", page_icon="📝", layout="wide")
 render_vt_banner()
 
+# The pipeline, in the order it runs. The stepper shows all four at all times so
+# it is always clear what has happened, what is happening, and what is left.
+PHASES: list[tuple[str, str]] = [
+    ("scan", "Scan & split"),
+    ("check", "Check the scan"),
+    ("grade", "Grade"),
+    ("export", "Package"),
+]
+
 
 # ------------------------------------------------------------------ helpers
+def session_id() -> str:
+    """This browser session's identity.
+
+    `st.session_state` is per-session by construction, so a token minted into it
+    is unique to one session and dies with it — which is exactly what the
+    project lock needs to tell two simultaneous instructors apart.
+    """
+    if "session_id" not in st.session_state:
+        st.session_state["session_id"] = secrets.token_hex(8)
+    return st.session_state["session_id"]
+
+
 def get_state() -> dict:
     if "state" not in st.session_state:
         s = state_mod.default_state()
-        s["config"]["working_dir"] = state_mod.new_working_dir()
+        wd = state_mod.new_working_dir()
+        s["config"]["working_dir"] = wd
+        # A directory this session just created cannot be held by anyone else.
+        state_mod.claim_lock(wd, session_id())
         st.session_state.state = s
         st.session_state.uploaded_ids = {}
     return st.session_state.state
+
+
+def save() -> str:
+    """Persist the project and refresh this session's claim on it.
+
+    Every checkpoint goes through here, so a long run heartbeats the lock all by
+    itself and is never mistaken for an abandoned session.
+    """
+    path = state_mod.save_state(get_state())
+    state_mod.touch_lock(cfg()["working_dir"], session_id())
+    return path
+
+
+def lock_conflict() -> dict | None:
+    """Another live session's lock on this project, if there is one."""
+    return state_mod.held_by_other(cfg()["working_dir"], session_id())
+
+
+def open_project(code: str, *, force: bool = False) -> None:
+    """Switch this session to another project, taking the lock with it.
+
+    Raises ValueError for a code that names nothing openable and
+    ProjectLockedError when another live session still holds it.
+    """
+    target = state_mod.resolve_code(code)
+    if not (os.path.exists(state_mod.state_path(target))
+            or os.path.exists(state_mod.backup_path(target))):
+        raise ValueError(
+            f"No project found with code `{state_mod.project_code(target)}`.")
+    state_mod.claim_lock(target, session_id(), force=force)
+    # Only let go of the old project once the new one is actually ours.
+    state_mod.release_lock(cfg()["working_dir"], session_id())
+    st.session_state.state = state_mod.load_state(target)
+    st.session_state.uploaded_ids = {}
+    st.session_state.ocr_page_idx = 0
+    for k in ("zip_path", "zip_rows", "zip_failures", "run_log", "plan",
+              "offer_force_open"):
+        st.session_state.pop(k, None)
+    st.session_state["scan_token"] = st.session_state.get("scan_token", 0) + 1
 
 
 def cfg() -> dict:
@@ -62,567 +137,927 @@ def get_llm() -> LLMClient:
     return LLMClient(api_key_override=cfg().get("api_key_override", ""))
 
 
-def do_save() -> None:
-    path = state_mod.save_state(get_state())
-    st.session_state["last_save_msg"] = f"Saved to {path}"
+def exam_path() -> str:
+    return state_mod.abspath(cfg()["working_dir"], cfg().get("exam_pdf", ""))
 
 
-# ------------------------------------------------------------------ header
-st.title("📝 AI Grader")
-state = get_state()
-if st.session_state.get("last_save_msg"):
-    st.success(st.session_state.pop("last_save_msg"))
+def queue(plan: dict) -> None:
+    """Ask for a pipeline run on the next script pass.
 
-tab_config, tab_ocr, tab_grade, tab_download = st.tabs(
-    ["⚙️ Config", "🔍 OCR & Split", "✅ Grading", "⬇️ Download"]
-)
-
-# =====================================================================
-# TAB 1 — CONFIG
-# =====================================================================
-with tab_config:
-    c = cfg()
-    st.subheader("Working directory")
-    col1, col2 = st.columns([4, 1])
-    with col1:
-        wd_input = st.text_input(
-            "Working dir (created in /tmp; edit + Load to open an existing project)",
-            value=c["working_dir"], key="wd_input",
-        )
-    with col2:
-        st.write("")
-        st.write("")
-        if st.button("Load", use_container_width=True):
-            if (os.path.exists(state_mod.state_path(wd_input))
-                    or os.path.exists(state_mod.backup_path(wd_input))):
-                try:
-                    st.session_state.state = state_mod.load_state(wd_input)
-                    st.session_state.uploaded_ids = {}
-                    st.session_state.ocr_page_idx = 0
-                    st.success(f"Loaded project from {wd_input}")
-                    st.rerun()
-                except Exception as e:  # noqa: BLE001
-                    st.error(f"Failed to load: {e}")
-            else:
-                st.error(f"No state.json found in {wd_input}")
-    c["working_dir"] = wd_input
-
-    st.divider()
-    st.subheader("LLM / API")
-    c["api_key_override"] = st.text_input(
-        "ARC API Key (optional — overrides .env)", value=c.get("api_key_override", ""),
-        type="password",
-        help="Leave blank to use OPENAI_APIKEY from .env.",
-    )
-
-    st.divider()
-    st.subheader("Exam details")
-    c["quiz_name"] = st.text_input("Quiz / Exam name", value=c.get("quiz_name", ""))
-
-    colA, colB, colC = st.columns(3)
-    with colA:
-        c["max_points"] = st.number_input(
-            "Max points (required)", value=int(c.get("max_points", 100)), step=1)
-    with colB:
-        c["min_points"] = st.number_input(
-            "Min points (required)", value=int(c.get("min_points", 0)), step=1)
-    with colC:
-        curve_on = st.checkbox(
-            "Apply curve", value=c.get("curve_min_avg") is not None)
-        curve_val = st.number_input(
-            "Curve: Min average score (optional)",
-            value=int(c["curve_min_avg"]) if c.get("curve_min_avg") is not None else 90,
-            step=1, disabled=not curve_on)
-        c["curve_min_avg"] = int(curve_val) if curve_on else None
-
-    c["additional_instructions"] = st.text_area(
-        "Additional grading instructions to the LLM (optional)",
-        value=c.get("additional_instructions", state_mod.DEFAULT_ADDITIONAL_INSTRUCTIONS),
-        height=100,
-    )
-
-    st.divider()
-    st.subheader("Files")
-
-    # --- Roster CSV
-    st.markdown(
-        "**Class roster** — single-column CSV, one student per line, written "
-        '**`"last_name, first_name"`** in double quotes. A `name` header row is optional.'
-    )
-    roster_up = st.file_uploader("Roster CSV", type=["csv"], key="roster_up")
-    if roster_up is not None and st.session_state.uploaded_ids.get("roster") != roster_up.file_id:
-        c["roster_csv"] = save_uploaded(roster_up, "roster.csv")
-        st.session_state.uploaded_ids["roster"] = roster_up.file_id
-    if c.get("roster_csv"):
-        roster = load_roster_safe()
-        st.caption(f"Roster loaded: **{len(roster)} students** ({c['roster_csv']})")
-
-    # --- Exam PDF (single)
-    st.markdown("**Exam scan** — single PDF containing all students' papers.")
-    exam_up = st.file_uploader("Exam PDF", type=["pdf"], key="exam_up")
-    if exam_up is not None and st.session_state.uploaded_ids.get("exam") != exam_up.file_id:
-        c["exam_pdf"] = save_uploaded(exam_up, "exam.pdf")
-        st.session_state.uploaded_ids["exam"] = exam_up.file_id
-    if c.get("exam_pdf"):
-        p = state_mod.abspath(c["working_dir"], c["exam_pdf"])
-        if os.path.exists(p):
-            st.caption(f"Exam loaded: **{pdfutil.page_count(p)} pages** ({c['exam_pdf']})")
-
-    # --- Rubric PDF (single)
-    st.markdown("**Rubric & answer key** — single PDF.")
-    rubric_up = st.file_uploader("Rubric & answers PDF", type=["pdf"], key="rubric_up")
-    if rubric_up is not None and st.session_state.uploaded_ids.get("rubric") != rubric_up.file_id:
-        c["rubric_pdf"] = save_uploaded(rubric_up, "rubric.pdf")
-        st.session_state.uploaded_ids["rubric"] = rubric_up.file_id
-    if c.get("rubric_pdf"):
-        st.caption(f"Rubric loaded: {c['rubric_pdf']}")
-
-    # --- Grounding PDFs (multiple)
-    st.markdown("**Grounding materials** — one or more PDFs the LLM must stick to.")
-    ground_up = st.file_uploader(
-        "Grounding PDFs", type=["pdf"], accept_multiple_files=True, key="ground_up")
-    if ground_up:
-        ids = tuple(f.file_id for f in ground_up)
-        if st.session_state.uploaded_ids.get("ground") != ids:
-            names = []
-            for i, f in enumerate(ground_up, start=1):
-                names.append(save_uploaded(f, f"grounding_{i}.pdf"))
-            c["grounding_pdfs"] = names
-            st.session_state.uploaded_ids["ground"] = ids
-    if c.get("grounding_pdfs"):
-        st.caption(f"Grounding materials: {len(c['grounding_pdfs'])} file(s)")
-
-    st.divider()
-    colS, colR = st.columns([1, 1])
-    with colS:
-        if st.button("💾 Save project", type="primary", use_container_width=True):
-            do_save()
-            st.rerun()
-    with colR:
-        if st.session_state.get("confirm_reset"):
-            st.warning("This will erase all config, OCR, and grades. Are you sure?")
-            cc1, cc2 = st.columns(2)
-            if cc1.button("Yes, reset everything", type="primary", use_container_width=True):
-                s = state_mod.default_state()
-                s["config"]["working_dir"] = state_mod.new_working_dir()
-                st.session_state.state = s
-                st.session_state.uploaded_ids = {}
-                st.session_state.confirm_reset = False
-                st.rerun()
-            if cc2.button("Cancel", use_container_width=True):
-                st.session_state.confirm_reset = False
-                st.rerun()
-        else:
-            if st.button("♻️ Reset…", use_container_width=True):
-                st.session_state.confirm_reset = True
-                st.rerun()
+    Going through a rerun means every button on the page — including the ones
+    below the run panel — starts the run in the same place, with the progress
+    display in view.
+    """
+    st.session_state["plan"] = plan
+    st.rerun()
 
 
-# =====================================================================
-# TAB 2 — OCR & SPLIT
-# =====================================================================
-@st.cache_data(show_spinner=False)
+def _hms(seconds: float) -> str:
+    m, s = divmod(int(max(0, seconds)), 60)
+    return f"{m}m {s:02d}s" if m else f"{s}s"
+
+
+def _plist(indices: list[int], limit: int = 20) -> str:
+    """1-based page numbers, truncated."""
+    out = ", ".join(str(i + 1) for i in indices[:limit])
+    return out + ("…" if len(indices) > limit else "")
+
+
+def rebuild_evals() -> None:
+    """Re-group pages into submissions after a split boundary was edited."""
+    s = get_state()
+    s["evals"] = ocr.build_evals(s.get("pages", []), load_roster_safe(),
+                                 prior=s.get("evals", []))
+
+
+# This cache is process-wide — every session shares it — so it is bounded in
+# both size and age. The key includes the project's own path, so one session
+# can never be served another's page image.
+@st.cache_data(show_spinner=False, max_entries=150, ttl=3600)
 def page_image(pdf_path: str, mtime: float, page_index: int, dpi: int = 120) -> bytes:
     """Rendered page PNG, cached. `mtime` busts the cache when the PDF changes."""
     return pdfutil.render_page_png(pdf_path, page_index, dpi=dpi)
 
 
-def rebuild_evals() -> None:
-    """Re-group pages into submissions after a split boundary was edited."""
-    st_ = get_state()
-    st_["evals"] = ocr.build_evals(st_.get("pages", []), load_roster_safe(),
-                                   prior=st_.get("evals", []))
+# ------------------------------------------------------- scan health checks
+def scan_blockers(pages: list[dict], evals: list[dict],
+                  roster: list[dict]) -> list[str]:
+    """Reasons the scan must be looked at before anything is graded.
 
+    Each of these means a grade could come out attached to the wrong pages or
+    the wrong person — cheap to fix now, invisible and expensive later.
+    """
+    out: list[str] = []
+    if not pages:
+        return ["The scan has not been run yet."]
 
-with tab_ocr:
-    c = cfg()
-    exam_path = state_mod.abspath(c["working_dir"], c.get("exam_pdf", ""))
-    roster = load_roster_safe()
-    options = [""] + roster_mod.roster_options(roster)
-    has_exam = bool(exam_path and os.path.exists(exam_path))
+    bad = ocr.failed_pages(pages)
+    if bad:
+        out.append(f"**{len(bad)} page(s) could not be read** — pages {_plist(bad)}. "
+                   "Their text is missing, so any paper containing them would be "
+                   "graded off an incomplete transcription.")
 
-    st.subheader("Step 1 — OCR & split the scanned exam")
-    if not has_exam:
-        st.info("Upload an Exam PDF on the Config tab first.")
-    if not roster:
-        st.info("Upload a roster CSV on the Config tab to enable student assignment.")
+    unsure = ocr.unconfident_pages(pages)
+    if unsure:
+        out.append(f"**{len(unsure)} page(s) have a guessed split boundary** — pages "
+                   f"{_plist(unsure)}. It is unknown whether they start a student's "
+                   "paper, so the papers around them may be split wrongly.")
 
-    prior_pages = get_state().get("pages", [])
-    retryable = ocr.failed_pages(prior_pages) if prior_pages else []
-
-    ocr_c1, ocr_c2 = st.columns([1, 1])
-    run_all = ocr_c1.button("🔍 Perform OCR", type="primary", disabled=not has_exam,
-                            use_container_width=True)
-    run_failed = ocr_c2.button(
-        f"🔁 Re-OCR {len(retryable)} failed page(s)", disabled=not retryable,
-        use_container_width=True,
-        help="Transcribe only the pages that errored, keeping every page that "
-             "already worked.")
-
-    if run_all or run_failed:
-        prog = st.progress(0.0)
-        status = st.empty()
-
-        def _cb(i, n, msg):
-            prog.progress(min(1.0, (i + 1) / max(1, n)))
-            status.write(msg)
-
-        def _checkpoint(pages_so_far: list[dict]) -> None:
-            """Persist after every page: an OCR run that dies never has to be
-            paid for twice."""
-            st_ = get_state()
-            st_["pages"] = pages_so_far
-            state_mod.save_state(st_)
-
-        st_ = get_state()
-        try:
-            llm = get_llm()
-            pages = ocr.ocr_pages(
-                llm, exam_path, progress=_cb, on_page=_checkpoint,
-                pages=prior_pages if run_failed else None,
-                indices=retryable if run_failed else None,
-            )
-            st_["pages"] = pages
-            st_["evals"] = ocr.build_evals(pages, roster,
-                                           prior=st_.get("evals", []) if run_failed else None)
-            st.session_state.ocr_page_idx = 0
-            status.write(f"Done — {len(pages)} page(s) → {len(st_['evals'])} submission(s).")
-            do_save()
-            st.rerun()
-        except LLMConfigError as e:
-            st.error(
-                f"⛔ {e}\n\nNothing was OCR'd. Fix the model configuration and "
-                "run OCR again — no pages were charged for."
-            )
-        except Exception as e:  # noqa: BLE001 - keep whatever pages did land
-            if st_.get("pages"):
-                st_["evals"] = ocr.build_evals(st_["pages"], roster,
-                                               prior=st_.get("evals", []))
-                do_save()
-                st.error(f"OCR stopped early: {e}. Pages transcribed so far were "
-                         "saved — use **Re-OCR failed pages** to finish.")
-            else:
-                st.error(f"OCR failed: {e}")
-
-    pages = get_state().get("pages", [])
-    evals = get_state().get("evals", [])
-
-    if pages:
-        bad = ocr.failed_pages(pages)
-        if bad:
-            st.error(
-                f"{len(bad)} page(s) failed to OCR: "
-                + ", ".join(str(i + 1) for i in bad[:20])
-                + ("…" if len(bad) > 20 else "")
-                + f". First error: {pages[bad[0]]['error']}"
-            )
-        blank = ocr.empty_pages(pages)
-        if blank:
-            st.warning(
-                f"{len(blank)} page(s) came back with no transcription "
-                f"({', '.join(str(i + 1) for i in blank[:20])}"
-                + ("…" if len(blank) > 20 else "")
-                + "). If this is most of the exam, the configured vision model is "
-                "probably not multimodal — set OPENAI_VISION_MODEL to a vision model."
-            )
-
-        unsure = ocr.unconfident_pages(pages)
-        if unsure:
-            st.error(
-                f"🚨 **The split is unreliable — do not grade yet.** {len(unsure)} of "
-                f"{len(pages)} page(s) could not be read, so it is unknown whether "
-                "they start a student's paper. Each was made to start a new "
-                "submission (a wrong split is visible and one click to fix; a "
-                "missed one silently merges two students into one grade).\n\n"
-                "Re-run **Re-OCR failed pages** until this clears, then check the "
-                "submission count against your roster below."
-            )
-
-        n_pages = len(pages)
-        unassigned = [e for e in evals if not e.get("student_key")]
-        st.divider()
-        st.subheader(f"Step 2 — Review {n_pages} page(s) → {len(evals)} submission(s)")
-        st.caption(
-            "Page through the scan below. Tick **starts a new submission** on each page "
-            "that carries a student's Name header to fix the split, and pick the student "
-            "for the submission the current page belongs to. Every submission needs a student."
-        )
-        if roster and len(evals) < len(roster):
-            st.error(
-                f"🚨 **{len(evals)} submission(s) for {len(roster)} students on the "
-                f"roster.** {len(roster) - len(evals)} student(s) cannot have a paper "
-                "of their own. This almost always means split boundaries were "
-                "missed and two students share one submission — page through the "
-                "scan and tick **starts a new submission** on every page with a "
-                "Name header before grading."
-            )
-        elif roster and len(evals) > len(roster):
-            st.warning(
-                f"{len(evals)} submission(s) but only {len(roster)} students on the "
-                "roster — some papers are probably split in the wrong place."
-            )
-        if unassigned:
-            st.warning(f"{len(unassigned)} submission(s) still need a student assigned.")
-
-        # ---- navigation ----------------------------------------------------
-        st.session_state.setdefault("ocr_page_idx", 0)
-        st.session_state.ocr_page_idx = min(st.session_state.ocr_page_idx, n_pages - 1)
-
-        def _step(delta: int) -> None:
-            st.session_state.ocr_page_idx = max(
-                0, min(n_pages - 1, st.session_state.ocr_page_idx + delta))
-
-        def _goto(page_index: int) -> None:
-            st.session_state.ocr_page_idx = max(0, min(n_pages - 1, page_index))
-
-        def _next_unassigned() -> None:
-            cur = st.session_state.ocr_page_idx
-            starts = [e["page_indices"][0] for e in evals if not e.get("student_key")]
-            if starts:
-                _goto(next((p for p in starts if p > cur), starts[0]))
-
-        nav1, nav2, nav3, nav4 = st.columns([1, 1, 4, 2])
-        nav1.button("◀ Prev", on_click=_step, args=(-1,), disabled=n_pages < 2,
-                    use_container_width=True, key="ocr_prev")
-        nav2.button("Next ▶", on_click=_step, args=(1,), disabled=n_pages < 2,
-                    use_container_width=True, key="ocr_next")
-        with nav3:
-            if n_pages > 1:
-                # Seed the widget's stored value first: a `value=` argument is
-                # ignored once the key exists, so the slider would ignore Prev/
-                # Next and the jump buttons.
-                st.session_state["ocr_page_slider"] = st.session_state.ocr_page_idx + 1
-                st.slider("Page", 1, n_pages, key="ocr_page_slider",
-                          on_change=lambda: _goto(st.session_state.ocr_page_slider - 1),
-                          label_visibility="collapsed")
-        nav4.button("⏭ Next unassigned", on_click=_next_unassigned,
-                    disabled=not unassigned, use_container_width=True,
-                    key="ocr_next_unassigned")
-
-        i = st.session_state.ocr_page_idx
-        pg = pages[i]
-        ev = ocr.eval_for_page(evals, i)
-
-        img_col, ctl_col = st.columns([3, 2], gap="large")
-
-        # ---- the page image ------------------------------------------------
-        with img_col:
-            st.markdown(f"**Page {i + 1} of {n_pages}**")
-            try:
-                st.image(page_image(exam_path, os.path.getmtime(exam_path), i),
-                         use_container_width=True)
-            except Exception as e:  # noqa: BLE001
-                st.error(f"Could not render page {i + 1}: {e}")
-
-        # ---- controls for this page / its submission -----------------------
-        with ctl_col:
-            def _toggle_start() -> None:
-                pages[st.session_state.ocr_page_idx]["is_start"] = \
-                    st.session_state[f"start_{st.session_state.ocr_page_idx}"]
-                rebuild_evals()
-
-            st.session_state[f"start_{i}"] = bool(pg.get("is_start")) or i == 0
-            st.checkbox(
-                "📄 This page **starts a new submission**",
-                key=f"start_{i}", on_change=_toggle_start,
-                disabled=(i == 0),
-                help="Page 1 always starts the first submission. Tick this on every "
-                     "page that shows a student's Name header.",
-            )
-            model_said = "yes" if pg.get("is_new_submission") else "no"
-            st.caption(f"Vision model said new submission: **{model_said}** · "
-                       f"name read: *{pg.get('student_name') or '—'}*")
-
-            if pg.get("error"):
-                st.error(f"OCR error on this page: {pg['error']}")
-
-            st.divider()
-            if ev is None:
-                st.warning("This page is not part of any submission.")
-            else:
-                span = ev["page_indices"]
-                st.markdown(
-                    f"**Submission {ev['id']}** — pages "
-                    f"{span[0] + 1}–{span[-1] + 1} ({len(span)} page(s))"
-                )
-                st.caption(f"OCR name for this submission: *{ev.get('detected_name') or '—'}*")
-
-                sel_key = f"sel_{ev['id']}_{span[0]}"
-
-                def _assign(eval_id: str = ev["id"], key: str = sel_key) -> None:
-                    for e in get_state().get("evals", []):
-                        if e["id"] == eval_id:
-                            e["student_key"] = st.session_state[key]
-
-                current = ev.get("student_key", "")
-                st.session_state[sel_key] = current if current in options else ""
-                st.selectbox(
-                    "Student", options, key=sel_key, on_change=_assign,
-                    format_func=lambda x: x or "— select student —",
-                    disabled=not roster,
-                )
-                if not ev.get("student_key"):
-                    st.markdown(":red[**Required — assign a student**]")
-
-                graded = ev.get("grade")
-                if graded and not graded.get("error"):
-                    st.success(f"Graded: raw {graded['raw_total']} → "
-                               f"final {graded['final_total']}")
-
-            with st.expander("OCR markdown — this page"):
-                st.markdown(pg.get("markdown") or "*(empty)*")
-
-        # ---- all submissions at a glance -----------------------------------
-        st.divider()
-        st.markdown("**All submissions** — click a row's button to jump to its first page.")
-        for e in evals:
-            span = e["page_indices"]
-            b_col, t_col = st.columns([1, 6])
-            b_col.button(f"→ p{span[0] + 1}", key=f"jump_{e['id']}",
-                         on_click=_goto, args=(span[0],), use_container_width=True)
-            mark = "✅" if e.get("student_key") else "⚠️"
-            who = e.get("student_key") or f"*unassigned* (OCR read: {e.get('detected_name') or '—'})"
-            t_col.markdown(
-                f"{mark} **{e['id']}** · pages {span[0] + 1}–{span[-1] + 1} · {who}"
-            )
-
-        st.divider()
-        if st.button("💾 Save", type="primary", key="save_ocr"):
-            do_save()
-            st.rerun()
-
-
-# =====================================================================
-# TAB 3 — GRADING
-# =====================================================================
-with tab_grade:
-    c = cfg()
-    st.subheader("Step 3 — Grade")
-    st.text_area(
-        "Additional grading instructions (read-only — edit on Config tab)",
-        value=c.get("additional_instructions", ""), height=90, disabled=True,
-    )
-
-    evals = get_state().get("evals", [])
-    roster = load_roster_safe()
-    assigned = [e for e in evals if e.get("student_key")]
-    pending = [e for e in assigned if grading.needs_grading(e)]
-    unassigned = [e for e in evals if not e.get("student_key")]
-    ready = bool(assigned)
+    blank = ocr.empty_pages(pages)
+    if len(blank) >= max(1, len(pages) // 2):
+        out.append(f"**{len(blank)} of {len(pages)} page(s) transcribed to nothing.** "
+                   "The configured vision model is probably not multimodal — check "
+                   "OPENAI_VISION_MODEL in .env.")
 
     if not evals:
-        st.info("Run OCR first (OCR & Split tab).")
-    elif not ready:
-        st.warning("Assign students to submissions on the OCR & Split tab first.")
+        out.append("**The scan produced no submissions at all.**")
+    elif roster and len(evals) < len(roster):
+        out.append(f"**{len(evals)} submission(s) for {len(roster)} roster "
+                   f"student(s).** {len(roster) - len(evals)} student(s) cannot have "
+                   "a paper of their own, which almost always means a split boundary "
+                   "was missed and two students share one submission.")
 
-    if evals:
-        s1, s2, s3, s4 = st.columns(4)
-        s1.metric("Submissions", len(evals))
-        s2.metric("Graded", len(assigned) - len(pending))
-        s3.metric("Awaiting grading", len(pending))
-        s4.metric("Unassigned", len(unassigned))
-        if unassigned:
-            st.info(
-                f"{len(unassigned)} submission(s) have no student and will not be "
-                "graded. They are still included in the download as ungraded PDFs — "
-                "no quiz is dropped."
+    if evals and not any(e.get("student_key") for e in evals):
+        out.append("**No submission was matched to a roster student**, so there is "
+                   "nothing to grade yet.")
+    return out
+
+
+def problem_pages(pages: list[dict], evals: list[dict]) -> list[int]:
+    """Every page worth a human's eyes: unread, guessed boundary, or the first
+    page of a submission with nobody assigned to it."""
+    flagged = set(ocr.failed_pages(pages)) | set(ocr.unconfident_pages(pages))
+    flagged |= {e["page_indices"][0] for e in evals
+                if not e.get("student_key") and e.get("page_indices")}
+    return sorted(flagged)
+
+
+def scan_warnings(pages: list[dict], evals: list[dict],
+                  roster: list[dict]) -> list[str]:
+    """Worth knowing, but not worth stopping the run for."""
+    out: list[str] = []
+    unassigned = [e for e in evals if not e.get("student_key")]
+    if unassigned:
+        out.append(f"{len(unassigned)} submission(s) have no student assigned. They "
+                   "are not graded, but they are still exported as ungraded PDFs — "
+                   "no paper is dropped.")
+    if roster and len(evals) > len(roster):
+        out.append(f"{len(evals)} submission(s) but only {len(roster)} roster "
+                   "student(s) — a paper is probably split in the wrong place.")
+    blank = ocr.empty_pages(pages)
+    if blank and len(blank) < max(1, len(pages) // 2):
+        out.append(f"{len(blank)} page(s) transcribed to nothing (pages "
+                   f"{_plist(blank)}) — usually a blank back page.")
+    return out
+
+
+# ---------------------------------------------------------------- run panel
+class RunUI:
+    """The live progress display: phase stepper, bar, status line and log.
+
+    Every phase is visible from the first frame, so at no point is the app doing
+    something the user cannot name. The log is also kept in session state, which
+    is what keeps a finished run readable after Streamlit reruns the script.
+    """
+
+    def __init__(self, box) -> None:
+        box.markdown("#### Progress")
+        self._strip = box.empty()
+        self._bar_slot = box.empty()
+        self._line = box.empty()
+        self._log_slot = box.expander("📋 Run log", expanded=False).empty()
+        self.done: list[str] = []
+        self.skipped: list[str] = []
+        self.current: str = ""
+        self.failed: str = ""
+        self.log: list[str] = []
+        self._bar = None
+        self._t0 = time.time()
+        self._phase_t0 = time.time()
+        self._render_strip()
+
+    # -- rendering -------------------------------------------------------
+    def _render_strip(self) -> None:
+        parts = []
+        for n, (key, label) in enumerate(PHASES, start=1):
+            if key == self.failed:
+                parts.append(f"❌ ~~{n}. {label}~~")
+            elif key in self.skipped:
+                parts.append(f"⏭️ {n}. {label}")
+            elif key in self.done:
+                parts.append(f"✅ {n}. {label}")
+            elif key == self.current:
+                parts.append(f"🔄 **{n}. {label}**")
+            else:
+                parts.append(f"⚪ {n}. {label}")
+        self._strip.markdown("  &nbsp;·&nbsp;  ".join(parts))
+
+    def say(self, msg: str) -> None:
+        self.log.append(f"[{_hms(time.time() - self._t0):>7}] {msg}")
+        self._log_slot.code("\n".join(self.log[-300:]), language=None)
+        st.session_state["run_log"] = self.log
+
+    # -- phase transitions -----------------------------------------------
+    def phase(self, key: str, msg: str) -> None:
+        self.current = key
+        self._phase_t0 = time.time()
+        self._render_strip()
+        self._bar = self._bar_slot.progress(0.0, text="starting…")
+        self._line.info(f"**{dict(PHASES)[key]}** — {msg}")
+        self.say(f"▶ {dict(PHASES)[key]}: {msg}")
+
+    def step(self, i: int, n: int, msg: str) -> None:
+        """Progress callback shape used by ocr/grading/export: (index, total, msg)."""
+        n = max(1, n)
+        done = min(n, i + 1)
+        frac = done / n
+        elapsed = time.time() - self._phase_t0
+        eta = (elapsed / done) * (n - done) if done else 0.0
+        if self._bar is not None:
+            self._bar.progress(frac, text=f"{done} of {n}  ·  {int(frac * 100)}%")
+        self._line.info(
+            f"**{dict(PHASES).get(self.current, '')}** — {msg}  \n"
+            f"⏱ {_hms(elapsed)} elapsed · about {_hms(eta)} left"
+        )
+        self.say(msg)
+
+    def complete(self, key: str, msg: str) -> None:
+        self.done.append(key)
+        self.current = ""
+        self._render_strip()
+        if self._bar is not None:
+            self._bar.progress(1.0, text="done")
+        self._line.success(f"**{dict(PHASES)[key]}** — {msg}")
+        self.say(f"✔ {dict(PHASES)[key]}: {msg}")
+
+    def skip(self, key: str, msg: str) -> None:
+        self.skipped.append(key)
+        self._render_strip()
+        self.say(f"⏭ {dict(PHASES)[key]}: {msg}")
+
+    def halt(self, key: str, msg: str) -> None:
+        """Stop the run at `key`, without pretending the phase succeeded."""
+        self.failed = key
+        self.current = ""
+        self._render_strip()
+        self._bar_slot.empty()
+        self._line.error(msg)
+        self.say(f"■ {dict(PHASES)[key]}: {msg}")
+
+    def finish(self, msg: str) -> None:
+        self._bar_slot.empty()
+        self._line.success(f"🎉 {msg}  ·  total {_hms(time.time() - self._t0)}")
+        self.say(f"🎉 {msg}")
+
+
+# ----------------------------------------------------------------- pipeline
+def run_pipeline(plan: dict, ui: RunUI) -> None:
+    """Run scan → check → grade → package, stopping at whatever the plan omits.
+
+    `plan` keys: ``scan`` ("all" | "failed" | None), ``grade`` ("all" | True |
+    None), ``export`` (bool), ``force`` (bool — skip the scan check because the
+    user looked at it and chose to go on).
+    """
+    s = get_state()
+    c = s["config"]
+    roster = load_roster_safe()
+    path = exam_path()
+
+    try:
+        llm = get_llm() if (plan.get("scan") or plan.get("grade")) else None
+    except RuntimeError as e:
+        ui.halt(PHASES[0][0] if plan.get("scan") else "grade",
+                f"⛔ {e}  \nSet the API key in the sidebar under **API key**, or "
+                "put OPENAI_APIKEY in the app's .env file.")
+        return
+
+    # ------------------------------------------------------------ 1. scan
+    if plan.get("scan"):
+        failed_only = plan["scan"] == "failed"
+        prior = s.get("pages", [])
+        retry = ocr.failed_pages(prior) if failed_only else None
+        n_pages = pdfutil.page_count(path) if os.path.exists(path) else 0
+        ui.phase("scan", (f"re-reading {len(retry or [])} failed page(s)" if failed_only
+                          else f"reading {n_pages} page(s) with the vision model"))
+
+        def _checkpoint(pages_so_far: list[dict]) -> None:
+            """Persist after every page: an interrupted scan is never paid for twice."""
+            s["pages"] = pages_so_far
+            save()
+
+        try:
+            pages = ocr.ocr_pages(
+                llm, path, progress=ui.step, on_page=_checkpoint,
+                pages=prior if failed_only else None,
+                indices=retry if failed_only else None,
             )
+        except PermanentLLMError as e:
+            ui.halt("scan", f"⛔ {e}\n\nNothing was scanned, so nothing was charged "
+                            "for. Fix the model configuration and run again.")
+            return
+        except Exception as e:  # noqa: BLE001 - keep whatever pages did land
+            if s.get("pages"):
+                s["evals"] = ocr.build_evals(s["pages"], roster,
+                                             prior=s.get("evals", []))
+                save()
+                ui.halt("scan", f"Scan stopped early: {e}. Every page read before the "
+                                "failure was saved — use **Re-scan failed pages** "
+                                "below to finish.")
+            else:
+                ui.halt("scan", f"Scan failed: {e}")
+            st.session_state["scan_token"] = st.session_state.get("scan_token", 0) + 1
+            return
 
-    colg1, colg2, _ = st.columns([2, 2, 3])
-    grade_pending = colg1.button(
-        f"✅ Grade {len(pending)} remaining", type="primary",
-        disabled=not pending, use_container_width=True,
-        help="Grades only the papers that have not been graded yet, plus any that "
-             "errored. Safe to press again after an interrupted run.")
-    regrade_all = colg2.button(
-        "♻️ Re-grade everything", disabled=not ready, use_container_width=True,
-        help="Discards existing grades and grades every assigned submission again.")
+        s["pages"] = pages
+        s["evals"] = ocr.build_evals(
+            pages, roster, prior=s.get("evals", []) if failed_only else None)
+        save()
+        st.session_state["scan_token"] = st.session_state.get("scan_token", 0) + 1
+        # Open the review on the first page that needs looking at, not page 1.
+        trouble = problem_pages(pages, s["evals"])
+        st.session_state["ocr_page_idx"] = trouble[0] if trouble else 0
+        ui.complete("scan", f"{len(pages)} page(s) → {len(s['evals'])} submission(s).")
+    else:
+        ui.skip("scan", "using the existing scan")
 
-    grade_click = grade_pending or regrade_all
-    if grade_click:
+    pages = s.get("pages", [])
+    evals = s.get("evals", [])
+
+    # ----------------------------------------------------------- 2. check
+    if plan.get("grade"):
+        ui.phase("check", "cross-checking the split against the roster")
+        blockers = scan_blockers(pages, evals, roster)
+        if plan.get("force"):
+            ui.skip("check", f"you chose to grade with {len(blockers)} issue(s) "
+                             "outstanding" if blockers else "you chose to grade anyway")
+        elif blockers:
+            trouble = problem_pages(pages, evals)
+            if trouble:
+                st.session_state["ocr_page_idx"] = trouble[0]
+            ui.halt("check", "**The scan needs your attention before grading.** "
+                             "What it produced is shown below — fix the split, the "
+                             "transcription or the student assignments, then press "
+                             "**Continue** there.")
+            return
+        else:
+            ui.complete("check", f"{len(pages)} page(s), {len(evals)} submission(s), "
+                                 "every check passed.")
+    else:
+        ui.skip("check", "nothing to grade in this run")
+
+    # ----------------------------------------------------------- 3. grade
+    if plan.get("grade"):
+        regrade = plan["grade"] == "all"
+        todo = [e for e in evals if e.get("student_key")
+                and (regrade or grading.needs_grading(e))]
+        ui.phase("grade", f"grading {len(todo)} paper(s) against the rubric")
+
         rubric_text = pdfutil.extract_text(
             state_mod.abspath(c["working_dir"], c.get("rubric_pdf", "")))
         grounding_text = "\n\n".join(
             pdfutil.extract_text(state_mod.abspath(c["working_dir"], g))
-            for g in c.get("grounding_pdfs", [])
-        )
-        prog = st.progress(0.0)
-        status = st.empty()
+            for g in c.get("grounding_pdfs", []))
 
-        def _cb(i, n, msg):
-            prog.progress(min(1.0, (i + 1) / max(1, n)))
-            status.write(msg)
-
-        def _checkpoint(_ev: dict) -> None:
-            """Persist after every paper. A run that dies — crash, disconnect,
-            proxy outage — keeps every grade it already finished."""
-            state_mod.save_state(get_state())
+        def _on_result(_ev: dict) -> None:
+            """Persist after every paper. A run that dies keeps every grade it
+            already finished."""
+            save()
 
         result = None
+        grade_error = ""
         try:
-            llm = get_llm()
             result = grading.grade_all(
                 llm, evals, quiz_name=c.get("quiz_name", ""),
                 rubric_text=rubric_text, grounding_text=grounding_text,
                 additional=c.get("additional_instructions", ""),
                 max_points=int(c["max_points"]), roster=roster,
-                only_ungraded=not regrade_all,
-                on_result=_checkpoint, progress=_cb,
+                only_ungraded=not regrade, on_result=_on_result, progress=ui.step,
             )
         except Exception as e:  # noqa: BLE001 - keep every grade that did land
-            st.error(f"Grading stopped early: {e}. Grades completed before the "
-                     "failure were saved — press **Grade remaining** to finish, or "
-                     "download now and finish the rest by hand.")
+            grade_error = str(e)
 
         # Curve and save regardless, so an aborted run still leaves usable state.
         summary = grading.apply_curve(
             evals, max_points=int(c["max_points"]),
-            min_points=int(c["min_points"]), curve_min_avg=c.get("curve_min_avg"),
-        )
-        get_state()["curve_summary"] = summary
-        do_save()
-        if result:
-            st.session_state["grade_run_msg"] = (
-                f"Graded {result['ok']} paper(s); {result['failed']} failed; "
-                f"{result['skipped']} already graded."
-            )
+            min_points=int(c["min_points"]), curve_min_avg=c.get("curve_min_avg"))
+        s["curve_summary"] = summary
+        save()
+
+        if grade_error:
+            ui.halt("grade", f"Grading stopped early: {grade_error}. Grades finished "
+                             "before the failure were saved — press **Grade the "
+                             "remaining papers** below to continue.")
+            return
+        ui.complete("grade", f"{result['ok']} graded, {result['failed']} failed, "
+                             f"{result['skipped']} already had a grade."
+                    if result else "nothing needed grading.")
+    else:
+        ui.skip("grade", "not part of this run")
+
+    # ---------------------------------------------------------- 4. package
+    if plan.get("export"):
+        ui.phase("export", f"rendering {len(evals)} PDF(s) and building the ZIP")
+        if not os.path.exists(path):
+            ui.halt("export", f"Exam PDF not found at {path}. Re-upload it above.")
+            return
+        try:
+            bundle = export.build_bundle(
+                path, evals, roster, max_points=int(c["max_points"]),
+                out_dir=os.path.join(c["working_dir"], "graded"), progress=ui.step)
+        except Exception as e:  # noqa: BLE001
+            ui.halt("export", f"Export failed: {e}")
+            return
+        # Written to the project directory rather than held in session memory:
+        # with several instructors on one server, a class-sized ZIP per session
+        # is real memory that never gets released.
+        zip_path = os.path.join(c["working_dir"], "submissions.zip")
+        with open(zip_path, "wb") as f:
+            f.write(bundle["zip_bytes"])
+        st.session_state["zip_path"] = zip_path
+        st.session_state["zip_rows"] = bundle["rows"]
+        st.session_state["zip_failures"] = bundle["failures"]
+        counts = bundle["counts"]
+        ui.complete("export", f"{len(bundle['rows'])} PDF(s) — "
+                              f"{counts[export.GRADED]} graded, "
+                              f"{counts[export.NEEDS_GRADING]} for hand grading, "
+                              f"{counts[export.UNASSIGNED]} unassigned.")
+    else:
+        ui.skip("export", "not part of this run")
+
+    ui.finish("All done — the download is at the bottom of the page.")
+
+
+# ------------------------------------------------------------------ sidebar
+state = get_state()
+c = cfg()
+
+with st.sidebar:
+    st.markdown("### 📁 Project")
+    # The project code is what reopens this work later, and the only thing that
+    # can: it names a directory inside the workspace root and nothing else on
+    # the server is reachable from this box.
+    st.text_input("Your project code", value=state_mod.project_code(c["working_dir"]),
+                  disabled=True, key="my_code",
+                  help="Copy this if you want to reopen this project later or "
+                       "from another browser. It is the only way back to it.")
+
+    open_code = st.text_input(
+        "Open another project", value="", key="open_code",
+        placeholder="paste a project code",
+        help="Projects are private to their code. Opening one takes it over for "
+             "this session.")
+    sc1, sc2 = st.columns(2)
+    if sc1.button("📂 Open", width="stretch", disabled=not open_code.strip()):
+        try:
+            open_project(open_code)
+            st.rerun()
+        except state_mod.ProjectLockedError as e:
+            st.session_state["offer_force_open"] = open_code.strip()
+            st.error(str(e))
+        except (ValueError, OSError) as e:
+            st.session_state.pop("offer_force_open", None)
+            st.error(str(e))
+    if sc2.button("💾 Save", width="stretch"):
+        save()
+        st.success("Saved.")
+
+    if st.session_state.get("offer_force_open"):
+        if st.button("⚠️ Take it over anyway", width="stretch",
+                     help="Use this only if you know the other session is gone. "
+                          "The session holding it will be locked out, and whichever "
+                          "of you saves last wins."):
+            try:
+                open_project(st.session_state["offer_force_open"], force=True)
+                st.rerun()
+            except (ValueError, OSError) as e:
+                st.error(str(e))
+
+    if st.session_state.get("confirm_reset"):
+        st.warning("Erase all settings, scan results and grades?")
+        rc1, rc2 = st.columns(2)
+        if rc1.button("Yes, reset", type="primary", width="stretch"):
+            state_mod.release_lock(c["working_dir"], session_id())
+            s_new = state_mod.default_state()
+            wd_new = state_mod.new_working_dir()
+            s_new["config"]["working_dir"] = wd_new
+            state_mod.claim_lock(wd_new, session_id())
+            st.session_state.state = s_new
+            st.session_state.uploaded_ids = {}
+            for k in ("zip_path", "zip_rows", "zip_failures", "run_log", "plan"):
+                st.session_state.pop(k, None)
+            st.session_state.confirm_reset = False
+            st.rerun()
+        if rc2.button("Cancel", width="stretch"):
+            st.session_state.confirm_reset = False
+            st.rerun()
+    elif st.button("♻️ Start a new project…", width="stretch"):
+        st.session_state.confirm_reset = True
         st.rerun()
 
-    if st.session_state.get("grade_run_msg"):
-        st.info(st.session_state.pop("grade_run_msg"))
+    with st.expander("Where this is stored"):
+        st.caption(f"`{c['working_dir']}`")
+        st.caption("Each project is a separate directory and only one session at "
+                   "a time may write to it.")
 
-    # Results — every submission, so a paper never simply vanishes from the list.
-    if evals:
-        summary = get_state().get("curve_summary", {})
+    st.divider()
+    # Optional, and kept out of the way: the app reads the key from .env and
+    # almost nobody needs to type one here.
+    with st.expander("🔑 API key — optional", expanded=False):
+        st.caption(
+            "**You do not need to enter anything here.** The app already reads "
+            "`OPENAI_APIKEY` from its `.env` file. Only fill this in if you want "
+            "to bill a different key for this project.")
+        c["api_key_override"] = st.text_input(
+            "ARC API key override", value=c.get("api_key_override", ""),
+            type="password", placeholder="leave blank to use .env",
+            label_visibility="collapsed")
+        if c.get("api_key_override"):
+            st.info("Using the key typed here instead of the one in .env.")
+        elif os.getenv("OPENAI_APIKEY"):
+            st.success("Using the key from .env ✓")
+        else:
+            st.warning("No key in .env — enter one here to run the app.")
+
+    st.divider()
+    st.markdown("### 📊 Status")
+    _pages, _evals = state.get("pages", []), state.get("evals", [])
+    _graded = sum(1 for e in _evals if export.status_of(e) == export.GRADED)
+    st.markdown(
+        f"- Scanned pages: **{len(_pages)}**\n"
+        f"- Submissions: **{len(_evals)}**\n"
+        f"- Graded: **{_graded}**\n"
+        f"- Download ready: "
+        f"**{'yes' if st.session_state.get('zip_path') else 'no'}**")
+
+    # The proxy's concurrency cap is per API key, so everyone on the same key
+    # shares one budget. Showing it turns "why is my scan slow" into something
+    # visible rather than mysterious.
+    try:
+        _in_use, _waiting, _limit = get_llm().gate_stats()
+    except Exception:  # noqa: BLE001 - no key configured yet; nothing to report
+        pass
+    else:
+        st.caption(f"LLM requests in flight: **{_in_use}/{_limit}**"
+                   + (f" · **{_waiting}** queued" if _waiting else "")
+                   + "  \nShared with any other session using the same API key.")
+
+
+# ------------------------------------------------------------------- header
+st.title("📝 AI Grader")
+st.caption("Fill in the exam below, add the scan and the rubric, then press one "
+           "button. The app scans, splits, checks, grades, curves and packages "
+           "everything — and stops to ask only if the scan cannot be trusted.")
+
+roster = load_roster_safe()
+pages = state.get("pages", [])
+evals = state.get("evals", [])
+
+# If another session took this project over, stop before anything writes to it:
+# two sessions saving the same state.json lose each other's pages and grades.
+conflict = lock_conflict()
+if conflict:
+    st.error(
+        f"🔒 **Another session has taken over this project** (code "
+        f"`{state_mod.project_code(c['working_dir'])}`, active "
+        f"{int(time.time() - float(conflict.get('heartbeat', 0)))}s ago). This "
+        "session can still look, but running or saving here would overwrite that "
+        "session's work.\n\n"
+        "Start a new project in the sidebar, or reopen this code to take it back.")
+
+
+# ==================================================================== SETUP
+st.markdown("### 1 · The exam")
+with st.container(border=True):
+    c["quiz_name"] = st.text_input(
+        "Quiz / exam name", value=c.get("quiz_name", ""),
+        placeholder="e.g. Quiz 3 — Regression")
+
+    g1, g2, g3, g4 = st.columns([1, 1, 1, 2])
+    with g1:
+        c["max_points"] = st.number_input(
+            "Max points", value=int(c.get("max_points", 100)), step=1, min_value=1)
+    with g2:
+        c["min_points"] = st.number_input(
+            "Min points", value=int(c.get("min_points", 0)), step=1)
+    with g3:
+        curve_on = st.checkbox("Apply a curve",
+                               value=c.get("curve_min_avg") is not None)
+    with g4:
+        curve_val = st.number_input(
+            "Curve to this minimum class average", step=1, disabled=not curve_on,
+            value=int(c["curve_min_avg"]) if c.get("curve_min_avg") is not None else 90)
+    c["curve_min_avg"] = int(curve_val) if curve_on else None
+
+    c["additional_instructions"] = st.text_area(
+        "Extra instructions for the grader (optional)",
+        value=c.get("additional_instructions",
+                    state_mod.DEFAULT_ADDITIONAL_INSTRUCTIONS),
+        height=80,
+        help="Read alongside the rubric. The rubric's point caps always win.")
+
+
+# ==================================================================== FILES
+st.markdown("### 2 · The files")
+with st.container(border=True):
+    f1, f2 = st.columns(2)
+
+    with f1:
+        st.markdown("**Class roster** — required")
+        st.caption('Single-column CSV, one student per line, written '
+                   '`"last name, first name"` in double quotes. A `name` header '
+                   'row is optional.')
+        roster_up = st.file_uploader("Roster CSV", type=["csv"], key="roster_up",
+                                     label_visibility="collapsed")
+        if roster_up is not None and \
+                st.session_state.uploaded_ids.get("roster") != roster_up.file_id:
+            c["roster_csv"] = save_uploaded(roster_up, "roster.csv")
+            st.session_state.uploaded_ids["roster"] = roster_up.file_id
+            roster = load_roster_safe()
+        if c.get("roster_csv"):
+            st.success(f"✓ {len(roster)} student(s) — `{c['roster_csv']}`")
+
+        st.markdown("**Rubric & answer key** — recommended")
+        st.caption("One PDF. Without it the grader has no point allocation to "
+                   "work from.")
+        rubric_up = st.file_uploader("Rubric PDF", type=["pdf"], key="rubric_up",
+                                     label_visibility="collapsed")
+        if rubric_up is not None and \
+                st.session_state.uploaded_ids.get("rubric") != rubric_up.file_id:
+            c["rubric_pdf"] = save_uploaded(rubric_up, "rubric.pdf")
+            st.session_state.uploaded_ids["rubric"] = rubric_up.file_id
+        if c.get("rubric_pdf"):
+            st.success(f"✓ `{c['rubric_pdf']}`")
+
+    with f2:
+        st.markdown("**Exam scan** — required")
+        st.caption("One PDF holding every student's paper, back to back.")
+        exam_up = st.file_uploader("Exam PDF", type=["pdf"], key="exam_up",
+                                   label_visibility="collapsed")
+        if exam_up is not None and \
+                st.session_state.uploaded_ids.get("exam") != exam_up.file_id:
+            c["exam_pdf"] = save_uploaded(exam_up, "exam.pdf")
+            st.session_state.uploaded_ids["exam"] = exam_up.file_id
+        if c.get("exam_pdf") and os.path.exists(exam_path()):
+            st.success(f"✓ {pdfutil.page_count(exam_path())} page(s) — "
+                       f"`{c['exam_pdf']}`")
+
+        st.markdown("**Course materials** — optional")
+        st.caption("One or more PDFs the grader must treat as the source of "
+                   "truth for what is correct.")
+        ground_up = st.file_uploader("Grounding PDFs", type=["pdf"],
+                                     accept_multiple_files=True, key="ground_up",
+                                     label_visibility="collapsed")
+        if ground_up:
+            ids = tuple(f.file_id for f in ground_up)
+            if st.session_state.uploaded_ids.get("ground") != ids:
+                c["grounding_pdfs"] = [save_uploaded(f, f"grounding_{i}.pdf")
+                                       for i, f in enumerate(ground_up, start=1)]
+                st.session_state.uploaded_ids["ground"] = ids
+        if c.get("grounding_pdfs"):
+            st.success(f"✓ {len(c['grounding_pdfs'])} file(s)")
+
+
+# ====================================================================== RUN
+st.markdown("### 3 · Run it")
+missing: list[str] = []
+if conflict:
+    missing.append("sole access to this project (another session has it open)")
+if not (c.get("exam_pdf") and os.path.exists(exam_path())):
+    missing.append("the exam scan PDF")
+if not roster:
+    missing.append("the class roster CSV")
+
+with st.container(border=True):
+    if missing:
+        st.warning("Still needed above: " + ", ".join(missing) + ".")
+    elif not c.get("rubric_pdf"):
+        st.info("No rubric uploaded. Grading will run, but the model has no answer "
+                "key to score against — add one above for usable grades.")
+
+    if st.button("🚀  Scan & grade everything", type="primary",
+                 width="stretch", disabled=bool(missing)):
+        queue({"scan": "all", "grade": True, "export": True})
+    st.caption("Scans and splits the exam → checks the split → grades every "
+               "paper → applies the curve → builds the download. It stops and "
+               "asks only if the scan cannot be trusted.")
+
+    if pages:
+        with st.expander("Run only part of it"):
+            b1, b2, b3, b4 = st.columns(4)
+            bad = ocr.failed_pages(pages)
+            pending = [e for e in evals if grading.needs_grading(e)]
+            if b1.button(f"🔁 Re-scan {len(bad)} failed page(s)", disabled=not bad,
+                         width="stretch",
+                         help="Re-reads only the pages that errored, keeping every "
+                              "page that already worked."):
+                queue({"scan": "failed", "grade": True, "export": True})
+            if b2.button(f"✅ Grade {len(pending)} remaining", disabled=not pending,
+                         width="stretch",
+                         help="Grades only papers with no grade yet, plus any that "
+                              "errored."):
+                queue({"grade": True, "export": True, "force": True})
+            if b3.button("♻️ Re-grade everything",
+                         disabled=not any(e.get("student_key") for e in evals),
+                         width="stretch",
+                         help="Throws away existing grades and grades every "
+                              "assigned paper again."):
+                queue({"grade": "all", "export": True, "force": True})
+            if b4.button("📦 Rebuild the download", disabled=not evals,
+                         width="stretch",
+                         help="Re-renders the PDFs and the ZIP from the current "
+                              "grades and assignments."):
+                queue({"export": True})
+
+    # The pipeline runs here, directly under the button that asked for it.
+    plan = st.session_state.pop("plan", None)
+    if plan:
+        run_pipeline(plan, RunUI(st.container(border=True)))
+        # State moved underneath the rest of the page; re-read it.
+        pages = state.get("pages", [])
+        evals = state.get("evals", [])
+    elif st.session_state.get("run_log"):
+        with st.expander("📋 Last run log"):
+            st.code("\n".join(st.session_state["run_log"]), language=None)
+
+
+# ============================================================ REVIEW / FIX
+if pages:
+    # Recomputed every pass, so the panel reflects the fixes made inside it
+    # rather than the state of the world when the run stopped.
+    blockers = scan_blockers(pages, evals, roster)
+    warnings = scan_warnings(pages, evals, roster)
+    st.markdown("### 4 · Check the scan" + ("  🚨" if blockers else ""))
+
+    with st.container(border=True):
+        if blockers:
+            st.error("**Grading stopped — the scan needs a human.** Fix these "
+                     "below, then press Continue.")
+            for b in blockers:
+                st.markdown(f"- {b}")
+        else:
+            st.success("The scan passed every consistency check.")
+        for w in warnings:
+            st.warning(w)
+
+        # The scan's own output, all in one place: being told a page failed is
+        # not the same as being shown what came back for it.
+        bad = ocr.failed_pages(pages)
+        if bad:
+            with st.expander(f"🔬 What the scan returned for the {len(bad)} failed "
+                             "page(s)", expanded=bool(blockers)):
+                for idx in bad[:20]:
+                    st.markdown(f"**Page {idx + 1}** — {pages[idx].get('error')}")
+                    raw = pages[idx].get("raw")
+                    if raw:
+                        st.code(raw, language=None)
+                    else:
+                        st.caption("The model returned nothing at all for this page.")
+                if len(bad) > 20:
+                    st.caption(f"…and {len(bad) - 20} more; page through the scan "
+                               "below to see them.")
+
+        cc1, cc2, cc3 = st.columns(3)
+        if cc1.button(f"🔁 Re-scan {len(bad)} failed page(s), then grade",
+                      disabled=not bad, width="stretch", type="primary"
+                      if (blockers and bad) else "secondary"):
+            queue({"scan": "failed", "grade": True, "export": True})
+        if cc2.button("▶️ Continue — grade & package", width="stretch",
+                      type="primary" if (blockers and not bad) else "secondary",
+                      help="Grades every submission that has a student assigned, "
+                           "even with the warnings above outstanding. Nothing is "
+                           "dropped — ungraded papers are still exported."):
+            queue({"grade": True, "export": True, "force": True})
+        if cc3.button("💾 Save my corrections", width="stretch"):
+            save()
+            st.success("Saved.")
+
+    n_pages = len(pages)
+    st.markdown("#### What the scan produced")
+    st.caption("Page through the scan. Tick **starts a new submission** on every "
+               "page carrying a student's Name header to fix the split, correct "
+               "the transcription where the model got it wrong, and pick the "
+               "student for each submission.")
+
+    st.session_state.setdefault("ocr_page_idx", 0)
+    st.session_state.ocr_page_idx = min(st.session_state.ocr_page_idx, n_pages - 1)
+    scan_token = st.session_state.get("scan_token", 0)
+
+    def _step(delta: int) -> None:
+        st.session_state.ocr_page_idx = max(
+            0, min(n_pages - 1, st.session_state.ocr_page_idx + delta))
+
+    def _goto(page_index: int) -> None:
+        st.session_state.ocr_page_idx = max(0, min(n_pages - 1, page_index))
+
+    problems = problem_pages(pages, evals)
+
+    def _next_problem() -> None:
+        """Jump to the next page that actually needs attention."""
+        cur = st.session_state.ocr_page_idx
+        if problems:
+            _goto(next((p for p in problems if p > cur), problems[0]))
+    nav1, nav2, nav3, nav4 = st.columns([1, 1, 4, 2])
+    nav1.button("◀ Prev", on_click=_step, args=(-1,), disabled=n_pages < 2,
+                width="stretch", key="ocr_prev")
+    nav2.button("Next ▶", on_click=_step, args=(1,), disabled=n_pages < 2,
+                width="stretch", key="ocr_next")
+    with nav3:
+        if n_pages > 1:
+            # Seed the widget's stored value first: a `value=` argument is
+            # ignored once the key exists, so the slider would ignore Prev/Next
+            # and the jump buttons.
+            st.session_state["ocr_page_slider"] = st.session_state.ocr_page_idx + 1
+            st.slider("Page", 1, n_pages, key="ocr_page_slider",
+                      on_change=lambda: _goto(st.session_state.ocr_page_slider - 1),
+                      label_visibility="collapsed")
+    nav4.button(f"⏭ Next problem ({len(problems)})", on_click=_next_problem,
+                disabled=not problems, width="stretch",
+                key="ocr_next_problem")
+
+    i = st.session_state.ocr_page_idx
+    pg = pages[i]
+    ev = ocr.eval_for_page(evals, i)
+
+    img_col, ctl_col = st.columns([3, 2], gap="large")
+
+    with img_col:
+        st.markdown(f"**Page {i + 1} of {n_pages}**")
+        try:
+            st.image(page_image(exam_path(), os.path.getmtime(exam_path()), i),
+                     width="stretch")
+        except Exception as e:  # noqa: BLE001
+            st.error(f"Could not render page {i + 1}: {e}")
+
+    with ctl_col:
+        if pg.get("error"):
+            st.error(f"**This page did not scan.** {pg['error']}")
+        elif not pg.get("markdown"):
+            st.warning("This page scanned without error but produced no text.")
+
+        def _toggle_start() -> None:
+            get_state()["pages"][st.session_state.ocr_page_idx]["is_start"] = \
+                st.session_state[f"start_{st.session_state.ocr_page_idx}"]
+            rebuild_evals()
+
+        st.session_state[f"start_{i}"] = bool(pg.get("is_start")) or i == 0
+        st.checkbox("📄 This page **starts a new submission**", key=f"start_{i}",
+                    on_change=_toggle_start, disabled=(i == 0),
+                    help="Page 1 always starts the first submission. Tick this on "
+                         "every page that shows a student's Name header.")
+        st.caption(f"Vision model said new submission: "
+                   f"**{'yes' if pg.get('is_new_submission') else 'no'}** · "
+                   f"name read: *{pg.get('student_name') or '—'}*"
+                   + ("" if pg.get("boundary_confident", True)
+                      else " · ⚠️ boundary is a guess"))
+
+        st.divider()
+        if ev is None:
+            st.warning("This page is not part of any submission.")
+        else:
+            span = ev["page_indices"]
+            st.markdown(f"**Submission {ev['id']}** — pages "
+                        f"{span[0] + 1}–{span[-1] + 1} ({len(span)} page(s))")
+            st.caption(f"Name read from the scan: *{ev.get('detected_name') or '—'}*")
+
+            sel_key = f"sel_{ev['id']}_{span[0]}"
+
+            def _assign(eval_id: str = ev["id"], key: str = sel_key) -> None:
+                for e in get_state().get("evals", []):
+                    if e["id"] == eval_id:
+                        e["student_key"] = st.session_state[key]
+
+            options = [""] + roster_mod.roster_options(roster)
+            current = ev.get("student_key", "")
+            st.session_state[sel_key] = current if current in options else ""
+            st.selectbox("Student", options, key=sel_key, on_change=_assign,
+                         format_func=lambda x: x or "— select student —",
+                         disabled=not roster)
+            if not ev.get("student_key"):
+                st.markdown(":red[**Required — assign a student**]")
+
+            graded = ev.get("grade")
+            if graded and not graded.get("error"):
+                st.success(f"Graded: raw {graded['raw_total']} → "
+                           f"final {graded['final_total']}")
+
+        st.divider()
+        st.markdown("**Transcription for this page** — edit it if the model got it "
+                    "wrong; what you type here is what gets graded.")
+        new_md = st.text_area(
+            "Transcription", value=pg.get("markdown", ""), height=260,
+            key=f"md_{i}_{scan_token}", label_visibility="collapsed",
+            placeholder="(the scan produced no text for this page)")
+        if st.button("💾 Apply this transcription", key=f"apply_md_{i}",
+                     disabled=new_md == pg.get("markdown", "")):
+            s_pg = get_state()["pages"][i]
+            s_pg["markdown"] = new_md
+            if new_md.strip() and s_pg.get("error"):
+                # A page the instructor has transcribed by hand is no longer an
+                # unread page, and the paper containing it is gradable again.
+                s_pg["error"] = ""
+                s_pg["boundary_confident"] = True
+                s_pg["hand_edited"] = True
+            rebuild_evals()
+            save()
+            st.rerun()
+
+        if pg.get("raw"):
+            with st.expander("🔬 What the model actually replied for this page"):
+                st.caption("The raw reply, before any JSON parsing. If it says "
+                           "something like “I'm unable to view the image”, the "
+                           "configured vision model is not multimodal.")
+                st.code(pg["raw"], language=None)
+
+    st.divider()
+    st.markdown("**Every submission** — click a row to jump to its first page.")
+    for e in evals:
+        span = e["page_indices"]
+        b_col, t_col = st.columns([1, 6])
+        b_col.button(f"→ p{span[0] + 1}", key=f"jump_{e['id']}",
+                     on_click=_goto, args=(span[0],), width="stretch")
+        mark = "✅" if e.get("student_key") else "⚠️"
+        who = e.get("student_key") or \
+            f"*unassigned* (scan read: {e.get('detected_name') or '—'})"
+        flags = []
+        if e.get("failed_pages"):
+            flags.append(f"❌ unread pages {_plist(e['failed_pages'])}")
+        if e.get("unconfident_pages"):
+            flags.append("⚠️ guessed boundary")
+        t_col.markdown(f"{mark} **{e['id']}** · pages {span[0] + 1}–{span[-1] + 1} · "
+                       f"{who}" + ("  \n" + " · ".join(flags) if flags else ""))
+
+
+# ================================================================== RESULTS
+if any(e.get("grade") for e in evals):
+    st.markdown("### 5 · Grades")
+    with st.container(border=True):
+        summary = state.get("curve_summary", {})
         if summary:
             m1, m2, m3, m4 = st.columns(4)
             m1.metric("In the curve", summary.get("n", 0))
-            m2.metric("Raw avg", f"{summary.get('raw_avg', 0):.1f}")
+            m2.metric("Raw average", f"{summary.get('raw_avg', 0):.1f}")
             m3.metric("Curve added", f"+{summary.get('added', 0)} each")
-            m4.metric("Final avg", f"{summary.get('final_avg', 0):.1f}")
+            m4.metric("Final average", f"{summary.get('final_avg', 0):.1f}")
             if summary.get("target_reached") is False:
                 st.warning(
-                    f"Curve target ({c.get('curve_min_avg')}) exceeds max points "
-                    f"({int(c['max_points'])}); every score is at max but the average "
-                    "cannot reach the target."
-                )
+                    f"The curve target ({c.get('curve_min_avg')}) is above max "
+                    f"points ({int(c['max_points'])}); every score is at the max "
+                    "but the average still cannot reach the target.")
             if summary.get("partial"):
                 st.warning(
-                    f"The curve was computed from the {summary.get('n', 0)} graded "
-                    f"paper(s) only — {summary.get('n_ungraded', 0)} submission(s) are "
-                    "not graded yet. Finish grading (or hand-grade the rest) and "
-                    "re-check the curve before releasing scores."
-                )
+                    f"The curve used only the {summary.get('n', 0)} graded "
+                    f"paper(s) — {summary.get('n_ungraded', 0)} submission(s) are "
+                    "not graded yet. Finish grading and re-check the curve before "
+                    "releasing scores.")
 
-        st.divider()
         rows = []
         for e in evals:
             g = e.get("grade") or {}
             status = export.status_of(e)
             is_graded = status == export.GRADED
             rows.append({
-                "Student": e.get("student_key") or
-                           (f"⚠️ unassigned — OCR read: {e.get('detected_name') or '?'}"),
+                "Student": e.get("student_key")
+                           or f"⚠️ unassigned — scan read: {e.get('detected_name') or '?'}",
                 "Pages": f"{e['page_indices'][0] + 1}–{e['page_indices'][-1] + 1}",
                 "Raw": g.get("raw_total") if is_graded else None,
                 "Curve": f"+{g.get('curve_added', 0)}" if is_graded else "",
@@ -631,10 +1066,9 @@ with tab_grade:
                            export.NEEDS_GRADING: "✋ hand grade",
                            export.UNASSIGNED: "⚠️ unassigned"}[status],
             })
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+        st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
 
-        st.divider()
-        st.subheader("Per-submission detail")
+    with st.expander("Per-submission feedback"):
         for e in evals:
             g = e.get("grade") or {}
             status = export.status_of(e)
@@ -646,139 +1080,82 @@ with tab_grade:
             with st.expander(head):
                 if status != export.GRADED:
                     st.warning(export.reason_for(e))
-                    st.caption("This submission is still included in the download "
-                               "as an ungraded PDF with a hand-grading cover sheet.")
+                    st.caption("It is still included in the download as an ungraded "
+                               "PDF with a hand-grading cover sheet.")
                 if e.get("failed_pages"):
-                    st.error(
-                        "OCR failed on scan page(s) "
-                        + ", ".join(str(i + 1) for i in e["failed_pages"])
-                        + " — any grade here was produced from an incomplete "
-                          "transcription. Check it against the scan."
-                    )
+                    st.error("The scan failed on page(s) "
+                             + _plist(e["failed_pages"])
+                             + " — any grade here came from an incomplete "
+                               "transcription. Check it against the scan.")
                 for q in g.get("questions", []):
-                    st.markdown(
-                        f"**Q{q['number']}: {q['score']}/{q['max']}** — "
-                        f":red[{q.get('comment', '')}]"
-                    )
+                    st.markdown(f"**Q{q['number']}: {q['score']}/{q['max']}** — "
+                                f":red[{q.get('comment', '')}]")
                 if g.get("overall_comment") and status == export.GRADED:
                     st.markdown(f"**Overall:** :red[{g['overall_comment']}]")
 
 
-# =====================================================================
-# TAB 4 — DOWNLOAD
-# =====================================================================
-with tab_download:
-    c = cfg()
-    st.subheader("Step 4 — Download every submission")
-    evals = get_state().get("evals", [])
-    roster = load_roster_safe()
-    exam_path = state_mod.abspath(c["working_dir"], c.get("exam_pdf", ""))
-
-    if not evals:
-        st.info("Run OCR & split first (OCR & Split tab).")
-    elif not os.path.exists(exam_path):
-        st.error(f"Exam PDF not found at {exam_path}. Re-upload it on the Config tab.")
-    else:
-        rec = export.reconcile(evals, roster, pdfutil.page_count(exam_path))
+# ================================================================= DOWNLOAD
+if evals and os.path.exists(exam_path()):
+    st.markdown("### 6 · Download")
+    with st.container(border=True):
+        rec = export.reconcile(evals, roster, pdfutil.page_count(exam_path()))
         counts = rec["counts"]
-
-        st.markdown(
-            "The ZIP contains **every** submission — graded papers, papers that "
-            "still need hand grading, and papers with no student assigned. "
-            "Nothing is dropped because grading failed or never ran."
-        )
         d1, d2, d3, d4 = st.columns(4)
         d1.metric("Submissions", rec["n_submissions"])
         d2.metric("✅ Graded", counts[export.GRADED])
         d3.metric("✋ Hand grade", counts[export.NEEDS_GRADING])
         d4.metric("⚠️ Unassigned", counts[export.UNASSIGNED])
 
-        # ---- reconciliation: the check that says no paper went missing -------
         with st.expander("🔎 Reconciliation — read this before returning papers",
                          expanded=bool(rec["orphan_pages"] or rec["missing_students"]
                                        or rec["duplicate_students"])):
             if rec["orphan_pages"]:
-                st.error(
-                    f"{len(rec['orphan_pages'])} scanned page(s) belong to no "
-                    "submission: "
-                    + ", ".join(str(i + 1) for i in rec["orphan_pages"][:40])
-                    + ("…" if len(rec["orphan_pages"]) > 40 else "")
-                    + ". They are exported on their own under `unaccounted_pages/` "
-                      "so they are not lost — but fix the split on the OCR & Split "
-                      "tab and re-export if they belong to a student."
-                )
+                st.error(f"{len(rec['orphan_pages'])} scanned page(s) belong to no "
+                         f"submission: {_plist(rec['orphan_pages'], 40)}. They are "
+                         "exported on their own under `unaccounted_pages/` so they "
+                         "are not lost — but fix the split above and rebuild the "
+                         "download if they belong to a student.")
             else:
-                st.success(
-                    f"All {rec['n_pages']} scanned page(s) are covered by exactly "
-                    "one submission."
-                )
+                st.success(f"All {rec['n_pages']} scanned page(s) are covered by "
+                           "exactly one submission.")
             if rec["missing_students"]:
-                st.warning(
-                    f"{len(rec['missing_students'])} roster student(s) have no "
-                    "submission. If they sat the exam, their paper is probably "
-                    "among the unassigned ones — assign it on the OCR & Split tab."
-                )
+                st.warning(f"{len(rec['missing_students'])} roster student(s) have "
+                           "no submission. If they sat the exam, their paper is "
+                           "probably among the unassigned ones — assign it above.")
                 st.caption(", ".join(rec["missing_students"]))
             elif roster:
                 st.success("Every roster student has a submission.")
             if rec["duplicate_students"]:
-                st.warning(
-                    "These students have more than one submission, which usually "
-                    "means a split boundary is wrong: "
-                    + ", ".join(f"{k} ({len(v)})"
-                                for k, v in rec["duplicate_students"].items())
-                )
-
-        st.divider()
-        if st.button("🖨️ Render & build ZIP", type="primary"):
-            out_dir = os.path.join(c["working_dir"], "graded")
-            prog = st.progress(0.0)
-            status = st.empty()
-
-            def _cb(i, n, msg):
-                prog.progress(min(1.0, (i + 1) / max(1, n)))
-                status.write(msg)
-
-            try:
-                bundle = export.build_bundle(
-                    exam_path, evals, roster, max_points=int(c["max_points"]),
-                    out_dir=out_dir, progress=_cb,
-                )
-            except Exception as e:  # noqa: BLE001
-                st.error(f"Export failed: {e}")
-            else:
-                st.session_state["zip_bytes"] = bundle["zip_bytes"]
-                st.session_state["zip_rows"] = bundle["rows"]
-                st.session_state["zip_failures"] = bundle["failures"]
-                st.success(
-                    f"Rendered {len(bundle['rows'])} PDF(s) into {out_dir} — "
-                    f"{bundle['counts'][export.GRADED]} graded, "
-                    f"{bundle['counts'][export.NEEDS_GRADING]} for hand grading, "
-                    f"{bundle['counts'][export.UNASSIGNED]} unassigned."
-                )
+                st.warning("These students have more than one submission, which "
+                           "usually means a split boundary is wrong: "
+                           + ", ".join(f"{k} ({len(v)})"
+                                       for k, v in rec["duplicate_students"].items()))
 
         if st.session_state.get("zip_failures"):
-            st.error(
-                "Some submissions could not be rendered normally and were exported "
-                "as raw scanned pages instead (see manifest.csv):\n\n"
-                + "\n".join(f"- {f}" for f in st.session_state["zip_failures"])
-            )
+            st.error("Some submissions could not be rendered normally and were "
+                     "exported as raw scanned pages instead (see manifest.csv):\n\n"
+                     + "\n".join(f"- {f}" for f in st.session_state["zip_failures"]))
 
-        if st.session_state.get("zip_bytes"):
+        zip_path = st.session_state.get("zip_path")
+        if zip_path and os.path.exists(zip_path):
             quiz = (c.get("quiz_name") or "graded").replace(" ", "_")
-            st.download_button(
-                "⬇️ Download all submissions (ZIP)",
-                data=st.session_state["zip_bytes"],
-                file_name=f"{quiz}_submissions.zip", mime="application/zip",
-                type="primary",
-            )
-            st.caption(
-                "Inside: `graded/`, `needs_grading/`, `unassigned/`, plus "
-                "`manifest.csv`, `scores.csv` (blank scores to fill in by hand) "
-                "and `reconciliation.txt`."
-            )
+            # Streamed from the project directory rather than session memory, so
+            # a server with many open sessions is not holding a ZIP for each.
+            with open(zip_path, "rb") as zf:
+                st.download_button("⬇️  Download all submissions (ZIP)",
+                                   data=zf.read(),
+                                   file_name=f"{quiz}_submissions.zip",
+                                   mime="application/zip", type="primary",
+                                   width="stretch")
+            st.caption("Inside: `graded/`, `needs_grading/`, `unassigned/`, plus "
+                       "`manifest.csv`, `scores.csv` (blank scores to fill in by "
+                       "hand) and `reconciliation.txt`. Every submission is in "
+                       "there — nothing is dropped because grading failed.")
             rows = st.session_state.get("zip_rows") or []
             if rows:
                 with st.expander("Manifest — one row per submission"):
-                    st.dataframe(pd.DataFrame(rows), use_container_width=True,
+                    st.dataframe(pd.DataFrame(rows), width="stretch",
                                  hide_index=True)
+        else:
+            st.info("No download built yet — press **Scan & grade everything**, or "
+                    "**Rebuild the download** under *Run only part of it*.")

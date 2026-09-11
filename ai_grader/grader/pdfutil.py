@@ -270,7 +270,7 @@ def write_unaccounted_pdf(exam_path: str, page_indices: list[int], out_path: str
                    + ", ".join(str(i + 1) for i in page_indices)), size=11,
               bold=True, wrap=80, gap=8)
     rep.write(_san("They are attached after this sheet. Identify the student, then "
-                   "fix the split on the OCR & Split tab (tick 'starts a new "
+                   "fix the split in the Check the scan panel (tick 'starts a new "
                    "submission' on the right page) and export again - or grade "
                    "these pages by hand."), size=11, wrap=80, gap=4)
 
