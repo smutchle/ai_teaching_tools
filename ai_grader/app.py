@@ -206,8 +206,8 @@ def scan_blockers(pages: list[dict], evals: list[dict],
     blank = ocr.empty_pages(pages)
     if len(blank) >= max(1, len(pages) // 2):
         out.append(f"**{len(blank)} of {len(pages)} page(s) transcribed to nothing.** "
-                   "The configured vision model is probably not multimodal — check "
-                   "OPENAI_VISION_MODEL in .env.")
+                   "The configured vision model is probably not multimodal — "
+                   "OPENAI_VISION_MODEL should be `vt-arc-llm`.")
 
     if not evals:
         out.append("**The scan produced no submissions at all.**")

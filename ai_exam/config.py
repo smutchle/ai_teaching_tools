@@ -3,15 +3,15 @@
 Two providers are wired:
 
 - **Anthropic** (claude-opus-4-7 / claude-sonnet-4-6) — original path.
-- **ARC** — OpenAI-compatible endpoint at the VT ARC LLM proxy, serving
-  gpt-oss-120b today; routable to other ARC-hosted models by changing
-  `ARC_MODEL`.
+- **ARC** — OpenAI-compatible endpoint at the VT ARC LLM proxy, serving the
+  single `vt-arc-llm` alias (reasoning and vision alike). `ARC_MODEL` exists to
+  override it, but there is nothing else on ARC to point it at.
 
 `MODEL_REGISTRY` maps each agent persona to a `(provider_kind, model_id)`
 choice. `make_provider(persona_name)` returns the right provider instance —
 agents never construct their own client.
 
-The default routes every agent to ARC's `gpt-oss-120b` (free; substantial
+The default routes every agent to ARC's `vt-arc-llm` (free; substantial
 reasoning capability). To send a specific agent back to Anthropic, edit its
 entry in `MODEL_REGISTRY` to `_ANTHROPIC_OPUS` or `_ANTHROPIC_SONNET`.
 """
@@ -49,7 +49,7 @@ ANTHROPIC_MODEL_HAIKU: str = _env("ANTHROPIC_MODEL_HAIKU", "claude-haiku-4-5-202
 # ARC (OpenAI-compatible endpoint) — required if any persona is routed to "arc".
 ARC_ENDPOINT: str = _env("ARC_ENDPOINT", "https://llm-api.arc.vt.edu/api/v1")
 ARC_API_KEY: str = _env("ARC_API_KEY")
-ARC_MODEL: str = _env("ARC_MODEL", "gpt-oss-120b")
+ARC_MODEL: str = _env("ARC_MODEL", "vt-arc-llm")
 
 # Ollama — both embeddings (always) and chat (if any persona is routed to "ollama").
 OLLAMA_HOST: str = _env("OLLAMA_HOST", "http://localhost:11434")

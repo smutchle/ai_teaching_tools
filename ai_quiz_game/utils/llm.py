@@ -106,7 +106,7 @@ def _generate_arc(text: str, n: int, instructions: str) -> list:
         api_key=os.getenv("OPEN_AI_API_KEY"),
         base_url=os.getenv("OPEN_AI_ENDPOINT"),
     )
-    model = os.getenv("OPEN_AI_MODEL", "gpt-4o")
+    model = os.getenv("OPEN_AI_MODEL", "vt-arc-llm")
     response = client.chat.completions.create(
         model=model,
         messages=[

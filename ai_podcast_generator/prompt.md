@@ -8,9 +8,9 @@ Resources available:
 
 OPEN_AI_ENDPOINT=https://llm-api.arc.vt.edu/api/v1
 OPEN_AI_API_KEY=sk-36eb5fc6ba7...82bc74f
-OPEN_AI_MODEL=thinking_latest
+OPEN_AI_MODEL=vt-arc-llm
 
-"thinking_latest" is an alias to GLM-5.2.
+"vt-arc-llm" is VT ARC's single model alias — reasoning and vision alike.
 
 There is an MCP server running on ads2.datasci.vt.edu and configured in claude code on this server (ads1.datasci.vt.edu) that can be used to generate the thumbnails.  It's called zimage.
 

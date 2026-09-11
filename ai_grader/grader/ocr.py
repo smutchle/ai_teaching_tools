@@ -98,7 +98,7 @@ def ocr_page(llm: LLMClient, exam_path: str, page_index: int) -> dict:
         if not isinstance(data, dict):
             raise RuntimeError(
                 "vision model did not return a JSON object for this page "
-                "(check that OPENAI_VISION_MODEL names a multimodal model)"
+                "(check that OPENAI_VISION_MODEL is set to vt-arc-llm)"
             )
     except PermanentLLMError:
         raise                          # misconfiguration - abort the whole run

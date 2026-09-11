@@ -5,7 +5,7 @@ Two backends today:
 - `AnthropicProvider` — claude-opus-4-7 / claude-sonnet-4-6 via the Anthropic
   SDK, with ephemeral system-prompt caching.
 - `OpenAIProvider` — any OpenAI-compatible endpoint (e.g., the VT ARC proxy
-  at https://llm-api.arc.vt.edu/api/v1 serving gpt-oss-120b) via the
+  at https://llm-api.arc.vt.edu/api/v1 serving vt-arc-llm) via the
   `openai` SDK.
 
 Both expose the same `call_with_tool(...)` surface returning a `CallResult`.
@@ -146,9 +146,9 @@ class OpenAIProvider:
     """OpenAI-compatible endpoint (ARC, OpenAI, LiteLLM, vLLM, Ollama, etc.).
 
     Uses `response_format=json_schema` (strict) rather than forced tool
-    calling. vLLM-served open-weight models like gpt-oss-120b don't reliably
-    honor `tool_choice=required` — they may emit free-text in `content`
-    instead of invoking the tool. `json_schema` strict mode is enforced at
+    calling. The vLLM-served open-weight models behind ARC's `vt-arc-llm`
+    don't reliably honor `tool_choice=required` — they may emit free-text in
+    `content` instead of invoking the tool. `json_schema` strict mode is enforced at
     decode time by the server and lands clean JSON in `msg.content`.
 
     `concurrency_sem` is the lever that keeps single-GPU Ollama from blowing

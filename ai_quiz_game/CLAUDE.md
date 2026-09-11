@@ -58,7 +58,7 @@ Each Streamlit browser tab has its own `st.session_state`. Participant identity 
 |---|---|
 | `OPEN_AI_ENDPOINT` | Base URL for VT ARC OpenAI-compatible API |
 | `OPEN_AI_API_KEY` | ARC API key |
-| `OPEN_AI_MODEL` | ARC model name |
+| `OPEN_AI_MODEL` | ARC model alias — `vt-arc-llm` (the only one ARC serves) |
 | `ANTHROPIC_API_KEY` | Anthropic API key for Claude Sonnet |
 | `ANTHROPIC_MODEL` | Claude model ID (default: `claude-sonnet-4-6`) |
 

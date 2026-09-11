@@ -1,8 +1,13 @@
 """OpenAI-compatible LLM client for the ARC endpoint.
 
-Two model roles, both configured via .env:
+Two model roles, both configured via .env and both pointed at `vt-arc-llm`:
   - OPENAI_MODEL         -> text reasoning model (grading)
   - OPENAI_VISION_MODEL  -> vision model (OCR only)
+
+ARC serves one alias, `vt-arc-llm`, which does reasoning and vision alike. The
+two settings are kept separate anyway: they cost nothing while they hold the
+same value, and they are what lets OCR and grading be pointed at different
+models again without touching this code.
 
 The client is intentionally resilient: retries on transient errors and a
 tolerant JSON extractor so a stray token from the model never crashes a run.
@@ -27,10 +32,13 @@ _APP_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 load_dotenv(os.path.join(_APP_DIR, ".env"))
 
 
-# The ARC proxy's "vision" alias currently routes to gpt-oss-120b, a text-only
-# model that silently DROPS image content instead of erroring — pages come back
-# as "I'm unable to view the image". Kimi-K3 is the multimodal model there.
-DEFAULT_VISION_MODEL = "Kimi-K3"
+# ARC's single alias. It is multimodal, so it serves as the default for both
+# roles. Naming the model behind it instead would break the next time ARC
+# repoints the alias — and a text-only model does not error on an image, it
+# silently drops it and answers "I'm unable to view the image", which looks
+# like a bad scan rather than a bad configuration.
+DEFAULT_MODEL = "vt-arc-llm"
+DEFAULT_VISION_MODEL = DEFAULT_MODEL
 
 # The ARC proxy caps how many requests one user may have in flight per model and
 # rejects the excess with HTTP 400 - the same status it uses for a bad model
@@ -144,7 +152,7 @@ class LLMClient:
                 "Missing OPENAI_ENDPOINT / OPENAI_APIKEY. Set them in .env or the "
                 "API key panel in the sidebar."
             )
-        self.text_model = os.getenv("OPENAI_MODEL", "thinkinglatest")
+        self.text_model = os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
         self.vision_model = os.getenv("OPENAI_VISION_MODEL", DEFAULT_VISION_MODEL)
         try:
             self.max_inflight = max(1, int(os.getenv("OPENAI_MAX_INFLIGHT",
@@ -283,8 +291,7 @@ class LLMClient:
         except PermanentLLMError as e:
             raise PermanentLLMError(
                 f"The vision model '{self.vision_model}' is not usable: {e} "
-                "Set OPENAI_VISION_MODEL in .env to a multimodal model "
-                f"(e.g. {DEFAULT_VISION_MODEL})."
+                f"Set OPENAI_VISION_MODEL in .env to {DEFAULT_VISION_MODEL}."
             ) from e
         except Exception:  # noqa: BLE001
             # Anything else - a slow proxy, an empty reply to a blank test image -

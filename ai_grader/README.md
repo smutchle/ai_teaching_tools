@@ -63,8 +63,8 @@ The `ai_grader` conda environment is already created. Configure the LLM in `.env
 ```
 OPENAI_ENDPOINT=https://llm-api.arc.vt.edu/api/v1
 OPENAI_APIKEY=sk-...
-OPENAI_MODEL=thinkinglatest     # text model — grading
-OPENAI_VISION_MODEL=Kimi-K3     # vision model — OCR only
+OPENAI_MODEL=vt-arc-llm         # text model — grading
+OPENAI_VISION_MODEL=vt-arc-llm  # vision model — OCR only
 OPENAI_MAX_INFLIGHT=3           # proxy's per-user concurrent request cap
 ```
 
@@ -78,11 +78,13 @@ OPENAI_MAX_INFLIGHT=3           # proxy's per-user concurrent request cap
 (See `.env.example`. The API key can also be overridden in the sidebar's
 collapsed **API key** panel, which is optional.)
 
-> **`OPENAI_VISION_MODEL` must name a genuinely multimodal model.** `Kimi-K3` is the
-> multimodal model on ARC; `GLM-5.3` and `DeepSeek-V4-Flash` reject images with a 400.
-> The `vision` alias no longer resolves at all (400 `Model not found`). OCR now
-> preflights the model once before transcribing anything, so a bad name fails in a
-> fraction of a second instead of after hundreds of doomed requests.
+> **Both model settings are `vt-arc-llm`.** ARC serves one alias, which does reasoning
+> and vision alike, so there is no model to choose. The two settings are kept separate
+> so OCR and grading can be pointed at different models again without a code change.
+> Name the alias, not whatever model currently sits behind it — that changes, and a
+> stale name fails with a 400 that reads like an auth error. OCR preflights the model
+> once before transcribing anything, so a bad name fails in a fraction of a second
+> instead of after hundreds of doomed requests.
 
 ## Run
 

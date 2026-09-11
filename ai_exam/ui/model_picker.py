@@ -48,8 +48,8 @@ def _arc_models(endpoint: str) -> list[str]:
 
     ARC is OpenAI-compatible, so `GET {endpoint}/models` returns
     `{"data": [{"id": ...}, ...]}`. Every id there is routable, including the
-    `preset` entries (thinking variants, `thinkinglatest`, `vision`), so
-    nothing is filtered out — the proxy is the authority on what exists.
+    `vt-arc-llm` alias that ARC now standardizes on, so nothing is filtered
+    out — the proxy is the authority on what exists.
 
     Cached for 5 minutes via `st.cache_data`; the roster changes rarely and
     this is a network round-trip on every Run-page rerun otherwise. Returns

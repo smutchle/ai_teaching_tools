@@ -8,8 +8,8 @@ The app will use .env for the LLM.  The OPENAI_VISION_MODEL model should be used
 
 OPENAI_ENDPOINT=https://llm-api.arc.vt.edu/api/v1
 OPENAI_APIKEY=sk-xxxxxxxxxxxxxxxxx
-OPENAI_MODEL=thinkinglatest
-OPENAI_VISION_MODEL=vision
+OPENAI_MODEL=vt-arc-llm
+OPENAI_VISION_MODEL=vt-arc-llm
 
 The UI should have a config tab with the following sections:
 
