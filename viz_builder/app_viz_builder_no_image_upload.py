@@ -9,7 +9,7 @@ import time
 from datetime import datetime
 from contextlib import redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
-from vt_ads_common.genai.GoogleChatBot import GoogleChatBot
+from GoogleChatBot import GoogleChatBot
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
