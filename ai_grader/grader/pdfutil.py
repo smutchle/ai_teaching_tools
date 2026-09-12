@@ -284,3 +284,50 @@ def write_unaccounted_pdf(exam_path: str, page_indices: list[int], out_path: str
     doc.save(out_path)
     doc.close()
     return out_path
+
+
+def write_failed_pages_pdf(exam_path: str, page_indices: list[int], out_path: str, *,
+                           notes: dict[int, str] | None = None,
+                           owners: dict[int, str] | None = None) -> str:
+    """Every page the scanner could not read, collected into one PDF to hand grade.
+
+    The run never stops for an unreadable page - it is re-read automatically and,
+    if it still cannot be read, it comes out here. The pages are also present in
+    their own student's PDF (under needs_grading/, because a paper containing an
+    unread page is never machine-graded); this file is the one place to look to
+    see everything the machine could not read, in scan order.
+    """
+    notes = notes or {}
+    owners = owners or {}
+    doc = fitz.open()
+    rep = _Report(doc)
+    rep.write("PAGES THE SCAN COULD NOT READ - GRADE BY HAND", size=16, bold=True,
+              wrap=60, gap=6)
+    rep.write(_san(f"{len(page_indices)} page(s) failed to transcribe, after being "
+                   "re-read automatically. They are attached after this sheet in "
+                   "scan order."), size=11, wrap=80, gap=8)
+    rep.write(_san("The paper each of these pages belongs to was NOT machine-graded: "
+                   "it is under needs_grading/ (or unassigned/, if no student was "
+                   "matched to it) with its own cover sheet and a blank score "
+                   "line."), size=11, wrap=80, gap=10)
+
+    for idx in page_indices:
+        owner = owners.get(idx, "")
+        rep.write(_san(f"Scan page {idx + 1}" + (f"  -  {owner}" if owner else "")),
+                  size=11, bold=True, wrap=80, gap=2)
+        note = (notes.get(idx) or "").strip()
+        if note:
+            rep.write(_san(note), size=9, wrap=95, gap=6)
+        else:
+            rep.space(6)
+
+    missing = _copy_pages(doc, exam_path, page_indices)
+    if missing:
+        rep2 = _Report(doc)
+        rep2.write(_san("NOTE: scanned page(s) "
+                        + ", ".join(str(i + 1) for i in missing)
+                        + " could not be read from the exam PDF and are not included."),
+                   size=11, bold=True)
+    doc.save(out_path)
+    doc.close()
+    return out_path

@@ -92,9 +92,45 @@ def error_grade(message: str) -> dict:
     }
 
 
-def needs_grading(ev: dict) -> bool:
-    """True if this submission still has to be graded (or re-graded)."""
+def hand_grading_reason(ev: dict) -> str:
+    """Why this submission can never be machine-graded, or "" if it can be.
+
+    Three things put a paper beyond the model's reach, and none of them is worth
+    stopping a run for: nobody was assigned to it, part of it could not be
+    transcribed, or none of it could. All three are decided from the scan alone,
+    before any request is made, so such a paper is routed straight to hand
+    grading instead of being sent to the model - which would answer with a
+    confident-looking score for a paper nobody read in full.
+
+    The text is what the instructor reads on the paper's cover sheet, so when
+    more than one thing is wrong it says so: a paper can be both unassigned and
+    unreadable, and hearing only half of that sends them looking in the wrong
+    place.
+    """
+    parts: list[str] = []
     if not ev.get("student_key"):
+        parts.append("No roster student was assigned to this submission.")
+    failed = ev.get("failed_pages") or []
+    if failed:
+        where = ", ".join(str(i + 1) for i in failed)
+        parts.append(f"The scan could not read page(s) {where} of this paper, even "
+                     "after re-reading them, so part of it has no transcription.")
+    elif not (ev.get("ocr_markdown") or "").strip():
+        parts.append("The scan produced no readable text for this submission.")
+    if not parts:
+        return ""
+    return " ".join(parts) + (" It was not machine-graded - grade it by hand from "
+                              "the scanned pages, which follow this sheet.")
+
+
+def needs_grading(ev: dict) -> bool:
+    """True if this submission still has to be graded (or re-graded).
+
+    A paper that can only be hand graded is never "pending": no amount of
+    re-running will produce a grade for it, so it must not sit in the queue
+    forever.
+    """
+    if hand_grading_reason(ev):
         return False
     grade = ev.get("grade")
     return grade is None or bool(grade.get("error"))
@@ -108,13 +144,12 @@ def grade_eval(llm: LLMClient, eval_rec: dict, *, quiz_name: str, rubric_text: s
     Resilient: on malformed model output, returns a zeroed grade with an error
     note rather than raising, so one bad paper never aborts a whole batch.
     """
-    if not (eval_rec.get("ocr_markdown") or "").strip():
-        # Sending an empty transcription to the model produces a confident-looking
-        # zero for a paper nobody has actually read. Flag it for hand grading.
-        return error_grade(
-            "[Not graded - the OCR produced no readable text for this submission. "
-            "Grade it by hand from the scanned pages.]"
-        )
+    reason = hand_grading_reason(eval_rec)
+    if reason:
+        # Sending an unread (or half-read) paper to the model produces a
+        # confident-looking score for something nobody transcribed. Route it to
+        # hand grading instead - it is still exported, with its scanned pages.
+        return error_grade(f"[Not graded - {reason}]")
 
     user = GRADING_USER_TEMPLATE.format(
         quiz_name=_fmt(quiz_name, "(unnamed)"),
@@ -214,9 +249,31 @@ def grade_all(llm: LLMClient, evals: list[dict], *, quiz_name: str, rubric_text:
     from concurrent.futures import ThreadPoolExecutor, as_completed
 
     candidates = [e for e in evals if e.get("student_key")]
-    gradable = [e for e in candidates if needs_grading(e)] if only_ungraded else candidates
+
+    # Papers the model can never grade (an unreadable page, nothing legible) are
+    # stamped with their reason here rather than being sent to the model or left
+    # with no grade record at all. That is what puts them in needs_grading/ with
+    # an accurate cover sheet instead of looking like a paper grading never
+    # reached.
+    hand: list[dict] = []
+    for ev in candidates:
+        reason = hand_grading_reason(ev)
+        if not reason:
+            continue
+        hand.append(ev)
+        if not (ev.get("grade") or {}).get("questions"):
+            ev["grade"] = error_grade(f"[Not graded - {reason}]")
+            if on_result:
+                try:
+                    on_result(ev)
+                except Exception:  # noqa: BLE001 - a failed checkpoint is not a failed grade
+                    pass
+
+    gradable = [e for e in candidates if needs_grading(e)] if only_ungraded \
+        else [e for e in candidates if not hand_grading_reason(e)]
     summary = {"attempted": len(gradable), "ok": 0, "failed": 0,
-               "skipped": len(candidates) - len(gradable),
+               "skipped": len(candidates) - len(gradable) - len(hand),
+               "hand": len(hand),
                "unassigned": len(evals) - len(candidates)}
     if not gradable:
         return summary

@@ -10,6 +10,10 @@ afterwards:
   * ``unassigned``    - never matched to a roster student; same cover sheet, filed
     under the page it starts on so the instructor can identify it from the scan.
 
+Two more folders cover everything that is not a submission: ``unaccounted_pages``
+(scan pages in no submission at all) and ``unreadable_pages`` (every page the
+vision model could not transcribe, collected in scan order to hand grade).
+
 An export failure on one submission never costs the others: the pages are
 re-emitted raw and the failure is recorded in the manifest.
 """
@@ -22,12 +26,13 @@ import re
 import zipfile
 from typing import Callable
 
-from . import pdfutil, roster as roster_mod
+from . import grading, ocr, pdfutil, roster as roster_mod
 
 GRADED = "graded"
 NEEDS_GRADING = "needs_grading"
 UNASSIGNED = "unassigned"
 UNACCOUNTED = "unaccounted_pages"   # scan pages in no submission at all
+UNREADABLE = "unreadable_pages"     # scan pages the vision model could not read
 
 # Subfolder inside the ZIP for each status, and the human label for the UI.
 FOLDER = {GRADED: "graded", NEEDS_GRADING: "needs_grading", UNASSIGNED: "unassigned"}
@@ -42,10 +47,16 @@ graded/
     report (score per question, comments, final score).
 
 needs_grading/
-    Papers that were NOT machine-graded - grading errored, never ran, or there
-    was nothing legible to grade. Each file starts with a cover sheet stating
-    why, with a blank score line, followed by the original scanned pages.
-    Grade these by hand.
+    Papers that were NOT machine-graded - part of the paper could not be read,
+    grading errored, grading never ran, or there was nothing legible to grade.
+    Each file starts with a cover sheet stating why, with a blank score line,
+    followed by the original scanned pages. Grade these by hand.
+
+unreadable_pages/
+    Every scanned page the vision model could not transcribe, even after being
+    re-read automatically, collected in one PDF in scan order with a note on
+    each. The paper each page belongs to is under needs_grading/. This folder is
+    absent when every page was read, which is the normal case.
 
 unaccounted_pages/
     Scanned pages that belong to NO submission - they are in no other PDF here.
@@ -63,12 +74,14 @@ manifest.csv
     and any note about what went wrong.
 
 scores.csv
-    Student and final score, ready to transcribe into the gradebook. Rows that
-    were not machine-graded have a blank score for you to fill in.
+    One row per submission - student and final score, ready to transcribe into
+    the gradebook. Rows that were not machine-graded have a blank score for you
+    to fill in. The loose-page folders above are not submissions and are not
+    listed here; they are in manifest.csv.
 
 reconciliation.txt
-    Pages of the scan not accounted for, roster students with no submission, and
-    students with more than one submission. Read this before returning papers.
+    A tally of the run: pages of the scan not accounted for, pages that could not
+    be read, and students holding more than one submission.
 """
 
 
@@ -90,9 +103,9 @@ def status_of(ev: dict) -> str:
 
 def reason_for(ev: dict) -> str:
     """Plain-English explanation of why a submission was not machine-graded."""
-    if not ev.get("student_key"):
-        return ("No roster student was assigned to this submission, so it was "
-                "never graded.")
+    reason = grading.hand_grading_reason(ev)
+    if reason:
+        return reason
     grade = ev.get("grade")
     if grade is None:
         return "Grading has not been run on this submission yet."
@@ -138,12 +151,19 @@ def display_for(ev: dict, roster: list[dict]) -> str:
     return ev.get("detected_name") or ""
 
 
-def reconcile(evals: list[dict], roster: list[dict], n_pages: int) -> dict:
-    """Cross-check the split against the scan and the roster.
+def reconcile(evals: list[dict], roster: list[dict], n_pages: int,
+              scan_pages: list[dict] | None = None) -> dict:
+    """Account for every page of the scan.
 
-    Everything an instructor needs to be sure no paper went missing: pages of
-    the scan that belong to no submission, roster students with no submission,
-    and students holding more than one.
+    What an instructor needs in order to be sure no paper went missing: pages of
+    the scan that belong to no submission, pages that could not be read, and
+    students holding more than one submission.
+
+    Roster students without a submission are deliberately NOT reported. A roster
+    always contains students who did not sit the exam - they dropped, they were
+    absent, they took it elsewhere - so "missing" students are the normal case
+    and flagging them buries the things that do need attention. Every paper that
+    exists is exported either way.
     """
     covered: set[int] = set()
     for ev in evals:
@@ -156,7 +176,6 @@ def reconcile(evals: list[dict], roster: list[dict], n_pages: int) -> dict:
         if key:
             by_student.setdefault(key, []).append(ev["id"])
 
-    missing_students = [r["name"] for r in roster if r["name"] not in by_student]
     duplicate_students = {k: v for k, v in by_student.items() if len(v) > 1}
 
     counts = {GRADED: 0, NEEDS_GRADING: 0, UNASSIGNED: 0}
@@ -167,7 +186,7 @@ def reconcile(evals: list[dict], roster: list[dict], n_pages: int) -> dict:
         "n_pages": n_pages,
         "n_pages_covered": len(covered),
         "orphan_pages": orphan_pages,
-        "missing_students": missing_students,
+        "unreadable_pages": ocr.failed_pages(scan_pages or []),
         "duplicate_students": duplicate_students,
         "counts": counts,
         "n_submissions": len(evals),
@@ -192,15 +211,14 @@ def _reconciliation_text(rec: dict) -> str:
         lines.append("Every scanned page is included in exactly one submission PDF.")
     lines.append("")
 
-    if rec["missing_students"]:
-        lines.append("ROSTER STUDENTS WITH NO SUBMISSION:")
-        for name in rec["missing_students"]:
-            lines.append(f"  {name}")
-        lines.append("")
-        lines.append("  If one of these students did sit the exam, their paper is")
-        lines.append("  probably in unassigned/ or merged into another student's PDF.")
+    if rec["unreadable_pages"]:
+        lines.append("PAGES THE SCAN COULD NOT READ:")
+        lines.append("  " + ", ".join(str(i + 1) for i in rec["unreadable_pages"]))
+        lines.append("  Collected in unreadable_pages/. The paper each one belongs")
+        lines.append("  to was not machine-graded: it is under needs_grading/, or")
+        lines.append("  unassigned/ if no student was matched to it.")
     else:
-        lines.append("Every roster student has a submission.")
+        lines.append("Every scanned page was transcribed.")
     lines.append("")
 
     if rec["duplicate_students"]:
@@ -213,14 +231,20 @@ def _reconciliation_text(rec: dict) -> str:
 
 def build_bundle(exam_path: str, evals: list[dict], roster: list[dict], *,
                  max_points: int, out_dir: str,
+                 scan_pages: list[dict] | None = None,
                  progress: Callable[[int, int, str], None] | None = None) -> dict:
     """Render every submission and pack them into a ZIP.
 
     Returns ``{"zip_bytes", "rows", "reconciliation", "counts", "failures"}``.
     A submission that cannot be rendered at all is still written out as its raw
     scanned pages and flagged in the manifest, so it reaches the instructor.
+
+    `scan_pages` is the OCR page record. Passing it adds ``unreadable_pages/`` - one
+    PDF of every page the scan could not read - so the pages a machine never
+    read arrive as paper to hand grade rather than as a line in a log.
     """
     os.makedirs(out_dir, exist_ok=True)
+    scan_pages = scan_pages or []
     n_pages = pdfutil.page_count(exam_path) if os.path.exists(exam_path) else 0
 
     used: set[str] = set()
@@ -294,7 +318,46 @@ def build_bundle(exam_path: str, evals: list[dict], roster: list[dict], *,
             if progress:
                 progress(i, total, f"Exported {fname} ({i + 1}/{total})")
 
-        rec = reconcile(evals, roster, n_pages)
+        rec = reconcile(evals, roster, n_pages, scan_pages)
+
+        # Pages the vision model could not read: one PDF, in scan order, to
+        # grade by hand. They are inside their own student's PDF too, but that
+        # PDF is filed under the student's name - this is the only place the
+        # instructor can see everything the machine failed to read at once.
+        if rec["unreadable_pages"]:
+            bad = rec["unreadable_pages"]
+            fname = "unreadable_pages.pdf"
+            arcname = f"{UNREADABLE}/{fname}"
+            sub_dir = os.path.join(out_dir, UNREADABLE)
+            os.makedirs(sub_dir, exist_ok=True)
+            out_path = os.path.join(sub_dir, fname)
+            note = (f"{len(bad)} page(s) could not be transcribed and were not "
+                    "machine-graded. Grade them by hand.")
+            owners: dict[int, str] = {}
+            for ev in evals:
+                who = display_for(ev, roster) or ev.get("id", "")
+                for idx in ev.get("page_indices") or []:
+                    if idx in set(bad):
+                        owners[idx] = f"submission {ev.get('id', '')} - {who}" \
+                            if who else f"submission {ev.get('id', '')}"
+            notes = {i: (scan_pages[i].get("error") or "") for i in bad
+                     if i < len(scan_pages) and scan_pages[i]}
+            try:
+                pdfutil.write_failed_pages_pdf(exam_path, bad, out_path,
+                                               notes=notes, owners=owners)
+            except Exception as e:  # noqa: BLE001 - never lose the rest of the bundle
+                note = f"COULD NOT EXPORT: {type(e).__name__}: {e}"
+                failures.append(f"unreadable pages: {e}")
+                arcname = ""
+            if arcname and os.path.exists(out_path):
+                zf.write(out_path, arcname=arcname)
+                rows.append({
+                    "file": arcname, "status": UNREADABLE, "student": "",
+                    "detected_name": "", "submission_id": "",
+                    "first_page": bad[0] + 1, "last_page": bad[-1] + 1,
+                    "n_pages": len(bad), "raw_score": None, "curve_added": None,
+                    "final_score": None, "max_points": max_points, "note": note,
+                })
 
         # Pages in no submission are somebody's work too: export them rather
         # than only naming them in reconciliation.txt.
@@ -336,6 +399,12 @@ def build_bundle(exam_path: str, evals: list[dict], roster: list[dict], *,
         sw = csv.writer(scores)
         sw.writerow(["student", "final_score", "max_points", "status", "file"])
         for r in rows:
+            # One row per submission. The page buckets are not submissions and
+            # have no student, so they would only add blank lines to a file whose
+            # whole job is to be transcribed into a gradebook; they are in
+            # manifest.csv and reconciliation.txt instead.
+            if r["status"] in (UNACCOUNTED, UNREADABLE):
+                continue
             sw.writerow([r["student"] or r["detected_name"] or r["submission_id"],
                          r["final_score"], max_points, r["status"], r["file"]])
         zf.writestr("scores.csv", scores.getvalue())

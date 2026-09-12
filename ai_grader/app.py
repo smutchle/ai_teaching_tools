@@ -7,11 +7,15 @@ rubric, press **Scan & grade everything**, and the app runs the whole pipeline �
 scan & split, a consistency check, grading, curve, and the download bundle —
 reporting where it is the entire time.
 
-The one place it deliberately stops is when the scan cannot be trusted: it then
-shows what the scan actually produced, page by page, and hands control back so
-the split, the transcription and the student assignments can be fixed before a
-single paper is graded. A wrong split silently merges two students into one
-grade, so it is worth the interruption.
+The run is unattended from end to end. Nothing stops it: a page that fails to
+transcribe is re-read automatically and, if it still cannot be read, it comes
+out as a PDF to grade by hand along with the paper it belongs to; a paper no
+roster student matched is exported unassigned; roster students with no paper are
+not reported at all, because a roster always holds students who did not sit the
+exam. Every quiz in the scan is in the download, graded or not, assigned or not.
+
+The Check the scan panel is still there afterwards, showing what the scan
+produced page by page, for corrections worth re-grading by machine.
 
 Everything lives in one working directory backed by a single state.json that is
 checkpointed after every page and every paper.
@@ -180,12 +184,24 @@ def page_image(pdf_path: str, mtime: float, page_index: int, dpi: int = 120) -> 
 
 
 # ------------------------------------------------------- scan health checks
-def scan_blockers(pages: list[dict], evals: list[dict],
-                  roster: list[dict]) -> list[str]:
-    """Reasons the scan must be looked at before anything is graded.
+# How many times a page that failed to transcribe is re-read automatically
+# before it is given up on and sent out as paper to hand grade. Transcription
+# failures are usually a timeout or a throttled request, so a retry costs one
+# page and usually succeeds; this is what a human used to do by hand.
+AUTO_RESCAN_PASSES = 2
 
-    Each of these means a grade could come out attached to the wrong pages or
-    the wrong person — cheap to fix now, invisible and expensive later.
+
+def scan_issues(pages: list[dict], evals: list[dict],
+                roster: list[dict]) -> list[str]:
+    """Things about this scan worth a human's eyes afterwards.
+
+    Nothing here stops the run. Every one of these outcomes has an automatic
+    answer - the paper is exported for hand grading, with its scanned pages and
+    a cover sheet - so the list is a report on what came out, not a gate in
+    front of it.
+
+    Roster students with no submission are deliberately absent: a roster holds
+    students who did not sit the exam, so that is not news.
     """
     out: list[str] = []
     if not pages:
@@ -193,33 +209,41 @@ def scan_blockers(pages: list[dict], evals: list[dict],
 
     bad = ocr.failed_pages(pages)
     if bad:
-        out.append(f"**{len(bad)} page(s) could not be read** — pages {_plist(bad)}. "
-                   "Their text is missing, so any paper containing them would be "
-                   "graded off an incomplete transcription.")
+        out.append(f"**{len(bad)} page(s) could not be read** — pages {_plist(bad)}, "
+                   "each re-read automatically before being given up on. They are "
+                   "exported under `unreadable_pages/`, and the paper each one "
+                   "belongs to went out for hand grading (under `needs_grading/`, or "
+                   "`unassigned/` if no student matched it) rather than being scored "
+                   "off an incomplete transcription.")
 
     unsure = ocr.unconfident_pages(pages)
     if unsure:
         out.append(f"**{len(unsure)} page(s) have a guessed split boundary** — pages "
-                   f"{_plist(unsure)}. It is unknown whether they start a student's "
-                   "paper, so the papers around them may be split wrongly.")
+                   f"{_plist(unsure)}. Each one started a new submission, so the "
+                   "papers around them may be split in the wrong place.")
 
     blank = ocr.empty_pages(pages)
     if len(blank) >= max(1, len(pages) // 2):
         out.append(f"**{len(blank)} of {len(pages)} page(s) transcribed to nothing.** "
                    "The configured vision model is probably not multimodal — "
                    "OPENAI_VISION_MODEL should be `vt-arc-llm`.")
+    elif blank:
+        out.append(f"{len(blank)} page(s) transcribed to nothing (pages "
+                   f"{_plist(blank)}) — usually a blank back page.")
 
     if not evals:
         out.append("**The scan produced no submissions at all.**")
-    elif roster and len(evals) < len(roster):
-        out.append(f"**{len(evals)} submission(s) for {len(roster)} roster "
-                   f"student(s).** {len(roster) - len(evals)} student(s) cannot have "
-                   "a paper of their own, which almost always means a split boundary "
-                   "was missed and two students share one submission.")
 
-    if evals and not any(e.get("student_key") for e in evals):
-        out.append("**No submission was matched to a roster student**, so there is "
-                   "nothing to grade yet.")
+    unassigned = [e for e in evals if not e.get("student_key")]
+    if unassigned:
+        out.append(f"{len(unassigned)} submission(s) have no student assigned. They "
+                   "are not graded, but they are exported under `unassigned/` with "
+                   "the name the scan read — no paper is dropped.")
+
+    hand = [e for e in evals if e.get("student_key") and grading.hand_grading_reason(e)]
+    if hand:
+        out.append(f"{len(hand)} assigned paper(s) could not be machine-graded and "
+                   "are exported under `needs_grading/` with a blank score line.")
     return out
 
 
@@ -230,25 +254,6 @@ def problem_pages(pages: list[dict], evals: list[dict]) -> list[int]:
     flagged |= {e["page_indices"][0] for e in evals
                 if not e.get("student_key") and e.get("page_indices")}
     return sorted(flagged)
-
-
-def scan_warnings(pages: list[dict], evals: list[dict],
-                  roster: list[dict]) -> list[str]:
-    """Worth knowing, but not worth stopping the run for."""
-    out: list[str] = []
-    unassigned = [e for e in evals if not e.get("student_key")]
-    if unassigned:
-        out.append(f"{len(unassigned)} submission(s) have no student assigned. They "
-                   "are not graded, but they are still exported as ungraded PDFs — "
-                   "no paper is dropped.")
-    if roster and len(evals) > len(roster):
-        out.append(f"{len(evals)} submission(s) but only {len(roster)} roster "
-                   "student(s) — a paper is probably split in the wrong place.")
-    blank = ocr.empty_pages(pages)
-    if blank and len(blank) < max(1, len(pages) // 2):
-        out.append(f"{len(blank)} page(s) transcribed to nothing (pages "
-                   f"{_plist(blank)}) — usually a blank back page.")
-    return out
 
 
 # ---------------------------------------------------------------- run panel
@@ -352,11 +357,17 @@ class RunUI:
 
 # ----------------------------------------------------------------- pipeline
 def run_pipeline(plan: dict, ui: RunUI) -> None:
-    """Run scan → check → grade → package, stopping at whatever the plan omits.
+    """Run scan → check → grade → package, start to finish, without stopping.
 
     `plan` keys: ``scan`` ("all" | "failed" | None), ``grade`` ("all" | True |
-    None), ``export`` (bool), ``force`` (bool — skip the scan check because the
-    user looked at it and chose to go on).
+    None), ``export`` (bool).
+
+    Nothing in a scan stops this. A page that fails is re-read automatically and,
+    if it still cannot be read, the paper containing it goes to hand grading; a
+    submission nobody matched to a roster student is exported unassigned; a
+    grading request that dies takes its own paper with it and no other. The run
+    always ends at the package step, so every quiz in the scan comes out the far
+    end whether or not it could be graded or assigned.
     """
     s = get_state()
     c = s["config"]
@@ -367,8 +378,9 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
         llm = get_llm() if (plan.get("scan") or plan.get("grade")) else None
     except RuntimeError as e:
         ui.halt(PHASES[0][0] if plan.get("scan") else "grade",
-                f"⛔ {e}  \nSet the API key in the sidebar under **API key**, or "
-                "put OPENAI_APIKEY in the app's .env file.")
+                f"⛔ {e}  \nSet the API key in the sidebar under **API key** — set "
+                "one up for free at https://llm.arc.vt.edu — or put OPENAI_APIKEY "
+                "in the app's .env file.")
         return
 
     # ------------------------------------------------------------ 1. scan
@@ -385,6 +397,8 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
             s["pages"] = pages_so_far
             save()
 
+        pages = list(prior)
+        misconfigured = False
         try:
             pages = ocr.ocr_pages(
                 llm, path, progress=ui.step, on_page=_checkpoint,
@@ -392,21 +406,43 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
                 indices=retry if failed_only else None,
             )
         except PermanentLLMError as e:
-            ui.halt("scan", f"⛔ {e}\n\nNothing was scanned, so nothing was charged "
-                            "for. Fix the model configuration and run again.")
-            return
+            # A bad model name or key, not a bad page. Retrying cannot help, so
+            # the only question is whether anything was read before it showed up.
+            misconfigured = True
+            pages = s.get("pages") or pages
+            if not pages:
+                ui.halt("scan", f"⛔ {e}\n\nNothing was scanned, so nothing was "
+                                "charged for. Fix the model configuration and run "
+                                "again.")
+                return
+            ui.say(f"⚠ Scan stopped: {e}. Continuing with the pages already read — "
+                   "the rest go out as pages to grade by hand.")
         except Exception as e:  # noqa: BLE001 - keep whatever pages did land
-            if s.get("pages"):
-                s["evals"] = ocr.build_evals(s["pages"], roster,
-                                             prior=s.get("evals", []))
-                save()
-                ui.halt("scan", f"Scan stopped early: {e}. Every page read before the "
-                                "failure was saved — use **Re-scan failed pages** "
-                                "below to finish.")
-            else:
+            pages = s.get("pages") or pages
+            if not pages:
                 ui.halt("scan", f"Scan failed: {e}")
-            st.session_state["scan_token"] = st.session_state.get("scan_token", 0) + 1
-            return
+                return
+            ui.say(f"⚠ Scan stopped early: {e}. Every page read before the failure "
+                   "was kept; the rest go out as pages to grade by hand.")
+
+        # Re-read the pages that failed, automatically. A transcription failure is
+        # usually a timeout or a throttled request, and retrying one page is far
+        # cheaper than the paper it would otherwise send to hand grading.
+        # ...unless the model itself is misconfigured, in which case every retry
+        # would fail the same way.
+        for attempt in range(1, (0 if misconfigured else AUTO_RESCAN_PASSES) + 1):
+            bad = ocr.failed_pages(pages)
+            if not bad:
+                break
+            ui.phase("scan", f"re-reading {len(bad)} page(s) that failed "
+                             f"(automatic pass {attempt} of {AUTO_RESCAN_PASSES})")
+            try:
+                pages = ocr.ocr_pages(llm, path, progress=ui.step,
+                                      on_page=_checkpoint, pages=pages, indices=bad)
+            except Exception as e:  # noqa: BLE001 - a failed retry is not a failed run
+                ui.say(f"⚠ The re-read pass stopped: {e}. Pages still unread go out "
+                       "as paper to grade by hand.")
+                break
 
         s["pages"] = pages
         s["evals"] = ocr.build_evals(
@@ -416,7 +452,11 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
         # Open the review on the first page that needs looking at, not page 1.
         trouble = problem_pages(pages, s["evals"])
         st.session_state["ocr_page_idx"] = trouble[0] if trouble else 0
-        ui.complete("scan", f"{len(pages)} page(s) → {len(s['evals'])} submission(s).")
+        still_bad = ocr.failed_pages(pages)
+        ui.complete("scan", f"{len(pages)} page(s) → {len(s['evals'])} submission(s)"
+                            + (f"; {len(still_bad)} page(s) still unread after "
+                               f"{AUTO_RESCAN_PASSES} retr(ies) — exported to grade "
+                               "by hand." if still_bad else "; every page was read."))
     else:
         ui.skip("scan", "using the existing scan")
 
@@ -424,31 +464,27 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
     evals = s.get("evals", [])
 
     # ----------------------------------------------------------- 2. check
-    if plan.get("grade"):
-        ui.phase("check", "cross-checking the split against the roster")
-        blockers = scan_blockers(pages, evals, roster)
-        if plan.get("force"):
-            ui.skip("check", f"you chose to grade with {len(blockers)} issue(s) "
-                             "outstanding" if blockers else "you chose to grade anyway")
-        elif blockers:
-            trouble = problem_pages(pages, evals)
-            if trouble:
-                st.session_state["ocr_page_idx"] = trouble[0]
-            ui.halt("check", "**The scan needs your attention before grading.** "
-                             "What it produced is shown below — fix the split, the "
-                             "transcription or the student assignments, then press "
-                             "**Continue** there.")
-            return
-        else:
-            ui.complete("check", f"{len(pages)} page(s), {len(evals)} submission(s), "
-                                 "every check passed.")
+    # A report, not a gate. Everything it can find has an automatic answer, and
+    # taking that answer beats stopping a batch of 40 papers on page 12.
+    if plan.get("grade") or plan.get("export"):
+        ui.phase("check", "accounting for every page and every submission")
+        issues = scan_issues(pages, evals, roster)
+        for msg in issues:
+            ui.say("• " + msg.replace("**", ""))
+        assigned = sum(1 for e in evals if e.get("student_key"))
+        ui.complete("check", f"{len(pages)} page(s), {len(evals)} submission(s), "
+                             f"{assigned} with a student."
+                    + (f" {len(issues)} thing(s) to look at afterwards — none of "
+                       "them stop the run; see section 4."
+                       if issues else " Every check passed."))
     else:
-        ui.skip("check", "nothing to grade in this run")
+        ui.skip("check", "nothing to check in this run")
 
     # ----------------------------------------------------------- 3. grade
     if plan.get("grade"):
         regrade = plan["grade"] == "all"
         todo = [e for e in evals if e.get("student_key")
+                and not grading.hand_grading_reason(e)
                 and (regrade or grading.needs_grading(e))]
         ui.phase("grade", f"grading {len(todo)} paper(s) against the rubric")
 
@@ -484,13 +520,18 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
         save()
 
         if grade_error:
-            ui.halt("grade", f"Grading stopped early: {grade_error}. Grades finished "
-                             "before the failure were saved — press **Grade the "
-                             "remaining papers** below to continue.")
-            return
-        ui.complete("grade", f"{result['ok']} graded, {result['failed']} failed, "
-                             f"{result['skipped']} already had a grade."
-                    if result else "nothing needed grading.")
+            # Not a halt: the papers that were graded are graded, and the ones
+            # that were not are exported for hand grading below.
+            ui.say(f"⚠ Grading stopped early: {grade_error}. Grades finished before "
+                   "the failure were kept; the rest are packaged for hand grading. "
+                   "**Grade the remaining papers** picks up where this left off.")
+            ui.complete("grade", f"stopped early ({grade_error}) — finished grades "
+                                 "kept, the rest go out for hand grading.")
+        else:
+            ui.complete("grade", f"{result['ok']} graded, {result['failed']} failed, "
+                                 f"{result.get('hand', 0)} sent to hand grading, "
+                                 f"{result['skipped']} already had a grade."
+                        if result else "nothing needed grading.")
     else:
         ui.skip("grade", "not part of this run")
 
@@ -503,7 +544,8 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
         try:
             bundle = export.build_bundle(
                 path, evals, roster, max_points=int(c["max_points"]),
-                out_dir=os.path.join(c["working_dir"], "graded"), progress=ui.step)
+                scan_pages=pages, progress=ui.step,
+                out_dir=os.path.join(c["working_dir"], "graded"))
         except Exception as e:  # noqa: BLE001
             ui.halt("export", f"Export failed: {e}")
             return
@@ -517,10 +559,13 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
         st.session_state["zip_rows"] = bundle["rows"]
         st.session_state["zip_failures"] = bundle["failures"]
         counts = bundle["counts"]
+        unread = bundle["reconciliation"]["unreadable_pages"]
         ui.complete("export", f"{len(bundle['rows'])} PDF(s) — "
                               f"{counts[export.GRADED]} graded, "
                               f"{counts[export.NEEDS_GRADING]} for hand grading, "
-                              f"{counts[export.UNASSIGNED]} unassigned.")
+                              f"{counts[export.UNASSIGNED]} unassigned"
+                              + (f", plus {len(unread)} unreadable page(s)."
+                                 if unread else "."))
     else:
         ui.skip("export", "not part of this run")
 
@@ -605,8 +650,13 @@ with st.sidebar:
     with st.expander("🔑 API key — optional", expanded=False):
         st.caption(
             "**You do not need to enter anything here.** The app already reads "
-            "`OPENAI_APIKEY` from its `.env` file. Only fill this in if you want "
-            "to bill a different key for this project.")
+            "`OPENAI_APIKEY` from its `.env` file.")
+        st.caption(
+            "You can set up your own key at "
+            "[llm.arc.vt.edu](https://llm.arc.vt.edu) and paste it below. "
+            "**It costs nothing** — each key is limited in how much it can be "
+            "used, so bringing your own leaves room on the shared key for "
+            "everyone else.")
         c["api_key_override"] = st.text_input(
             "ARC API key override", value=c.get("api_key_override", ""),
             type="password", placeholder="leave blank to use .env",
@@ -616,7 +666,8 @@ with st.sidebar:
         elif os.getenv("OPENAI_APIKEY"):
             st.success("Using the key from .env ✓")
         else:
-            st.warning("No key in .env — enter one here to run the app.")
+            st.warning("No key in .env — get one free at https://llm.arc.vt.edu "
+                       "and enter it here to run the app.")
 
     st.divider()
     st.markdown("### 📊 Status")
@@ -645,8 +696,9 @@ with st.sidebar:
 # ------------------------------------------------------------------- header
 st.title("📝 AI Grader")
 st.caption("Fill in the exam below, add the scan and the rubric, then press one "
-           "button. The app scans, splits, checks, grades, curves and packages "
-           "everything — and stops to ask only if the scan cannot be trusted.")
+           "button. The app scans, splits, grades, curves and packages everything "
+           "in one unattended run — anything it cannot read, grade or assign comes "
+           "out as a PDF to grade by hand.")
 
 roster = load_roster_safe()
 pages = state.get("pages", [])
@@ -777,9 +829,12 @@ with st.container(border=True):
     if st.button("🚀  Scan & grade everything", type="primary",
                  width="stretch", disabled=bool(missing)):
         queue({"scan": "all", "grade": True, "export": True})
-    st.caption("Scans and splits the exam → checks the split → grades every "
-               "paper → applies the curve → builds the download. It stops and "
-               "asks only if the scan cannot be trusted.")
+    st.caption("Scans and splits the exam → accounts for every page → grades "
+               "every paper → applies the curve → builds the download. It runs "
+               "start to finish without stopping: a page that cannot be read is "
+               "re-read automatically and then exported as paper to grade by "
+               "hand, and every quiz comes out in the download whether or not it "
+               "could be graded or assigned.")
 
     if pages:
         with st.expander("Run only part of it"):
@@ -795,13 +850,13 @@ with st.container(border=True):
                          width="stretch",
                          help="Grades only papers with no grade yet, plus any that "
                               "errored."):
-                queue({"grade": True, "export": True, "force": True})
+                queue({"grade": True, "export": True})
             if b3.button("♻️ Re-grade everything",
                          disabled=not any(e.get("student_key") for e in evals),
                          width="stretch",
                          help="Throws away existing grades and grades every "
                               "assigned paper again."):
-                queue({"grade": "all", "export": True, "force": True})
+                queue({"grade": "all", "export": True})
             if b4.button("📦 Rebuild the download", disabled=not evals,
                          width="stretch",
                          help="Re-renders the PDFs and the ZIP from the current "
@@ -822,29 +877,33 @@ with st.container(border=True):
 
 # ============================================================ REVIEW / FIX
 if pages:
-    # Recomputed every pass, so the panel reflects the fixes made inside it
-    # rather than the state of the world when the run stopped.
-    blockers = scan_blockers(pages, evals, roster)
-    warnings = scan_warnings(pages, evals, roster)
-    st.markdown("### 4 · Check the scan" + ("  🚨" if blockers else ""))
+    # Recomputed every pass, so the panel reflects the corrections made inside
+    # it rather than the state of the world when the run finished.
+    issues = scan_issues(pages, evals, roster)
+    st.markdown("### 4 · Check the scan")
 
     with st.container(border=True):
-        if blockers:
-            st.error("**Grading stopped — the scan needs a human.** Fix these "
-                     "below, then press Continue.")
-            for b in blockers:
-                st.markdown(f"- {b}")
+        if issues:
+            st.info("**The run finished.** Everything below already has an answer "
+                    "in the download — unread pages, ungraded papers and "
+                    "unassigned papers are all exported as PDFs to grade by hand. "
+                    "Correct anything you want graded by machine instead, then "
+                    "re-grade.")
+            for msg in issues:
+                st.markdown(f"- {msg}")
         else:
-            st.success("The scan passed every consistency check.")
-        for w in warnings:
-            st.warning(w)
+            st.success("Every page was read, split and assigned — nothing needs "
+                       "your attention.")
 
         # The scan's own output, all in one place: being told a page failed is
         # not the same as being shown what came back for it.
         bad = ocr.failed_pages(pages)
         if bad:
             with st.expander(f"🔬 What the scan returned for the {len(bad)} failed "
-                             "page(s)", expanded=bool(blockers)):
+                             "page(s)", expanded=True):
+                st.caption("These were re-read automatically and still failed. They "
+                           "are in the download under `unreadable_pages/`, and the "
+                           "paper each one belongs to is under `needs_grading/`.")
                 for idx in bad[:20]:
                     st.markdown(f"**Page {idx + 1}** — {pages[idx].get('error')}")
                     raw = pages[idx].get("raw")
@@ -858,15 +917,16 @@ if pages:
 
         cc1, cc2, cc3 = st.columns(3)
         if cc1.button(f"🔁 Re-scan {len(bad)} failed page(s), then grade",
-                      disabled=not bad, width="stretch", type="primary"
-                      if (blockers and bad) else "secondary"):
+                      disabled=not bad, width="stretch",
+                      help="Tries the unread pages again. They were already retried "
+                           "automatically, so this is worth pressing only after the "
+                           "proxy or the model configuration has changed."):
             queue({"scan": "failed", "grade": True, "export": True})
-        if cc2.button("▶️ Continue — grade & package", width="stretch",
-                      type="primary" if (blockers and not bad) else "secondary",
-                      help="Grades every submission that has a student assigned, "
-                           "even with the warnings above outstanding. Nothing is "
-                           "dropped — ungraded papers are still exported."):
-            queue({"grade": True, "export": True, "force": True})
+        if cc2.button("▶️ Grade & package again", width="stretch",
+                      help="Grades every paper that has a student and a full "
+                           "transcription, then rebuilds the download — the way to "
+                           "pick up corrections made below."):
+            queue({"grade": True, "export": True})
         if cc3.button("💾 Save my corrections", width="stretch"):
             save()
             st.success("Saved.")
@@ -1044,11 +1104,11 @@ if any(e.get("grade") for e in evals):
                     f"points ({int(c['max_points'])}); every score is at the max "
                     "but the average still cannot reach the target.")
             if summary.get("partial"):
-                st.warning(
-                    f"The curve used only the {summary.get('n', 0)} graded "
-                    f"paper(s) — {summary.get('n_ungraded', 0)} submission(s) are "
-                    "not graded yet. Finish grading and re-check the curve before "
-                    "releasing scores.")
+                st.info(
+                    f"The curve used the {summary.get('n', 0)} machine-graded "
+                    f"paper(s). {summary.get('n_ungraded', 0)} submission(s) go out "
+                    "for hand grading and are not in it — score those by hand, then "
+                    "re-check the average before releasing scores.")
 
         rows = []
         for e in evals:
@@ -1083,10 +1143,12 @@ if any(e.get("grade") for e in evals):
                     st.caption("It is still included in the download as an ungraded "
                                "PDF with a hand-grading cover sheet.")
                 if e.get("failed_pages"):
-                    st.error("The scan failed on page(s) "
+                    st.error("The scan could not read page(s) "
                              + _plist(e["failed_pages"])
-                             + " — any grade here came from an incomplete "
-                               "transcription. Check it against the scan.")
+                             + " — this paper was not machine-graded off a partial "
+                               "transcription. It is in the download under "
+                               "`needs_grading/`, and those pages are also in "
+                               "`unreadable_pages/`.")
                 for q in g.get("questions", []):
                     st.markdown(f"**Q{q['number']}: {q['score']}/{q['max']}** — "
                                 f":red[{q.get('comment', '')}]")
@@ -1098,7 +1160,8 @@ if any(e.get("grade") for e in evals):
 if evals and os.path.exists(exam_path()):
     st.markdown("### 6 · Download")
     with st.container(border=True):
-        rec = export.reconcile(evals, roster, pdfutil.page_count(exam_path()))
+        rec = export.reconcile(evals, roster, pdfutil.page_count(exam_path()),
+                               pages)
         counts = rec["counts"]
         d1, d2, d3, d4 = st.columns(4)
         d1.metric("Submissions", rec["n_submissions"])
@@ -1106,25 +1169,26 @@ if evals and os.path.exists(exam_path()):
         d3.metric("✋ Hand grade", counts[export.NEEDS_GRADING])
         d4.metric("⚠️ Unassigned", counts[export.UNASSIGNED])
 
-        with st.expander("🔎 Reconciliation — read this before returning papers",
-                         expanded=bool(rec["orphan_pages"] or rec["missing_students"]
+        with st.expander("🔎 Reconciliation — every page of the scan accounted for",
+                         expanded=bool(rec["orphan_pages"] or rec["unreadable_pages"]
                                        or rec["duplicate_students"])):
             if rec["orphan_pages"]:
-                st.error(f"{len(rec['orphan_pages'])} scanned page(s) belong to no "
-                         f"submission: {_plist(rec['orphan_pages'], 40)}. They are "
-                         "exported on their own under `unaccounted_pages/` so they "
-                         "are not lost — but fix the split above and rebuild the "
-                         "download if they belong to a student.")
+                st.warning(f"{len(rec['orphan_pages'])} scanned page(s) belong to no "
+                           f"submission: {_plist(rec['orphan_pages'], 40)}. They are "
+                           "exported on their own under `unaccounted_pages/` so they "
+                           "are not lost — fix the split above and rebuild the "
+                           "download if they belong to a student.")
             else:
                 st.success(f"All {rec['n_pages']} scanned page(s) are covered by "
                            "exactly one submission.")
-            if rec["missing_students"]:
-                st.warning(f"{len(rec['missing_students'])} roster student(s) have "
-                           "no submission. If they sat the exam, their paper is "
-                           "probably among the unassigned ones — assign it above.")
-                st.caption(", ".join(rec["missing_students"]))
-            elif roster:
-                st.success("Every roster student has a submission.")
+            if rec["unreadable_pages"]:
+                st.warning(f"{len(rec['unreadable_pages'])} page(s) could not be "
+                           f"read: {_plist(rec['unreadable_pages'], 40)}. They are "
+                           "exported under `unreadable_pages/`, and the paper each "
+                           "belongs to is under `needs_grading/` — grade those by "
+                           "hand.")
+            else:
+                st.success("Every scanned page was transcribed.")
             if rec["duplicate_students"]:
                 st.warning("These students have more than one submission, which "
                            "usually means a split boundary is wrong: "
@@ -1147,10 +1211,12 @@ if evals and os.path.exists(exam_path()):
                                    file_name=f"{quiz}_submissions.zip",
                                    mime="application/zip", type="primary",
                                    width="stretch")
-            st.caption("Inside: `graded/`, `needs_grading/`, `unassigned/`, plus "
-                       "`manifest.csv`, `scores.csv` (blank scores to fill in by "
-                       "hand) and `reconciliation.txt`. Every submission is in "
-                       "there — nothing is dropped because grading failed.")
+            st.caption("Inside: `graded/`, `needs_grading/`, `unassigned/`, "
+                       "`unreadable_pages/`, plus `manifest.csv`, `scores.csv` "
+                       "(blank scores to fill in by hand) and "
+                       "`reconciliation.txt`. Every submission is in there — "
+                       "nothing is dropped because grading failed, because no "
+                       "student matched, or because a page would not read.")
             rows = st.session_state.get("zip_rows") or []
             if rows:
                 with st.expander("Manifest — one row per submission"):
