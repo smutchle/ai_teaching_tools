@@ -250,6 +250,15 @@ def save_state(state: dict[str, Any]) -> str:
     return path
 
 
+def _unread_page() -> dict[str, Any]:
+    """A stand-in for a page record that was never written. Mirrors the shape
+    `ocr._failed_page` produces: unread, and its split boundary not to be
+    trusted."""
+    return {"is_new_submission": False, "is_start": True,
+            "boundary_confident": False, "student_name": "", "markdown": "",
+            "answers": [], "raw": "", "error": "this page was not read by the scan"}
+
+
 def load_state(working_dir: str) -> dict[str, Any]:
     """Load state.json from a working dir, merging over defaults.
 
@@ -267,7 +276,10 @@ def load_state(working_dir: str) -> dict[str, Any]:
     state["config"].update(loaded.get("config", {}))
     # Force working_dir to the directory we actually loaded from.
     state["config"]["working_dir"] = working_dir
-    state["pages"] = loaded.get("pages", [])
+    # A scan interrupted by an older build could checkpoint a page list with
+    # holes in it, and the review UI indexes straight into this list.
+    state["pages"] = [p if isinstance(p, dict) else _unread_page()
+                      for p in (loaded.get("pages") or [])]
     state["evals"] = loaded.get("evals", [])
     state["curve_summary"] = loaded.get("curve_summary", {})
     return state

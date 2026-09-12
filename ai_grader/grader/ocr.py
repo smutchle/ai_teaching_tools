@@ -182,7 +182,7 @@ def ocr_pages(llm: LLMClient, exam_path: str, concurrency: int = 0,
     caller checkpoint to disk; a page that has been transcribed is never
     transcribed twice because the run was interrupted afterwards.
     """
-    from concurrent.futures import ThreadPoolExecutor, as_completed
+    from concurrent.futures import CancelledError, ThreadPoolExecutor, as_completed
 
     n = pdfutil.page_count(exam_path)
     if pages is None or len(pages) != n:
@@ -190,10 +190,13 @@ def ocr_pages(llm: LLMClient, exam_path: str, concurrency: int = 0,
     else:
         pages = list(pages)
     todo = [i for i in (indices if indices is not None else range(n)) if 0 <= i < n]
-    # Anything never attempted still needs a record, even outside `indices`.
+    # Every page gets a record up front, including the ones this run is about to
+    # read. `on_page` checkpoints this list to disk after each page, and a page
+    # still pending is a None the review UI would index straight into - so an
+    # interrupted scan must leave behind an unread page, not a hole.
     for i in range(n):
-        if pages[i] is None and i not in todo:
-            pages[i] = _failed_page("not OCR'd yet")
+        if pages[i] is None:
+            pages[i] = _failed_page("this page was not read by the scan")
 
     total = len(todo)
     if not total:
@@ -222,6 +225,12 @@ def ocr_pages(llm: LLMClient, exam_path: str, concurrency: int = 0,
                 permanent = permanent or e
                 for pending in futures:
                     pending.cancel()
+            except CancelledError:
+                # Cancelled by the PermanentLLMError branch above.
+                # CancelledError is a BaseException, so without this it would
+                # escape the pool, the `raise permanent` below it, and the
+                # caller's own `except Exception`.
+                pages[i] = _failed_page("the scan stopped before this page was read")
             except Exception as e:  # noqa: BLE001 - one bad page must not abort the run
                 pages[i] = _failed_page(f"{type(e).__name__}: {e}")
             done += 1
@@ -234,9 +243,6 @@ def ocr_pages(llm: LLMClient, exam_path: str, concurrency: int = 0,
                 progress(done - 1, total, f"OCR page {done} of {total}")
     if permanent:
         raise permanent
-    for i in range(n):
-        if pages[i] is None:
-            pages[i] = _failed_page("cancelled")
     return pages
 
 
