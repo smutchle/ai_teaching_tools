@@ -53,7 +53,7 @@ def chunk_text(text, max_chars=MAX_CHARS_PER_CHUNK):
     return chunks
 
 
-def process_files(uploaded_files):
+def process_files(uploaded_files, max_chars=MAX_CHARS_PER_CHUNK):
     all_text_parts = []
     for uf in uploaded_files:
         try:
@@ -64,4 +64,4 @@ def process_files(uploaded_files):
             all_text_parts.append(f"[Could not extract text from {uf.name}: {e}]")
 
     combined = "\n\n---\n\n".join(all_text_parts)
-    return chunk_text(combined)
+    return chunk_text(combined, max_chars)

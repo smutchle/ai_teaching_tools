@@ -111,16 +111,21 @@ pid = st.session_state.participant_id
 # =============================================================================
 # JOIN FORM
 # =============================================================================
+# The whole join form lives in this one placeholder. The in-game view clears it
+# explicitly on every run: the game loop always ends in st.rerun(), so Streamlit
+# never finishes a run and never clears stale elements on its own — without this
+# the join widgets linger at the bottom of the screen for the whole quiz.
+join_area = st.empty()
+
 if not st.session_state.joined:
-    if st.button("← Back to Home"):
-        st.switch_page("ai_quiz_game_app.py")
-
-    st.title("🙋 Join a Quiz")
-
-    form_area = st.empty()
     join_data = None  # set inside the with block, acted on outside it
 
-    with form_area.container():
+    with join_area.container():
+        if st.button("← Back to Home"):
+            st.switch_page("ai_quiz_game_app.py")
+
+        st.title("🙋 Join a Quiz")
+
         quiz_code = st.text_input("Quiz Code", max_chars=8, placeholder="6-digit code")
         player_name = st.text_input("Your Name", max_chars=20, placeholder="Enter your name")
 
@@ -152,7 +157,7 @@ if not st.session_state.joined:
 
     # empty() is safe here — we are outside the with block
     if join_data:
-        form_area.empty()
+        join_area.empty()
         with st.spinner("Joining…"):
             if not session_exists(join_data["qid"]):
                 create_session(join_data["qid"])
@@ -172,6 +177,8 @@ if not st.session_state.joined:
 # =============================================================================
 # IN-GAME VIEW
 # =============================================================================
+join_area.empty()
+
 quiz_id = st.session_state.participant_quiz_id
 name = st.session_state.participant_name
 emoji = st.session_state.participant_emoji

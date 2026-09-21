@@ -42,7 +42,8 @@ There is no websocket or pub/sub. All pages poll the session JSON on disk every 
 
 1. `utils/pdf_utils.py` extracts text from PDFs (via `pypdf`) and markdown/text files, then chunks at **40,000 chars** on paragraph boundaries.
 2. `utils/llm.py` calls the selected LLM with **25 questions per full chunk**, scaling proportionally for smaller chunks (floor: 5). The system prompt strictly forbids the LLM from using training knowledge — all questions must come from the supplied material.
-3. Two providers: **VT ARC** (OpenAI-compatible endpoint) and **Claude Sonnet** (Anthropic SDK). Both use the same prompt builder and JSON parser.
+3. **Import mode** (`import_questions`) instead parses pre-written prose questions with answers called out. It is extraction only: the author's wording and option order are kept (no shuffle), 2–4 options are allowed, and it uses smaller chunks (`IMPORT_CHARS_PER_CHUNK`) because the output is about as long as the input.
+4. Two providers: **VT ARC** (OpenAI-compatible endpoint) and **Claude Sonnet** (Anthropic SDK). Both use the same prompt builder and JSON parser.
 
 ### Scoring
 
@@ -69,3 +70,5 @@ Each Streamlit browser tab has its own `st.session_state`. Participant identity 
 | `MAX_CHARS_PER_CHUNK` | `utils/pdf_utils.py` | 40,000 |
 | `QUESTIONS_PER_CHUNK` | `utils/llm.py` | 25 |
 | `MIN_QUESTIONS_PER_CHUNK` | `utils/llm.py` | 5 |
+| `IMPORT_CHARS_PER_CHUNK` | `utils/llm.py` | 12,000 |
+| `ARC_MAX_TOKENS` | `utils/llm.py` | 32,000 (requires streaming; ARC caps buffered calls at 8,000) |
