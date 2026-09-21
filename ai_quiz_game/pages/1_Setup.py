@@ -49,7 +49,6 @@ for key, default in [
     ("bank_saved_id", None),        # bank_id after save
     ("bank_source_name", None),     # uploaded filename(s) the bank was built from
     ("quiz_saved_id", None),        # quiz code after quiz save
-    ("last_bank_id_for_quiz", None),# tracks which bank is loaded in Phase 2
     ("llm_provider", PROVIDERS[0]), # selected LLM provider
 ]:
     if key not in st.session_state:
@@ -223,6 +222,8 @@ if st.session_state.bank_questions:
         if st.button("💾 Save Question Bank", type="primary", use_container_width=True):
             bank_name = st.session_state.bank_source_name
             bank_id = generate_quiz_id()
+            while load_question_bank(bank_id) is not None:
+                bank_id = generate_quiz_id()
             save_question_bank(bank_id, {
                 "bank_id": bank_id,
                 "name": bank_name,
@@ -230,6 +231,7 @@ if st.session_state.bank_questions:
                 "questions": st.session_state.bank_questions,
             })
             st.session_state.bank_saved_id = bank_id
+            st.session_state.quiz_bank_select = bank_id
             st.rerun()
 
     with status_col:
@@ -252,18 +254,25 @@ if not banks:
     st.info("No question banks yet — complete Phase 1 first.")
     st.stop()
 
-# Bank selector
-bank_options = {f"{b['name']}  ({b['total_questions']} Qs)": b["bank_id"] for b in banks}
-selected_label = st.selectbox("Select a question bank", list(bank_options.keys()))
-selected_bank_id = bank_options[selected_label]
+# Bank selector. Options are bank IDs (labels can collide: same file, same count)
+# and the widget is keyed so its selection survives the bank list changing.
+bank_by_id = {b["bank_id"]: b for b in banks}
+if st.session_state.get("quiz_bank_select") not in bank_by_id:
+    st.session_state.quiz_bank_select = banks[0]["bank_id"]
+selected_bank_id = st.selectbox(
+    "Select a question bank",
+    list(bank_by_id),
+    format_func=lambda bid: (
+        f"{bank_by_id[bid]['name']}  ({bank_by_id[bid]['total_questions']} Qs)  ·  ID {bid}"
+    ),
+    key="quiz_bank_select",
+)
 
-# When the bank selection changes, clear the checkbox states from the old bank
-if st.session_state.last_bank_id_for_quiz != selected_bank_id:
-    qbank = load_question_bank(selected_bank_id)
-    if qbank:
-        for i in range(len(qbank["questions"])):
-            st.session_state.pop(f"selq_{i}", None)
-    st.session_state.last_bank_id_for_quiz = selected_bank_id
+
+def _sel_key(i: int) -> str:
+    """Checkbox key for question i of the selected bank."""
+    return f"selq_{selected_bank_id}_{i}"
+
 
 qbank = load_question_bank(selected_bank_id)
 if qbank is None:
@@ -292,12 +301,12 @@ if st.button("🎲 Randomize Selection", help="Randomly pick N questions from th
     selected_indices = random.sample(range(bank_size), min(n_quiz_q, bank_size))
     selected_set = set(selected_indices)
     for i in range(bank_size):
-        st.session_state[f"selq_{i}"] = i in selected_set
+        st.session_state[_sel_key(i)] = i in selected_set
     st.rerun()
 
 # ── Question checklist ────────────────────────────────────────────────────────
-n_checked = sum(1 for i in range(bank_size) if st.session_state.get(f"selq_{i}", False))
-any_initialized = any(f"selq_{i}" in st.session_state for i in range(bank_size))
+n_checked = sum(1 for i in range(bank_size) if st.session_state.get(_sel_key(i), False))
+any_initialized = any(_sel_key(i) in st.session_state for i in range(bank_size))
 
 if not any_initialized:
     st.info("Click **Randomize Selection** to pick a starting set, then adjust below.")
@@ -310,10 +319,10 @@ else:
 
     for i, q in enumerate(all_questions):
         label = f"**Q{i+1}:** {q['question'][:120]}"
-        st.checkbox(label, key=f"selq_{i}")
+        st.checkbox(label, key=_sel_key(i))
 
     # Recompute after render
-    n_checked = sum(1 for i in range(bank_size) if st.session_state.get(f"selq_{i}", False))
+    n_checked = sum(1 for i in range(bank_size) if st.session_state.get(_sel_key(i), False))
 
     st.divider()
     can_save = bool(quiz_title.strip()) and n_checked > 0
@@ -331,7 +340,7 @@ else:
             chosen = [
                 all_questions[i]
                 for i in range(bank_size)
-                if st.session_state.get(f"selq_{i}", False)
+                if st.session_state.get(_sel_key(i), False)
             ]
             qid = generate_quiz_id()
             while quiz_exists(qid):
