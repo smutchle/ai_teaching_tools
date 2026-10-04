@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 # Load environment variables
 load_dotenv()
 
+APP_LOGO_PATH = Path(__file__).resolve().parent / "images" / "logo.png"
+
 # Initialize Anthropic client
 client = Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
 
@@ -707,12 +709,19 @@ def autotag_pdf_with_adobe(pdf_bytes):
 def main():
     st.set_page_config(
         page_title="Notes Converter - Convert Handwritten Notes to Accessible Documents",
-        page_icon="📝",
+        page_icon=str(APP_LOGO_PATH),
         layout="wide",
         initial_sidebar_state="expanded"
     )
-    render_vt_banner()
-    st.title("📝 AI Handwritten Notes Converter")
+    render_vt_banner(app_icon_path=APP_LOGO_PATH, app_icon_alt="AI Notes Converter")
+    logo_b64 = base64.b64encode(APP_LOGO_PATH.read_bytes()).decode("ascii")
+    st.markdown(
+        '<div style="display: flex; align-items: center; gap: 18px; margin-bottom: 0.5rem;">'
+        f'<img src="data:image/png;base64,{logo_b64}" alt="AI Notes Converter logo" style="height: 72px;">'
+        '<h1 style="margin: 0; padding: 0;">Handwritten Notes Converter</h1>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
     st.markdown("""
     Upload your handwritten PDF notes to convert them to accessible digital formats including Quarto, LaTeX, Word and PDF documents.
 

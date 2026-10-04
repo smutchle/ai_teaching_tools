@@ -94,7 +94,10 @@ def main() -> None:
         layout="wide",
         initial_sidebar_state="expanded",
     )
-    render_vt_banner()
+    render_vt_banner(
+        app_icon_path=Path(__file__).resolve().parent.parent / "images" / "logo.png",
+        app_icon_alt="AI Notes Converter",
+    )
     st.title("📊 Usage Metrics")
     st.markdown(
         "Conversion activity for the AI Handwritten Notes Converter. "

@@ -11,8 +11,14 @@ Usage (call once, immediately after st.set_page_config):
 
     from vt_banner import render_vt_banner
     render_vt_banner()
+
+An app can also show its own logo as a small icon beside the VT logo by
+passing ``app_icon_path`` (read at call time, so that file must ship with
+the app).
 """
 
+import base64
+from pathlib import Path
 from urllib.parse import quote
 
 import streamlit as st
@@ -192,6 +198,11 @@ _BANNER_HTML = """
       box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
   }}
   #vt-banner img {{ height: 26px; }}
+  /* app's own icon: white rounded badge so a maroon logo stays visible */
+  #vt-banner img.vt-app-icon {{
+      height: 30px; width: 30px; object-fit: contain; background: #ffffff;
+      border-radius: 6px; padding: 2px; box-sizing: border-box;
+  }}
   #vt-banner a.vt-home, #vt-banner a.vt-help {{
       color: #ffffff; text-decoration: none; font-weight: 600;
       font-size: 0.95rem;
@@ -208,6 +219,7 @@ _BANNER_HTML = """
 </style>
 <div id="vt-banner">
   <img src="data:image/png;base64,{logo}" alt="Virginia Tech">
+  {app_icon}
   <a class="vt-home" href="{home}" target="_self">Home</a>
   <a class="vt-help" href="mailto:{help_email}?subject={help_subject}" title="{help_label}">&#9993;&#65039; {help_label}</a>
 </div>
@@ -218,13 +230,27 @@ def render_vt_banner(
     home_url: str = HOME_URL,
     help_email: str = HELP_EMAIL,
     help_subject: str = HELP_SUBJECT,
+    app_icon_path: Path | None = None,
+    app_icon_alt: str = "",
 ) -> None:
-    """Render the maroon VT banner at the top of the current page."""
+    """Render the maroon VT banner at the top of the current page.
+
+    If ``app_icon_path`` is given, that PNG is shown as a small icon beside the
+    VT logo.
+    """
+    app_icon = ""
+    if app_icon_path is not None:
+        icon_b64 = base64.b64encode(app_icon_path.read_bytes()).decode("ascii")
+        app_icon = (
+            f'<img class="vt-app-icon" src="data:image/png;base64,{icon_b64}" '
+            f'alt="{app_icon_alt}">'
+        )
     st.markdown(
         _BANNER_HTML.format(
             maroon=VT_MAROON,
             orange=VT_ORANGE,
             logo=_LOGO_B64,
+            app_icon=app_icon,
             home=home_url,
             help_email=help_email,
             help_subject=quote(help_subject, safe=""),
