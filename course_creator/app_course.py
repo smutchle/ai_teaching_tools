@@ -6,7 +6,6 @@ import pandas as pd
 import streamlit as st
 from vt_banner import render_vt_banner
 
-from config import PROVIDER_CONFIG, OLLAMA_END_POINT
 from styles import inject_css
 import tabs.settings_tab as settings_tab
 import tabs.materials_tab as materials_tab
@@ -60,12 +59,7 @@ if "topics_df" not in st.session_state:
     st.session_state.topics_df = pd.DataFrame(columns=["lecture_title", "topic_title", "topic_description", "selected"])
 
 if "selected_provider" not in st.session_state:
-    first_provider = "Anthropic"
-    for p, c in PROVIDER_CONFIG.items():
-        if c.get("models"):
-            first_provider = p
-            break
-    st.session_state.selected_provider = first_provider
+    st.session_state.selected_provider = "ARC"
 
 if "selected_model" not in st.session_state:
     st.session_state.selected_model = None
@@ -76,11 +70,9 @@ if "lecture_level" not in st.session_state:
 if "output_path" not in st.session_state:
     st.session_state.output_path = f"/tmp/{uuid.uuid4().hex}"
 
+# The user's own VT ARC key ("" = use the shared key from .env).
 if "api_key_input" not in st.session_state:
     st.session_state.api_key_input = ""
-
-if "ollama_endpoint_input" not in st.session_state:
-    st.session_state.ollama_endpoint_input = PROVIDER_CONFIG["Ollama"]["endpoint"]
 
 # RAG session state
 if "rag_mode" not in st.session_state:

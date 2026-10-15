@@ -1,6 +1,8 @@
 import streamlit as st
 
-from config import PROVIDER_CONFIG, OLLAMA_END_POINT
+from anthropic import Anthropic, APIError
+
+from config import PROVIDER_CONFIG
 
 
 def render():
@@ -11,22 +13,16 @@ def render():
     notebook_path = st.text_input("Output Path", value=st.session_state.output_path)
     st.session_state.output_path = notebook_path
 
-    # ── LLM Provider ──────────────────────────────────────────────────────────
-    st.subheader("LLM Provider Settings")
+    # ── LLM (VT ARC) ──────────────────────────────────────────────────────────
+    st.subheader("LLM Settings (VT ARC)")
+    st.session_state.selected_provider = "ARC"
+    arc = PROVIDER_CONFIG["ARC"]
 
-    available_providers = list(PROVIDER_CONFIG.keys())
-    selected_provider = st.selectbox(
-        "Select LLM Provider",
-        available_providers,
-        index=available_providers.index(st.session_state.selected_provider),
-    )
-    st.session_state.selected_provider = selected_provider
-
-    provider_models = PROVIDER_CONFIG[selected_provider].get("models", [])
+    provider_models = arc.get("models", [])
     if not provider_models:
         st.warning(
-            f"No models found for {selected_provider} in the .env file. "
-            f"Please add models (e.g., {selected_provider.upper()}_MODEL=model1,model2) to your .env file."
+            "No VT ARC model found in the .env file. "
+            "Please add one (e.g., ANTHROPIC_MODEL=vt-arc-llm) to your .env file."
         )
         st.session_state.selected_model = None
     else:
@@ -35,43 +31,64 @@ def render():
             current_model_index = provider_models.index(st.session_state.selected_model)
 
         selected_model = st.selectbox(
-            "Select Model",
+            "Model",
             provider_models,
             index=current_model_index,
-            help=f"Select the {selected_provider} model to use.",
-            key=f"model_selector_{selected_provider}",
+            help="The VT ARC model to use.",
+            key="model_selector_ARC",
         )
         st.session_state.selected_model = selected_model
 
-    api_key_label = f"{selected_provider} API Key (Optional Override)"
-    endpoint_label = f"{selected_provider} Endpoint (Optional Override)"
-
-    if selected_provider in ["Anthropic", "OpenAI", "Google"]:
-        default_key = PROVIDER_CONFIG[selected_provider].get("api_key", "")
-        if f"{selected_provider}_api_key_input" not in st.session_state:
-            st.session_state[f"{selected_provider}_api_key_input"] = default_key
-
-        api_key_input = st.text_input(
-            api_key_label,
-            value=st.session_state.get(f"{selected_provider}_api_key_input", default_key),
-            type="password",
-            help="Leave blank to use the key from .env file, or enter a key to override it.",
-            key=f"api_key_input_{selected_provider}",
+    # ── VT ARC API key: not required, but highly recommended ─────────────────
+    st.markdown("##### 🔑 LLM API key — highly recommended")
+    st.caption("Please create your own API key for the ARC models.")
+    # A stable widget key: with value= instead, the widget's ID changes once a
+    # key is entered and the user's next edit (e.g. clearing it) is discarded.
+    if "api_key_widget" not in st.session_state:
+        st.session_state.api_key_widget = st.session_state.get("api_key_input", "")
+    api_key_input = st.text_input(
+        "API key",
+        key="api_key_widget",
+        type="password",
+        placeholder="sk-…",
+        label_visibility="collapsed",
+    ).strip()
+    st.session_state.api_key_input = api_key_input
+    if api_key_input:
+        _show_key_check(api_key_input, arc["endpoint"])
+    elif arc.get("api_key"):
+        st.warning(
+            "**Highly recommended:** enter your own key. Until you do, the app's "
+            "shared key from .env is used."
         )
-        st.session_state[f"{selected_provider}_api_key_input"] = api_key_input
-        st.session_state.api_key_input = api_key_input
-        st.session_state.ollama_endpoint_input = None
+    else:
+        st.warning("No key in .env — enter your own key here to run the app.")
+    st.markdown(
+        "**Get your own VT ARC API key**\n"
+        "1. Go to [llm.arc.vt.edu](https://llm.arc.vt.edu/)\n"
+        "2. Log in with your VT credentials (PID and password)\n"
+        "3. Click your profile icon → **Settings** → **Account** → "
+        "**API Keys**\n"
+        "4. Click **Create new secret key**, name it, and click "
+        "**Create**\n"
+        "5. **Copy the key immediately** and paste it above"
+    )
 
-    elif selected_provider == "Ollama":
-        default_endpoint = PROVIDER_CONFIG[selected_provider].get("endpoint", "http://localhost:11434")
-        if "ollama_endpoint_input" not in st.session_state:
-            st.session_state.ollama_endpoint_input = default_endpoint
 
-        ollama_endpoint_input = st.text_input(
-            endpoint_label,
-            value=st.session_state.ollama_endpoint_input,
-            help="Leave blank to use the endpoint from .env file (or default), or enter an endpoint to override it.",
-            key="ollama_endpoint_input_widget",
-        )
-        st.session_state.ollama_endpoint_input = ollama_endpoint_input
-        st.session_state.api_key_input = None
+def _show_key_check(api_key: str, endpoint: str) -> None:
+    """Verify an entered ARC key once (cached per key) and show the result."""
+    if st.session_state.get("arc_key_checked") != api_key:
+        try:
+            Anthropic(
+                api_key=api_key,
+                base_url=endpoint.rstrip("/").removesuffix("/v1"),
+                max_retries=0,
+            ).models.list(limit=1)
+            st.session_state.arc_key_error = ""
+        except APIError as e:
+            st.session_state.arc_key_error = f"{type(e).__name__}: {e}"
+        st.session_state.arc_key_checked = api_key
+    if st.session_state.arc_key_error:
+        st.error(f"❌ ARC could not verify this key — {st.session_state.arc_key_error}")
+    else:
+        st.success("✓ Key verified — using the key entered here.")

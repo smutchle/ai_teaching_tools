@@ -3,10 +3,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# VT ARC hosted LLMs, reached through ARC's Anthropic-compatible API.
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-OLLAMA_END_POINT = os.getenv("OLLAMA_END_POINT", "http://localhost:11434")
+ANTHROPIC_ENDPOINT = os.getenv("ANTHROPIC_ENDPOINT", "https://llm-api.arc.vt.edu/api/v1")
 
 # Neo4j config (dedicated instance for this project)
 NEO4J_URI = os.getenv("NEO4J_URI", "bolt://localhost:7688")
@@ -22,13 +21,12 @@ def parse_models(env_var):
 
 
 ANTHROPIC_MODELS = parse_models("ANTHROPIC_MODEL")
-OPENAI_MODELS = parse_models("OPENAI_MODEL")
-GOOGLE_MODELS = parse_models("GOOGLE_MODEL")
-OLLAMA_MODELS = parse_models("OLLAMA_MODEL")
 
+# VT ARC is the only provider.
 PROVIDER_CONFIG = {
-    "Anthropic": {"api_key": ANTHROPIC_API_KEY, "models": ANTHROPIC_MODELS},
-    # "OpenAI": {"api_key": OPENAI_API_KEY, "models": OPENAI_MODELS},
-    # "Google": {"api_key": GOOGLE_API_KEY, "models": GOOGLE_MODELS},
-    "Ollama": {"endpoint": OLLAMA_END_POINT, "models": OLLAMA_MODELS},
+    "ARC": {
+        "api_key": ANTHROPIC_API_KEY,
+        "endpoint": ANTHROPIC_ENDPOINT,
+        "models": ANTHROPIC_MODELS,
+    },
 }

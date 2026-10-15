@@ -15,9 +15,7 @@ from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
-from anthropic import Anthropic
-
-from llm import create_text_message
+from llm import FailoverLLM
 from vt_departments import UNKNOWN_DEPARTMENT, VT_DEPARTMENTS
 
 METRICS_CSV_PATH: Path = Path(__file__).parent / "usage_metrics.csv"
@@ -35,12 +33,11 @@ class UsageRecord:
     department: str
 
 
-def infer_department(client: Anthropic, model: str, notes_sample: str) -> str:
+def infer_department(llm: FailoverLLM, notes_sample: str) -> str:
     """Ask the LLM which Virginia Tech department the notes most likely belong to.
 
     Args:
-        client: Configured Anthropic client.
-        model: Model identifier to use for the classification call.
+        llm: The session's LLM (ARC, or the Claude fallback).
         notes_sample: Representative extracted text from the converted notes.
 
     Returns:
@@ -69,9 +66,7 @@ Respond with ONLY the department name, copied exactly from the list above. If th
     # The budget must cover extended thinking as well as the answer: a dense
     # notes sample makes the model think, and a 50-token cap left nothing for
     # the department name itself.
-    answer = create_text_message(
-        client=client,
-        model=model,
+    answer = llm.text(
         content=prompt,
         max_tokens=1024,
         purpose="department inference",

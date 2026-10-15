@@ -39,7 +39,6 @@ def render():
                 st.session_state.selected_provider,
                 selected_model,
                 st.session_state.api_key_input,
-                st.session_state.ollama_endpoint_input,
             )
             if chatbot:
                 os.makedirs(output_path, exist_ok=True)

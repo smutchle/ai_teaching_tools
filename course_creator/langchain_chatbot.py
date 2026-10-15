@@ -1,50 +1,58 @@
 """
-Unified LLM chatbot using LangChain.
+LLM chatbot for VT ARC, using LangChain's Anthropic chat model.
 Replaces AnthropicChatBot, OllamaChatBot, OpenAIChatBot, GoogleChatBot.
 Exposes the same interface: complete(), completeAsJSON(), extract_markdown_content().
+
+ARC serves the Anthropic Messages API. Two details matter:
+- The Anthropic SDK appends "/v1/messages" to the base URL itself, so the
+  trailing "/v1" of ANTHROPIC_ENDPOINT is stripped.
+- ARC rejects non-streaming requests above 8000 output tokens (413), so every
+  request streams; streamed responses have no such cap.
 """
 from __future__ import annotations
 
-import json
 import re
 import time
 from typing import Optional
 
-from langchain_core.messages import HumanMessage, SystemMessage
+from anthropic import AuthenticationError, PermissionDeniedError
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+
+# Output ceiling per request. Streaming lifts ARC's 8000-token buffered cap, so
+# this only needs to cover the longest generation (a full notebook) plus any
+# reasoning tokens, which count against the same budget.
+MAX_OUTPUT_TOKENS: int = 64000
 
 
 def _build_llm(provider: str, model: str, api_key: Optional[str], endpoint: Optional[str]):
-    """Instantiate the appropriate LangChain chat model."""
-    if provider == "Anthropic":
-        from langchain_anthropic import ChatAnthropic
-        kwargs = {"model": model, "max_tokens": 16000}
-        if api_key:
-            kwargs["api_key"] = api_key
-        return ChatAnthropic(**kwargs)
+    """Instantiate the LangChain chat model for VT ARC."""
+    if provider != "ARC":
+        raise ValueError(f"Unknown provider: {provider}")
+    if not endpoint:
+        raise ValueError("No VT ARC endpoint configured (ANTHROPIC_ENDPOINT).")
+    from langchain_anthropic import ChatAnthropic
+    return ChatAnthropic(
+        model=model,
+        api_key=api_key,
+        base_url=endpoint.rstrip("/").removesuffix("/v1"),
+        max_tokens=MAX_OUTPUT_TOKENS,
+        streaming=True,
+    )
 
-    if provider == "OpenAI":
-        from langchain_openai import ChatOpenAI
-        kwargs = {"model": model, "temperature": 0.7}
-        if api_key:
-            kwargs["api_key"] = api_key
-        return ChatOpenAI(**kwargs)
 
-    if provider == "Google":
-        from langchain_google_genai import ChatGoogleGenerativeAI
-        kwargs = {"model": model, "temperature": 0.7}
-        if api_key:
-            kwargs["google_api_key"] = api_key
-        return ChatGoogleGenerativeAI(**kwargs)
+def _message_text(message: AIMessage) -> str:
+    """Return a response's text, skipping any thinking blocks.
 
-    if provider == "Ollama":
-        from langchain_ollama import ChatOllama
-        kwargs = {"model": model, "temperature": 0.0}
-        if endpoint:
-            base = endpoint.rstrip("/")
-            kwargs["base_url"] = base
-        return ChatOllama(**kwargs)
-
-    raise ValueError(f"Unknown provider: {provider}")
+    Reasoning models can return a list of content blocks (thinking + text)
+    rather than a plain string.
+    """
+    if isinstance(message.content, str):
+        return message.content
+    return "".join(
+        block.get("text", "")
+        for block in message.content
+        if isinstance(block, dict) and block.get("type") == "text"
+    )
 
 
 class LangChainChatBot:
@@ -78,7 +86,10 @@ class LangChainChatBot:
         for attempt in range(self.num_retries + 1):
             try:
                 response = self._llm.invoke(messages)
-                return response.content.strip()
+                return _message_text(response).strip()
+            except (AuthenticationError, PermissionDeniedError):
+                # A rejected API key won't fix itself; report it immediately.
+                raise
             except Exception as exc:
                 last_exc = exc
                 if attempt < self.num_retries:

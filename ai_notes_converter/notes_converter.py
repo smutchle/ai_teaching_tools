@@ -8,14 +8,25 @@ import shutil
 import uuid
 import time
 import logging
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from pdf2image import convert_from_path
-from anthropic import Anthropic, APIError
+from typing import Literal
+from pdf2image import convert_from_path, pdfinfo_from_path
+from pdf2image.exceptions import PDFInfoNotInstalledError, PDFPageCountError, PDFSyntaxError
+from anthropic import APIError
 from dotenv import load_dotenv
 import subprocess
 
-from llm import TruncatedResponseError, create_text_message
+from llm import (
+    FailoverLLM,
+    LLMProvider,
+    TruncatedResponseError,
+    arc_provider_from_env,
+    claude_provider_from_env,
+    verify_provider_key,
+)
 from usage_metrics import UsageRecord, infer_department, record_conversion
 from vt_departments import UNKNOWN_DEPARTMENT
 
@@ -26,11 +37,18 @@ load_dotenv()
 
 APP_LOGO_PATH = Path(__file__).resolve().parent / "images" / "logo.png"
 
-# Initialize Anthropic client
-client = Anthropic(api_key=os.getenv("CLAUDE_API_KEY"))
+# LLM providers from .env, shared by every session: VT ARC by default,
+# Anthropic Claude as the fallback when ARC is unavailable. Each session gets
+# its own FailoverLLM (see get_llm) so one session's failover doesn't affect
+# others -- and a session with its own ARC key gets its own ARC provider.
+ENV_ARC_PROVIDER: LLMProvider | None = arc_provider_from_env()
+CLAUDE_PROVIDER: LLMProvider | None = claude_provider_from_env()
 
-# Get model from environment variable with fallback
-CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
+# session_state key holding the user's own VT ARC API key ("" if none).
+ARC_KEY_STATE: str = 'arc_api_key'
+
+# Page count above which the user is advised to split the PDF.
+LARGE_DOCUMENT_PAGES: int = 50
 
 # Prefix for all temp dirs created by this app (used for both creation and reaping)
 TEMP_DIR_PREFIX = "noteconv_"
@@ -73,6 +91,98 @@ if 'temp_reaper_ran' not in st.session_state:
     reap_stale_temp_dirs()
     st.session_state.temp_reaper_ran = True
 
+def _announce_failover(primary: LLMProvider, fallback: LLMProvider, error: APIError) -> None:
+    """Tell the user this session has switched from ARC to the Claude fallback."""
+    st.warning(
+        f"⚠️ {primary.label} is unavailable ({type(error).__name__}: {error}). "
+        f"Switching to {fallback.label} for the rest of this session."
+    )
+
+
+def get_user_arc_key() -> str:
+    """Return the ARC API key the user entered in the sidebar, or "" if none."""
+    key: str = st.session_state.get(ARC_KEY_STATE, "")
+    return key.strip()
+
+
+def get_llm() -> FailoverLLM:
+    """Return this session's LLM, creating it on first use.
+
+    If the user entered their own ARC key, ARC is called with THAT key and the
+    .env ARC_API_KEY is not used. The LLM is rebuilt whenever the entered key
+    changes, so a new key takes effect on the very next call.
+
+    Stored in session_state so the ARC -> Claude switch is sticky for the
+    session; a new key, a Reset, or a new browser session starts on ARC again.
+
+    Raises:
+        ValueError: If no ARC key (entered or in .env) and no Claude key exist.
+    """
+    user_key = get_user_arc_key()
+    if 'llm' not in st.session_state or st.session_state.get('llm_key_sig') != user_key:
+        arc_provider = arc_provider_from_env(user_key) if user_key else ENV_ARC_PROVIDER
+        st.session_state.llm = FailoverLLM(
+            primary=arc_provider,
+            fallback=CLAUDE_PROVIDER,
+            on_failover=_announce_failover,
+            # A rejected user key must be reported, not hidden by the fallback.
+            fail_over_on_auth_error=not user_key,
+        )
+        st.session_state.llm_key_sig = user_key
+    llm: FailoverLLM = st.session_state.llm
+    return llm
+
+
+def render_arc_key_input() -> None:
+    """Sidebar field for the user's own VT ARC API key, with a key check.
+
+    Must run before anything calls get_llm() in a script run, so the key the
+    user just typed is the one that run uses.
+    """
+    user_key = get_user_arc_key()
+    with st.expander("🔑 VT ARC API Key", expanded=not user_key):
+        # A stable widget key: with value= instead, the widget's ID changes once
+        # a key is entered and the user's next edit (e.g. clearing it) is lost.
+        if 'arc_api_key_widget' not in st.session_state:
+            st.session_state.arc_api_key_widget = user_key
+        entered = st.text_input(
+            "Your VT ARC API key",
+            type="password",
+            key='arc_api_key_widget',
+            placeholder="sk-…",
+            help="Your personal VT ARC key. When set, every AI request in this session uses it instead of the app's shared key.",
+        ).strip()
+        st.session_state[ARC_KEY_STATE] = entered
+        if entered:
+            # Verify once per distinct key, not on every rerun.
+            if st.session_state.get('arc_key_check_for') != entered:
+                provider = arc_provider_from_env(entered)
+                assert provider is not None  # a non-blank key always builds one
+                try:
+                    verify_provider_key(provider)
+                    st.session_state.arc_key_check_error = ""
+                except APIError as e:
+                    st.session_state.arc_key_check_error = f"{type(e).__name__}: {e}"
+                st.session_state.arc_key_check_for = entered
+            if st.session_state.arc_key_check_error:
+                st.error(f"❌ ARC could not verify this key — {st.session_state.arc_key_check_error}")
+            else:
+                st.success("✓ Key verified — using your key for all AI requests.")
+        else:
+            st.warning(
+                "**Strongly recommended:** enter your own VT ARC key. Without one, "
+                "the app's shared key is used."
+            )
+        st.markdown(
+            "**Get your own VT ARC API key**\n"
+            "1. Go to [llm.arc.vt.edu](https://llm.arc.vt.edu/)\n"
+            "2. Log in with your VT credentials (PID and password)\n"
+            "3. Click your profile icon → **Settings** → **Account** → **API Keys**\n"
+            "4. Click **Create new secret key**, name it, and click **Create**\n"
+            "5. **Copy the key immediately** and paste it above"
+        )
+
+
 def reset_session():
     """Reset the UI to its initial state by clearing all session data.
 
@@ -85,9 +195,12 @@ def reset_session():
     # Bump the uploader key so the file_uploader widget remounts empty. Just
     # clearing session_state leaves the widget's own state (and its file) intact.
     next_uploader_key = st.session_state.get('uploader_key', 0) + 1
+    # The user's ARC key is a setting, not conversion data: keep it.
+    user_arc_key = get_user_arc_key()
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.session_state.uploader_key = next_uploader_key
+    st.session_state[ARC_KEY_STATE] = user_arc_key
     st.rerun()
 
 def pdf_to_images(pdf_path, max_pages=None):
@@ -134,9 +247,7 @@ Return the corrected text wrapped EXACTLY between the markers <CORRECTED> and </
 
     # 8192 leaves room for extended thinking on top of a full-page rewrite;
     # create_text_message escalates further if the response still truncates.
-    response_text = create_text_message(
-        client=client,
-        model=CLAUDE_MODEL,
+    response_text = get_llm().text(
         content=prompt,
         max_tokens=8192,
         purpose=f"page {page_num} OCR correction",
@@ -189,9 +300,7 @@ IMPORTANT INSTRUCTIONS:
 
 Please provide the extracted content in a clean, readable format without adding page numbers or headers."""
 
-    extracted_text = create_text_message(
-        client=client,
-        model=CLAUDE_MODEL,
+    extracted_text = get_llm().text(
         content=[
             {
                 "type": "image",
@@ -257,9 +366,7 @@ Please respond with ONLY the title, nothing else."""
     try:
         # A 100-token cap could be swallowed whole by extended thinking on a
         # dense sample, leaving no title text in the response at all.
-        title = create_text_message(
-            client=client,
-            model=CLAUDE_MODEL,
+        title = get_llm().text(
             content=prompt,
             max_tokens=1024,
             purpose="document title",
@@ -342,6 +449,21 @@ def sanitize_body_content(text):
     text = strip_figure_markers(text)
     return text
 
+# LaTeX special characters, escaped for use in plain text (e.g. \hypersetup).
+_LATEX_ESCAPES: dict[int, str] = str.maketrans({
+    "\\": r"\textbackslash{}",
+    "{": r"\{",
+    "}": r"\}",
+    "_": r"\_",
+    "#": r"\#",
+    "%": r"\%",
+    "&": r"\&",
+    "$": r"\$",
+    "~": r"\textasciitilde{}",
+    "^": r"\textasciicircum{}",
+})
+
+
 def create_quarto_document(pages_content, make_accessible=False, remove_page_breaks=False, document_title=None):
     """Create a Quarto .qmd document from extracted pages.
 
@@ -374,7 +496,7 @@ format:
 
     if make_accessible:
         # Escape special LaTeX characters in title for hypersetup
-        safe_title = document_title.replace("\\", "\\\\").replace("{", "\\{").replace("}", "\\}").replace("_", "\\_")
+        safe_title = document_title.translate(_LATEX_ESCAPES)
         yaml_header += f"""    include-in-header:
       text: |
         \\usepackage[utf8]{{inputenc}}
@@ -558,19 +680,102 @@ def render_quarto(qmd_path, output_format, work_dir, return_error=False):
             st.error(f"Error rendering Quarto document: {str(e)}")
         return _result(None, f"Error rendering Quarto document: {str(e)}")
 
-def self_heal_qmd(qmd_content, error_text):
-    """Ask the LLM to repair a Quarto document that failed to render.
+# Maximum LLM repair attempts for one failing page, and for the final document.
+SELF_HEAL_MAX_ATTEMPTS: int = 5
 
-    Sends the full failing .qmd plus the render error back to Claude and asks
-    for a corrected version. Intended for a single repair round (the caller is
-    responsible for not looping).
+# Render errors can carry pages of LaTeX chatter; the tail holds the failure.
+HEAL_ERROR_MAX_CHARS: int = 12000
+
+# Filename stem prefix for the throwaway single-page test renders.
+PAGE_TEST_PREFIX: str = "_pagetest_"
+
+PageRenderStatus = Literal["passed", "failed", "untested"]
+ImageRefs = list[tuple[str, str]]
+ProgressCallback = Callable[[str], None]
+
+
+@dataclass
+class ConvertedDocument:
+    """Everything needed to regenerate the .qmd after a page is repaired.
+
+    Attributes:
+        pages: Per-page (extracted text, image references).
+        page_status: Per-page result of the single-page test render.
+        make_accessible: Accessibility option the document was built with.
+        remove_page_breaks: Page-break option the document was built with.
+        title: Document title.
+    """
+
+    pages: list[tuple[str, ImageRefs]]
+    page_status: list[PageRenderStatus]
+    make_accessible: bool
+    remove_page_breaks: bool
+    title: str
+
+    def to_qmd(self) -> str:
+        """Build the full Quarto document from the current page texts."""
+        return create_quarto_document(
+            self.pages, self.make_accessible, self.remove_page_breaks, self.title
+        )
+
+
+@dataclass
+class PageHealResult:
+    """Outcome of test-rendering (and, if needed, repairing) one page.
+
+    Attributes:
+        text: The page text to use -- repaired if healing succeeded, the
+            original if it did not.
+        status: "passed" if the page renders, "failed" if every attempt failed.
+        heal_attempts: Number of LLM repair attempts made (0 if it rendered
+            first time).
+        error: The last render error when status is "failed", else "".
+        notes: One line per repair attempt that did not succeed.
+    """
+
+    text: str
+    status: PageRenderStatus
+    heal_attempts: int
+    error: str
+    notes: list[str]
+
+
+def _trim_error(error_text: str) -> str:
+    """Keep the tail of a render error, where the actual failure is reported."""
+    if len(error_text) <= HEAL_ERROR_MAX_CHARS:
+        return error_text
+    return "[...earlier output trimmed...]\n" + error_text[-HEAL_ERROR_MAX_CHARS:]
+
+
+def _strip_code_fence(text: str) -> str:
+    """Strip an accidental ```/```quarto code fence wrapping a whole response."""
+    text = text.strip()
+    if text.startswith("```"):
+        lines = text.split("\n")[1:]  # drop opening fence line
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        text = "\n".join(lines).strip()
+    return text
+
+
+def self_heal_qmd(qmd_content: str, error_text: str) -> str | None:
+    """Ask the LLM to repair a full Quarto document that failed to render.
+
+    The whole document must come back in one response, so a very long
+    document can exceed the output budget -- a truncated answer raises rather
+    than being written back as a half-document.
 
     Args:
         qmd_content: The full source of the .qmd document that failed to render.
         error_text: The Quarto/LaTeX error output captured from the failed render.
 
     Returns:
-        The corrected .qmd content as a string, or None if repair failed.
+        The corrected .qmd content, or None if the response was empty.
+
+    Raises:
+        anthropic.APIError: If the repair request fails.
+        TruncatedResponseError: If the repaired document didn't fit in the
+            provider's output budget.
     """
     prompt = f"""A Quarto document failed to render to PDF. Below is the full \
 .qmd source followed by the exact error output from the render. Diagnose the \
@@ -586,31 +791,242 @@ math). Preserve all original content, headings, equations, and meaning.
 in code fences or add explanations.
 
 === RENDER ERROR ===
-{error_text}
+{_trim_error(error_text)}
 
 === QMD SOURCE ===
 {qmd_content}
 """
+    fixed = _strip_code_fence(get_llm().text(
+        content=prompt,
+        max_tokens=32000,
+        purpose="qmd render repair",
+        allow_truncated=False,
+    ))
+    return fixed or None
 
-    try:
-        fixed = create_text_message(
-            client=client,
-            model=CLAUDE_MODEL,
-            content=prompt,
-            max_tokens=32000,
-            purpose="qmd render repair",
-        ).strip()
-        # Strip an accidental ```/```quarto code fence wrapper if present
-        if fixed.startswith("```"):
-            lines = fixed.split("\n")
-            lines = lines[1:]  # drop opening fence line
-            if lines and lines[-1].strip() == "```":
-                lines = lines[:-1]
-            fixed = "\n".join(lines).strip()
-        return fixed if fixed else None
-    except (APIError, TruncatedResponseError) as e:
-        logger.warning(f"LLM qmd repair failed: {e}")
+
+def self_heal_page(page_text: str, error_text: str, page_num: int) -> str | None:
+    """Ask the LLM to repair one page's content so it renders to PDF.
+
+    Args:
+        page_text: The page's extracted Markdown/LaTeX content.
+        error_text: The error from rendering that page as a standalone document.
+        page_num: Page number, for logging.
+
+    Returns:
+        The corrected page content, or None if the response lacked the
+        <FIXED> markers.
+
+    Raises:
+        anthropic.APIError: If the repair request fails.
+        TruncatedResponseError: If the repaired page didn't fit in the
+            provider's output budget.
+    """
+    prompt = f"""One page of handwritten notes, already converted to Quarto \
+Markdown with LaTeX math, failed to render to PDF when wrapped in a standalone \
+Quarto document. Below is the page content followed by the exact render error. \
+Diagnose the cause and return a corrected version of the page content.
+
+Rules:
+- Fix ONLY what is needed to make the render succeed (e.g. unpaired $ or $$ \
+delimiters, invalid or undefined LaTeX commands and environments, \\tag inside \
+inline math, unescaped special characters such as % & # _ outside math, \
+Markdown that Pandoc misreads). Preserve all content, headings, equations, \
+and meaning.
+- This is page body content only: do NOT add YAML frontmatter, a title, or \
+code fences.
+- Line numbers in the error refer to the generated LaTeX file, not to the \
+page content.
+- Return the corrected page wrapped EXACTLY between the markers <FIXED> and \
+</FIXED>. Output NOTHING outside the markers.
+
+=== RENDER ERROR ===
+{_trim_error(error_text)}
+
+=== PAGE CONTENT ===
+{page_text}
+"""
+    response_text = get_llm().text(
+        content=prompt,
+        max_tokens=16000,
+        purpose=f"page {page_num} render repair",
+        allow_truncated=False,
+    )
+    match = re.search(r"<FIXED>\s*\n?(.*?)\n?\s*</FIXED>", response_text, re.DOTALL)
+    if match is None:
+        logger.warning(f"Page {page_num} repair returned no <FIXED> markers.")
         return None
+    return match.group(1)
+
+
+def _cleanup_page_test(work_dir: Path, stem: str) -> None:
+    """Remove every file a single-page test render left behind."""
+    for path in work_dir.glob(f"{stem}.*"):
+        path.unlink(missing_ok=True)
+    shutil.rmtree(work_dir / f"{stem}_files", ignore_errors=True)
+
+
+def trial_render_page(
+    page_text: str,
+    image_refs: ImageRefs,
+    page_num: int,
+    work_dir: Path,
+    make_accessible: bool,
+) -> tuple[bool, str]:
+    """Render one page on its own as a PDF, to catch errors before assembly.
+
+    The page is wrapped in the same YAML header as the final document and
+    rendered in the document's working directory, so figure images resolve.
+    Every artifact of the test render is deleted afterwards.
+
+    Returns:
+        (True, "") if the page rendered, else (False, render error text).
+    """
+    stem = f"{PAGE_TEST_PREFIX}{page_num}"
+    qmd_path = work_dir / f"{stem}.qmd"
+    qmd_path.write_text(
+        create_quarto_document(
+            [(page_text, image_refs)], make_accessible, True, f"Page {page_num} test render"
+        ),
+        encoding="utf-8",
+    )
+    try:
+        output, error = render_quarto(str(qmd_path), "pdf", str(work_dir), return_error=True)
+    finally:
+        _cleanup_page_test(work_dir, stem)
+    return output is not None, error
+
+
+def heal_page_until_renders(
+    page_text: str,
+    image_refs: ImageRefs,
+    page_num: int,
+    work_dir: Path,
+    make_accessible: bool,
+    on_progress: ProgressCallback,
+) -> PageHealResult:
+    """Test-render a page; if it fails, repair it with the LLM up to 5 times.
+
+    If no attempt produces a page that renders, the ORIGINAL text is kept (an
+    unsuccessful repair could have dropped content) and the page is reported
+    as failed.
+    """
+    rendered, error = trial_render_page(page_text, image_refs, page_num, work_dir, make_accessible)
+    if rendered:
+        return PageHealResult(page_text, "passed", 0, "", [])
+
+    notes: list[str] = []
+    current = page_text
+    for attempt in range(1, SELF_HEAL_MAX_ATTEMPTS + 1):
+        on_progress(
+            f"🩹 Page {page_num} failed to render — self-healing attempt "
+            f"{attempt}/{SELF_HEAL_MAX_ATTEMPTS} with {get_llm().active.label}..."
+        )
+        try:
+            fixed = self_heal_page(current, error, page_num)
+        except (APIError, TruncatedResponseError) as e:
+            notes.append(f"Attempt {attempt}: repair request failed ({type(e).__name__}: {e})")
+            continue
+        if fixed is None:
+            notes.append(f"Attempt {attempt}: the model did not return a repaired page.")
+            continue
+        if fixed == current:
+            notes.append(f"Attempt {attempt}: the model returned the page unchanged.")
+            continue
+        current = fixed
+        rendered, error = trial_render_page(current, image_refs, page_num, work_dir, make_accessible)
+        if rendered:
+            return PageHealResult(current, "passed", attempt, "", notes)
+        notes.append(f"Attempt {attempt}: the repaired page still failed to render.")
+    return PageHealResult(page_text, "failed", SELF_HEAL_MAX_ATTEMPTS, error, notes)
+
+
+def render_pdf_with_healing(
+    document: ConvertedDocument,
+    qmd_path: Path,
+    work_dir: Path,
+    on_progress: ProgressCallback,
+) -> tuple[Path | None, str, str, list[str]]:
+    """Render the final PDF, self-healing on failure.
+
+    Healing runs in two stages, page-level first because a small, targeted
+    repair is cheaper and less likely to disturb unrelated content:
+
+    1. Page by page: every page not yet test-rendered is rendered on its own
+       and repaired (up to 5 attempts each) if it fails. The document is then
+       rebuilt and rendered again.
+    2. Whole document: if it still fails (e.g. every page renders alone but the
+       assembly does not), the full .qmd is sent for repair, up to 5 attempts.
+
+    ``document.pages`` and ``document.page_status`` are updated in place, and
+    the .qmd on disk is rewritten whenever a repair is applied.
+
+    Returns:
+        (pdf path or None, final .qmd content, last render error, notes), where
+        notes describe repair attempts that did not succeed.
+    """
+    qmd_content = qmd_path.read_text(encoding="utf-8")
+    pdf, error = render_quarto(str(qmd_path), "pdf", str(work_dir), return_error=True)
+    if pdf:
+        return pdf, qmd_content, "", []
+
+    notes: list[str] = []
+
+    # Stage 1: locate and repair failing pages one at a time.
+    untested = [i for i, status in enumerate(document.page_status) if status == "untested"]
+    pages_changed = False
+    for i in untested:
+        text, image_refs = document.pages[i]
+        on_progress(f"🔍 Test-rendering page {i + 1} to locate the failure...")
+        result = heal_page_until_renders(
+            text, image_refs, i + 1, work_dir, document.make_accessible, on_progress
+        )
+        document.page_status[i] = result.status
+        notes.extend(f"Page {i + 1} — {note}" for note in result.notes)
+        if result.text != text:
+            document.pages[i] = (result.text, image_refs)
+            pages_changed = True
+    if pages_changed:
+        qmd_content = document.to_qmd()
+        qmd_path.write_text(qmd_content, encoding="utf-8")
+        pdf, error = render_quarto(str(qmd_path), "pdf", str(work_dir), return_error=True)
+        if pdf:
+            return pdf, qmd_content, "", notes
+
+    # Stage 2: repair the assembled document as a whole.
+    for attempt in range(1, SELF_HEAL_MAX_ATTEMPTS + 1):
+        on_progress(
+            f"🩹 Self-healing the full document — attempt {attempt}/"
+            f"{SELF_HEAL_MAX_ATTEMPTS} with {get_llm().active.label}..."
+        )
+        try:
+            fixed = self_heal_qmd(qmd_content, error)
+        except TruncatedResponseError as e:
+            # A document too long for one response will be too long next time too.
+            notes.append(
+                f"Document — attempt {attempt}: the repaired document did not fit in "
+                f"the model's output limit ({e}). Stopping whole-document repair."
+            )
+            break
+        except APIError as e:
+            notes.append(f"Document — attempt {attempt}: repair request failed ({type(e).__name__}: {e})")
+            continue
+        if fixed is not None:
+            # Mechanically repair known render-killers in the healed document
+            # too. (Not sanitize_body_content -- its horizontal-rule rewrite
+            # would clobber the YAML frontmatter fences of a full document.)
+            fixed = strip_figure_markers(fix_latex_math_errors(fixed))
+        if not fixed or fixed == qmd_content:
+            notes.append(f"Document — attempt {attempt}: the model returned no change.")
+            continue
+        qmd_content = fixed
+        qmd_path.write_text(qmd_content, encoding="utf-8")
+        pdf, error = render_quarto(str(qmd_path), "pdf", str(work_dir), return_error=True)
+        if pdf:
+            return pdf, qmd_content, "", notes
+        notes.append(f"Document — attempt {attempt}: the repaired document still failed to render.")
+
+    return None, qmd_content, error, notes
 
 def check_quarto_installation():
     """Check if Quarto is installed and working."""
@@ -743,6 +1159,8 @@ def main():
 
     # Sidebar options
     with st.sidebar:
+        render_arc_key_input()
+
         st.header("Conversion Options")
         st.markdown("Configure how your document will be processed and formatted.")
 
@@ -770,6 +1188,13 @@ def main():
             help="Creates a continuous document by removing page break markers between scanned pages. Disable to preserve original page structure."
         )
 
+        test_render_pages = st.checkbox(
+            "Test Render Each Page",
+            value=True,
+            disabled=not quarto_ok,
+            help=f"Renders each page to PDF on its own as soon as it is extracted. If a page fails to render, the AI repairs it (up to {SELF_HEAL_MAX_ATTEMPTS} attempts) before moving on. Catches broken LaTeX early, at the cost of a few seconds per page. Requires Quarto."
+        ) and quarto_ok
+
         # Adobe Auto-Tag option (DISABLED -- requires a paid Adobe PDF Services
         # account). Left in the codebase, commented out, so it can be re-enabled
         # by restoring this block, the call site in the PDF render section, and
@@ -789,7 +1214,7 @@ def main():
         st.markdown("---")
         st.markdown("### About This Tool")
         st.markdown("""
-        This application uses Anthropic Claude advanced vision AI to:
+        This application uses Virginia Tech ARC hosted vision AI (falling back to Anthropic Claude if ARC is unavailable) to:
         - **Extract** handwritten text from PDF pages with high accuracy
         - **Convert** mathematical notation to accessible LaTeX format
         - **Preserve** diagrams and drawings as embedded images with alt text
@@ -800,6 +1225,10 @@ def main():
         """)
 
         st.markdown("---")
+        try:
+            st.caption(f"🤖 AI model: {get_llm().active.label}")
+        except ValueError as e:
+            st.error(f"❌ {e}")
         if st.button(
             "🔄 Reset",
             help="Clear the uploaded file, conversion results, and all session data, returning the app to its initial state.",
@@ -832,7 +1261,7 @@ def main():
             # Clear previous file's cached data and tracking keys
             for key in ['qmd_content', 'qmd_path', 'temp_dir_path', 'pdf_data',
                         'docx_data', 'tex_data', 'conversion_complete', 'original_filename',
-                        'pdf_render_failed']:
+                        'pdf_render_failed', 'document']:
                 st.session_state.pop(key, None)
             # Create the session/file-specific temp directory exactly once
             session_temp_dir = tempfile.mkdtemp(
@@ -852,6 +1281,22 @@ def main():
 
             st.success(f"✅ File uploaded successfully: {uploaded_file.name}")
 
+            # Very long documents are prone to render failures; suggest splitting.
+            # The page count is advisory only, so a PDF pdfinfo can't read just
+            # skips the warning (conversion reports its own error if it fails).
+            try:
+                page_count = int(pdfinfo_from_path(str(pdf_path))["Pages"])
+            except (PDFInfoNotInstalledError, PDFPageCountError, PDFSyntaxError, KeyError, ValueError) as e:
+                logger.warning(f"Could not read page count of {pdf_path.name}: {e}")
+                page_count = 0
+            if page_count > LARGE_DOCUMENT_PAGES:
+                st.warning(
+                    f"📚 **This document has {page_count} pages.** Documents over "
+                    f"{LARGE_DOCUMENT_PAGES} pages are prone to rendering failures — "
+                    "consider splitting it into smaller documents. You can use print "
+                    "to PDF to print pages 1-50, 51-100, etc."
+                )
+
             # Process button
             st.markdown("### Step 2: Start Conversion")
             if st.button("🔄 Convert to Accessible Document", type="primary", help="Begin processing the uploaded PDF file"):
@@ -860,8 +1305,14 @@ def main():
                     st.info(f"📄 Found {len(images)} pages to process")
 
                 # Extract text from each page
-                pages_content = []
+                pages_content: list[tuple[str, ImageRefs]] = []
+                page_status: list[PageRenderStatus] = []
+                page_results: list[tuple[int, PageHealResult]] = []
                 progress_bar = st.progress(0, text="Starting conversion...")
+                heal_status = st.empty()
+
+                def show_heal_progress(message: str) -> None:
+                    heal_status.info(message)
 
                 for i, image in enumerate(images):
                     progress_text = f"Processing page {i+1} of {len(images)}"
@@ -873,10 +1324,45 @@ def main():
                             with st.spinner(f"✏️ Correcting OCR errors on page {i+1}/{len(images)}..."):
                                 text_content = fix_ocr_errors(text_content, i+1)
 
-                        pages_content.append((text_content, image_refs))
-                        progress_bar.progress((i + 1) / len(images), text=f"{progress_text} - Complete")
+                    # Test-render the page on its own, self-healing if it fails
+                    if test_render_pages:
+                        with st.spinner(f"🧪 Test rendering page {i+1}/{len(images)}..."):
+                            page_result = heal_page_until_renders(
+                                text_content, image_refs, i+1, temp_dir_path,
+                                make_accessible, show_heal_progress,
+                            )
+                        heal_status.empty()
+                        text_content = page_result.text
+                        page_status.append(page_result.status)
+                        if page_result.heal_attempts:
+                            page_results.append((i+1, page_result))
+                    else:
+                        page_status.append("untested")
+
+                    pages_content.append((text_content, image_refs))
+                    progress_bar.progress((i + 1) / len(images), text=f"{progress_text} - Complete")
 
                 st.success(f"✅ Successfully extracted text from all {len(images)} pages")
+
+                if test_render_pages:
+                    healed = [n for n, r in page_results if r.status == "passed"]
+                    failed = [(n, r) for n, r in page_results if r.status == "failed"]
+                    if not page_results:
+                        st.success("✅ Every page passed its test render.")
+                    if healed:
+                        st.info(f"🩹 Self-healing repaired page(s) {', '.join(map(str, healed))} so they render.")
+                    if failed:
+                        st.warning(
+                            f"⚠️ Page(s) {', '.join(str(n) for n, _ in failed)} still failed to render "
+                            f"after {SELF_HEAL_MAX_ATTEMPTS} self-healing attempts; their original text "
+                            "was kept. The final PDF may need further repair."
+                        )
+                        with st.expander("🔎 Show page render errors"):
+                            for n, r in failed:
+                                st.markdown(f"**Page {n}**")
+                                for note in r.notes:
+                                    st.markdown(f"- {note}")
+                                st.code(r.error or "No error details available.")
 
                 # Generate document title
                 with st.spinner("🤔 Generating document title..."):
@@ -885,7 +1371,14 @@ def main():
 
                 # Create Quarto document
                 with st.spinner("📝 Creating accessible Quarto document..."):
-                    qmd_content = create_quarto_document(pages_content, make_accessible, remove_page_breaks, document_title)
+                    document = ConvertedDocument(
+                        pages=pages_content,
+                        page_status=page_status,
+                        make_accessible=make_accessible,
+                        remove_page_breaks=remove_page_breaks,
+                        title=document_title,
+                    )
+                    qmd_content = document.to_qmd()
                     qmd_path = temp_dir_path / f"{original_filename}.qmd"
                     with open(qmd_path, "w", encoding="utf-8") as f:
                         f.write(qmd_content)
@@ -896,6 +1389,7 @@ def main():
                 for key in ['pdf_data', 'docx_data', 'tex_data', 'pdf_render_failed']:
                     st.session_state.pop(key, None)
                 st.session_state.qmd_content = qmd_content
+                st.session_state.document = document
                 st.session_state.qmd_path = str(qmd_path)
                 st.session_state.temp_dir_path = str(temp_dir_path)
                 st.session_state.original_filename = original_filename
@@ -910,7 +1404,7 @@ def main():
                         content for content, _ in pages_content[:3]
                     )[:4000]
                     try:
-                        department = infer_department(client, CLAUDE_MODEL, notes_sample)
+                        department = infer_department(get_llm(), notes_sample)
                     except (APIError, TruncatedResponseError) as e:
                         department = UNKNOWN_DEPARTMENT
                         st.warning(
@@ -941,68 +1435,47 @@ def main():
                 st.markdown("### Step 3: Download Your Document")
                 st.markdown("Choose one or more formats to download your converted accessible document.")
 
-                # Render the PDF (with one-round self-healing) BEFORE building the
+                # Render the PDF (self-healing on failure) BEFORE building the
                 # download columns. A successful repair rewrites the .qmd on disk
                 # and in session_state, so the .qmd/.tex/.docx outputs below all
                 # reflect the healed document. If healing fails, the raw .qmd (and
                 # any salvageable .tex) are still offered below.
                 if 'pdf_data' not in st.session_state and not st.session_state.get('pdf_render_failed'):
+                    heal_status = st.empty()
+
+                    def show_render_progress(message: str) -> None:
+                        heal_status.info(message)
+
                     with st.spinner("🔄 Rendering PDF document..."):
-                        pdf_output, render_error = render_quarto(
-                            st.session_state.qmd_path, "pdf",
-                            st.session_state.temp_dir_path, return_error=True
+                        pdf_output, healed_qmd, render_error, heal_notes = render_pdf_with_healing(
+                            st.session_state.document,
+                            Path(st.session_state.qmd_path),
+                            Path(st.session_state.temp_dir_path),
+                            show_render_progress,
                         )
+                    heal_status.empty()
 
-                    # Self-healing: one round only (no loop).
-                    if not pdf_output:
-                        st.warning(
-                            "⚠️ PDF rendering failed. Starting automated self-healing — "
-                            "sending the document and the render error to the AI to repair "
-                            "it, then retrying the render (one attempt)..."
-                        )
-                        with st.spinner("🩹 Self-healing the document and retrying the render..."):
-                            fixed_qmd = self_heal_qmd(st.session_state.qmd_content, render_error)
-                            if fixed_qmd:
-                                # Belt-and-braces: mechanically repair known
-                                # render-killers in the healed document too.
-                                # (Not sanitize_body_content -- its horizontal-
-                                # rule rewrite would clobber the YAML
-                                # frontmatter fences of a full document.)
-                                fixed_qmd = strip_figure_markers(fix_latex_math_errors(fixed_qmd))
-                            if fixed_qmd == st.session_state.qmd_content:
-                                st.warning(
-                                    "⚠️ Self-healing returned the document unchanged — "
-                                    "the repair step could not identify a fix."
-                                )
-                            elif fixed_qmd is None:
-                                st.warning(
-                                    "⚠️ Self-healing did not return a repaired document "
-                                    "(the repair request failed)."
-                                )
-                            if fixed_qmd and fixed_qmd != st.session_state.qmd_content:
-                                # Persist the repaired document and drop stale derived
-                                # outputs so every format re-renders from the fix.
-                                with open(st.session_state.qmd_path, "w", encoding="utf-8") as f:
-                                    f.write(fixed_qmd)
-                                st.session_state.qmd_content = fixed_qmd
-                                for k in ['docx_data', 'tex_data']:
-                                    st.session_state.pop(k, None)
-                                pdf_output, render_error = render_quarto(
-                                    st.session_state.qmd_path, "pdf",
-                                    st.session_state.temp_dir_path, return_error=True
-                                )
-
+                    if healed_qmd != st.session_state.qmd_content:
+                        # The document was repaired: drop stale derived outputs
+                        # so every format re-renders from the fix.
+                        st.session_state.qmd_content = healed_qmd
+                        for k in ['docx_data', 'tex_data']:
+                            st.session_state.pop(k, None)
                         if pdf_output:
                             st.success("✅ Self-healing succeeded — the document was repaired and rendered to PDF.")
-                        else:
-                            st.session_state.pdf_render_failed = True
-                            st.error(
-                                "❌ PDF rendering still failed after one self-healing attempt. "
-                                "The Quarto (.qmd) source and, if available, the LaTeX (.tex) "
-                                "output are still provided below."
-                            )
-                            with st.expander("🔎 Show render error"):
-                                st.code(render_error or "No error details available.")
+
+                    if not pdf_output:
+                        st.session_state.pdf_render_failed = True
+                        st.error(
+                            "❌ PDF rendering still failed after self-healing (page by page, then "
+                            f"up to {SELF_HEAL_MAX_ATTEMPTS} whole-document attempts). "
+                            "The Quarto (.qmd) source and, if available, the LaTeX (.tex) "
+                            "output are still provided below."
+                        )
+                        with st.expander("🔎 Show render error"):
+                            for note in heal_notes:
+                                st.markdown(f"- {note}")
+                            st.code(render_error or "No error details available.")
 
                     if pdf_output:
                         with open(pdf_output, "rb") as f:

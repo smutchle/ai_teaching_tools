@@ -378,9 +378,9 @@ def run_pipeline(plan: dict, ui: RunUI) -> None:
         llm = get_llm() if (plan.get("scan") or plan.get("grade")) else None
     except RuntimeError as e:
         ui.halt(PHASES[0][0] if plan.get("scan") else "grade",
-                f"⛔ {e}  \nSet the API key in the sidebar under **API key** — set "
-                "one up for free at https://llm.arc.vt.edu — or put OPENAI_APIKEY "
-                "in the app's .env file.")
+                f"⛔ {e}  \nEnter your own key in the sidebar under **LLM API "
+                "key** (create one at https://llm.arc.vt.edu) — or put "
+                "OPENAI_APIKEY in the app's .env file.")
         return
 
     # ------------------------------------------------------------ 1. scan
@@ -645,29 +645,36 @@ with st.sidebar:
                    "a time may write to it.")
 
     st.divider()
-    # Optional, and kept out of the way: the app reads the key from .env and
-    # almost nobody needs to type one here.
-    with st.expander("🔑 API key — optional", expanded=False):
-        st.caption(
-            "**You do not need to enter anything here.** The app already reads "
-            "`OPENAI_APIKEY` from its `.env` file.")
-        st.caption(
-            "You can set up your own key at "
-            "[llm.arc.vt.edu](https://llm.arc.vt.edu) and paste it below. "
-            "**It costs nothing** — each key is limited in how much it can be "
-            "used, so bringing your own leaves room on the shared key for "
-            "everyone else.")
+    # Not required (the app falls back to the key in .env), but highly
+    # recommended: the shared key's usage budget is split across everyone.
+    with st.expander("🔑 LLM API key — highly recommended",
+                     expanded=not c.get("api_key_override")):
+        st.caption("Please create your own API key for the ARC models.")
+        # A stable widget key: with value= instead, the widget's ID changes once
+        # a key is entered and the user's next edit (e.g. clearing it) is lost.
+        if "api_key_override_widget" not in st.session_state:
+            st.session_state.api_key_override_widget = c.get("api_key_override", "")
         c["api_key_override"] = st.text_input(
-            "ARC API key override", value=c.get("api_key_override", ""),
-            type="password", placeholder="leave blank to use .env",
-            label_visibility="collapsed")
+            "API key", key="api_key_override_widget",
+            type="password", placeholder="sk-…",
+            label_visibility="collapsed").strip()
         if c.get("api_key_override"):
-            st.info("Using the key typed here instead of the one in .env.")
+            st.caption("✓ Using the key entered here.")
         elif os.getenv("OPENAI_APIKEY"):
-            st.success("Using the key from .env ✓")
+            st.warning("**Highly recommended:** enter your own key. Until you "
+                       "do, the app's shared key from .env is used.")
         else:
-            st.warning("No key in .env — get one free at https://llm.arc.vt.edu "
-                       "and enter it here to run the app.")
+            st.warning("No key in .env — enter your own key here to run the app.")
+        st.markdown(
+            "**Get your own VT ARC API key**\n"
+            "1. Go to [llm.arc.vt.edu](https://llm.arc.vt.edu/)\n"
+            "2. Log in with your VT credentials (PID and password)\n"
+            "3. Click your profile icon → **Settings** → **Account** → "
+            "**API Keys**\n"
+            "4. Click **Create new secret key**, name it, and click "
+            "**Create**\n"
+            "5. **Copy the key immediately** and paste it above"
+        )
 
     st.divider()
     st.markdown("### 📊 Status")

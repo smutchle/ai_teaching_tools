@@ -25,11 +25,12 @@ download. Anything the machine could not do — a page it could not read, a pape
 could not grade, a paper it could not put a name to — comes out as a PDF with a cover
 sheet and a blank score line, to finish by hand.
 
-The ARC API key is optional and lives in a collapsed panel in the sidebar — the app
-reads `OPENAI_APIKEY` from `.env` and almost nobody needs to type one. You can set up
-your own key at <https://llm.arc.vt.edu> and paste it there instead; it costs nothing,
+Entering your own ARC API key in the sidebar's **LLM API key** panel is not required
+but highly recommended. Without one, the app uses the shared `OPENAI_APIKEY` from `.env`,
 and since each key is limited in how much it can be used, bringing your own leaves room
-on the shared key for everyone else.
+on the shared key for everyone else. To get one: log in to <https://llm.arc.vt.edu/>
+with your VT PID and password, open your profile icon → **Settings** → **Account** →
+**API Keys**, click **Create new secret key**, and copy the key immediately.
 
 The entire project (config + OCR + grades) is backed by a single **`state.json`** in its
 own project directory, and can be saved/reopened at any time by its **project code**.
@@ -96,10 +97,10 @@ OPENAI_MAX_INFLIGHT=3           # proxy's per-user concurrent request cap
 > gates its own requests through a semaphore so no caller can push past the cap,
 > and treats that 400 as throttling to be retried rather than a fatal misconfiguration.
 
-(See `.env.example`. The API key can also be overridden in the sidebar's
-collapsed **API key** panel, which is optional. Set one up for free at
-<https://llm.arc.vt.edu>: there is no cost, and because a key is limited in how much it
-can be used, a user on their own key is one fewer sharing this one.)
+(See `.env.example`. A key entered in the sidebar's **LLM API key** panel overrides
+`OPENAI_APIKEY` for that session. It's highly recommended, though not required: because
+a key is limited in how much it can be used, a user on their own key is one fewer
+sharing this one.)
 
 > **Both model settings are `vt-arc-llm`.** ARC serves one alias, which does reasoning
 > and vision alike, so there is no model to choose. The two settings are kept separate
