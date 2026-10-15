@@ -41,9 +41,9 @@ There is no websocket or pub/sub. All pages poll the session JSON on disk every 
 ### Question generation pipeline
 
 1. `utils/pdf_utils.py` extracts text from PDFs (via `pypdf`) and markdown/text files, then chunks at **40,000 chars** on paragraph boundaries.
-2. `utils/llm.py` calls the selected LLM with **25 questions per full chunk**, scaling proportionally for smaller chunks (floor: 5). The system prompt strictly forbids the LLM from using training knowledge — all questions must come from the supplied material.
+2. `utils/llm.py` calls VT ARC with **25 questions per full chunk**, scaling proportionally for smaller chunks (floor: 5). The system prompt strictly forbids the LLM from using training knowledge — all questions must come from the supplied material.
 3. **Import mode** (`import_questions`) instead parses pre-written prose questions with answers called out. It is extraction only: the author's wording and option order are kept (no shuffle), 2–4 options are allowed, and it uses smaller chunks (`IMPORT_CHARS_PER_CHUNK`) because the output is about as long as the input.
-4. Two providers: **VT ARC** (OpenAI-compatible endpoint) and **Claude Sonnet** (Anthropic SDK). Both use the same prompt builder and JSON parser.
+4. One provider: **VT ARC** (`vt-arc-llm` via its OpenAI-compatible endpoint, always streamed). There is no other LLM.
 
 ### Scoring
 
@@ -60,8 +60,7 @@ Each Streamlit browser tab has its own `st.session_state`. Participant identity 
 | `OPEN_AI_ENDPOINT` | Base URL for VT ARC OpenAI-compatible API |
 | `OPEN_AI_API_KEY` | ARC API key |
 | `OPEN_AI_MODEL` | ARC model alias — `vt-arc-llm` (the only one ARC serves) |
-| `ANTHROPIC_API_KEY` | Anthropic API key for Claude Sonnet |
-| `ANTHROPIC_MODEL` | Claude model ID (default: `claude-sonnet-4-6`) |
+| `OPEN_AI_PROVIDER_NAME` | Display name for ARC in the UI (default: `VT ARC`) |
 
 ## Tuning constants
 

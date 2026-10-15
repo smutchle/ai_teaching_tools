@@ -13,9 +13,12 @@ class AnthropicChatBot:
         model="sonnet",
         use_chat_history=False,
         num_retries=10,
-        max_tokens=8192
+        max_tokens=64000,
+        base_url=None,
     ):
-        self.client = anthropic.Client(api_key=api_key)
+        # base_url points the client at an Anthropic-compatible server such as
+        # VT ARC; None means Anthropic itself.
+        self.client = anthropic.Client(api_key=api_key, base_url=base_url)
         self.use_chat_history = use_chat_history
         self.chat_history = []
         self.model = model
@@ -26,12 +29,15 @@ class AnthropicChatBot:
         retries = 0
         while retries <= self.num_retries:
             try:
-                response = self.client.messages.create(
+                # Always stream: VT ARC rejects buffered (non-streaming) requests
+                # above 8000 output tokens, and the SDK refuses large non-streaming
+                # budgets outright. Streamed responses have neither limit.
+                with self.client.messages.stream(
                     model=self.model,
                     max_tokens=self.max_tokens,
                     messages=messages,
-                )
-                return response
+                ) as stream:
+                    return stream.get_final_message()
             except APIStatusError as e:
                 if e.status_code == 529 and retries < self.num_retries:
                     retries += 1

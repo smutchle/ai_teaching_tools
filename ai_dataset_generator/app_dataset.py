@@ -8,8 +8,8 @@ import os
 from pathlib import Path
 from dataset import Dataset
 from dataset_generator import DatasetGenerator
-from OllamaChatBot import OllamaChatBot
 from AnthropicChatBot import AnthropicChatBot
+from anthropic import Anthropic, APIError
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -55,29 +55,28 @@ def load_documentation():
             return f.read()
     return ""
 
-def get_chatbot(llm_provider, api_key_override=None):
-    """Create and return a chatbot instance based on the selected provider."""
-    if llm_provider == "Claude":
-        api_key = api_key_override if api_key_override else os.getenv("CLAUDE_API_KEY")
-        model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-20250514")
-        return AnthropicChatBot(
-            api_key=api_key,
-            model=model,
-            use_chat_history=False
-        )
-    else:  # Ollama (default)
-        model = os.getenv("OLLAMA_MODEL", "gemma3:27b")
-        end_point_url = os.getenv("OLLAMA_END_POINT", "http://localhost:11434")
-        return OllamaChatBot(
-            model=model,
-            end_point_url=end_point_url,
-            temperature=0.0,
-            keep_history=False
-        )
+ARC_ENDPOINT = os.getenv("ARC_ENDPOINT", "https://llm-api.arc.vt.edu/api/v1")
+# The Anthropic SDK appends "/v1/messages" itself, so drop the trailing "/v1".
+ARC_BASE_URL = ARC_ENDPOINT.rstrip("/").removesuffix("/v1")
 
-def generate_dataset_from_chat(chat_log, documentation, llm_provider="Ollama", api_key_override=None):
+
+def get_chatbot(api_key_override=None):
+    """Create a VT ARC chatbot (ARC's Anthropic-compatible API).
+
+    A key entered in the sidebar is used instead of ARC_API_KEY from .env;
+    the .env key is only used when the sidebar field is blank.
+    """
+    api_key = (api_key_override or "").strip() or os.getenv("ARC_API_KEY")
+    return AnthropicChatBot(
+        api_key=api_key,
+        model=os.getenv("ARC_MODEL", "vt-arc-llm"),
+        use_chat_history=False,
+        base_url=ARC_BASE_URL,
+    )
+
+def generate_dataset_from_chat(chat_log, documentation, api_key_override=None):
     """Generate JSON configuration from chat conversation using LLM."""
-    chatbot = get_chatbot(llm_provider, api_key_override)
+    chatbot = get_chatbot(api_key_override)
 
     prompt = f"""You are a dataset configuration generator. Based on the user's requirements and the documentation provided, generate a valid JSON configuration for a synthetic dataset.
 
@@ -165,14 +164,9 @@ Generate the JSON configuration now:"""
     response = chatbot.completeAsJSON(prompt)
     return response
 
-def generate_dataset_description(config_text, llm_provider="Ollama", api_key_override=None):
+def generate_dataset_description(config_text, api_key_override=None):
     """Generate a markdown description of the dataset using LLM."""
-    chatbot = get_chatbot(llm_provider, api_key_override)
-
-    # Adjust temperature for description generation (Ollama only; Claude models
-    # reject the temperature parameter)
-    if llm_provider != "Claude":
-        chatbot.temperature = 0.3
+    chatbot = get_chatbot(api_key_override)
 
     prompt = f"""You are a data science documentation writer. Given a dataset configuration in JSON format, write a clear, concise markdown description of the dataset.
 
@@ -196,9 +190,9 @@ Generate the dataset description now:"""
     response = chatbot.complete(prompt)
     return response
 
-def fix_json_with_llm(broken_json, error_message, documentation, llm_provider="Ollama", api_key_override=None):
+def fix_json_with_llm(broken_json, error_message, documentation, api_key_override=None):
     """Use LLM to fix broken JSON configuration based on error message."""
-    chatbot = get_chatbot(llm_provider, api_key_override)
+    chatbot = get_chatbot(api_key_override)
 
     prompt = f"""You are a JSON repair expert for dataset configurations. Your task is to fix the broken JSON configuration based on the error message provided.
 
@@ -257,10 +251,9 @@ if 'generation_complete' not in st.session_state:
     st.session_state.generation_complete = False
 if 'dataset_description' not in st.session_state:
     st.session_state.dataset_description = ""
-if 'llm_provider' not in st.session_state:
-    st.session_state.llm_provider = "Claude"
-if 'claude_api_key_override' not in st.session_state:
-    st.session_state.claude_api_key_override = ""
+# The user's own VT ARC key ("" = use the shared ARC_API_KEY from .env).
+if 'arc_api_key' not in st.session_state:
+    st.session_state.arc_api_key = ""
 if 'last_error_message' not in st.session_state:
     st.session_state.last_error_message = None
 if 'fixing_json' not in st.session_state:
@@ -288,37 +281,47 @@ QUESTIONS = [
 # Sidebar for dataset management
 st.sidebar.header("Dataset Management")
 
-# LLM Provider Selection
-st.sidebar.subheader("🤖 LLM Provider")
-llm_provider = st.sidebar.selectbox(
-    "Select LLM Provider",
-    ["Claude", "Ollama"],
-    index=0 if st.session_state.llm_provider == "Claude" else 1,
-    key="llm_provider_selector"
-)
-
-# Update session state if provider changes
-if llm_provider != st.session_state.llm_provider:
-    st.session_state.llm_provider = llm_provider
-    # Clear description when provider changes
-    st.session_state.dataset_description = ""
-
-# Claude API Key Override (only show if Claude is selected)
-if llm_provider == "Claude":
-    api_key_placeholder = os.getenv("CLAUDE_API_KEY", "")
-    if api_key_placeholder:
-        api_key_placeholder = f"{api_key_placeholder[:10]}...{api_key_placeholder[-4:]}"
-
-    claude_api_key = st.sidebar.text_input(
-        "Claude API Key (optional override)",
-        value=st.session_state.claude_api_key_override,
-        type="password",
-        placeholder=api_key_placeholder if api_key_placeholder else "Enter API key",
-        help="Leave blank to use the API key from .env file"
+# VT ARC API key: not required, but highly recommended
+with st.sidebar.expander("🔑 LLM API key — highly recommended",
+                         expanded=not st.session_state.arc_api_key):
+    st.caption("Please create your own API key for the ARC models.")
+    # A stable widget key: with value= instead, the widget's ID changes once a
+    # key is entered and the user's next edit (e.g. clearing it) is discarded.
+    if 'arc_api_key_widget' not in st.session_state:
+        st.session_state.arc_api_key_widget = st.session_state.arc_api_key
+    st.session_state.arc_api_key = st.text_input(
+        "API key", key="arc_api_key_widget", type="password",
+        placeholder="sk-…", label_visibility="collapsed",
+    ).strip()
+    if st.session_state.arc_api_key:
+        # Verify once per distinct key, not on every rerun.
+        if st.session_state.get('arc_key_checked') != st.session_state.arc_api_key:
+            try:
+                Anthropic(api_key=st.session_state.arc_api_key, base_url=ARC_BASE_URL,
+                          max_retries=0).models.list(limit=1)
+                st.session_state.arc_key_error = ""
+            except APIError as e:
+                st.session_state.arc_key_error = f"{type(e).__name__}: {e}"
+            st.session_state.arc_key_checked = st.session_state.arc_api_key
+        if st.session_state.arc_key_error:
+            st.error(f"❌ ARC could not verify this key — {st.session_state.arc_key_error}")
+        else:
+            st.success("✓ Key verified — using the key entered here.")
+    elif os.getenv("ARC_API_KEY"):
+        st.warning("**Highly recommended:** enter your own key. Until you do, "
+                   "the app's shared key from .env is used.")
+    else:
+        st.warning("No key in .env — enter your own key here to use the AI features.")
+    st.markdown(
+        "**Get your own VT ARC API key**\n"
+        "1. Go to [llm.arc.vt.edu](https://llm.arc.vt.edu/)\n"
+        "2. Log in with your VT credentials (PID and password)\n"
+        "3. Click your profile icon → **Settings** → **Account** → "
+        "**API Keys**\n"
+        "4. Click **Create new secret key**, name it, and click "
+        "**Create**\n"
+        "5. **Copy the key immediately** and paste it above"
     )
-
-    if claude_api_key != st.session_state.claude_api_key_override:
-        st.session_state.claude_api_key_override = claude_api_key
 
 st.sidebar.divider()
 
@@ -619,13 +622,12 @@ with tab1:
                 
                 # Generate JSON
                 try:
-                    # Get API key override if using Claude
-                    api_key_override = st.session_state.claude_api_key_override if st.session_state.llm_provider == "Claude" else None
+                    # The user's own ARC key, if entered (else the .env key is used)
+                    api_key_override = st.session_state.arc_api_key
 
                     json_config = generate_dataset_from_chat(
                         chat_log,
                         documentation,
-                        st.session_state.llm_provider,
                         api_key_override
                     )
 
@@ -763,15 +765,14 @@ with tab2:
                 # Load documentation
                 documentation = load_documentation()
 
-                # Get API key override if using Claude
-                api_key_override = st.session_state.claude_api_key_override if st.session_state.llm_provider == "Claude" else None
+                # The user's own ARC key, if entered (else the .env key is used)
+                api_key_override = st.session_state.arc_api_key
 
                 # Fix the JSON
                 fixed_json = fix_json_with_llm(
                     st.session_state.config_text,
                     st.session_state.last_error_message,
                     documentation,
-                    st.session_state.llm_provider,
                     api_key_override
                 )
 
@@ -799,12 +800,11 @@ with tab3:
         if not st.session_state.dataset_description:
             with st.spinner("Generating dataset description..."):
                 try:
-                    # Get API key override if using Claude
-                    api_key_override = st.session_state.claude_api_key_override if st.session_state.llm_provider == "Claude" else None
+                    # The user's own ARC key, if entered (else the .env key is used)
+                    api_key_override = st.session_state.arc_api_key
 
                     description = generate_dataset_description(
                         st.session_state.config_text,
-                        st.session_state.llm_provider,
                         api_key_override
                     )
                     st.session_state.dataset_description = description

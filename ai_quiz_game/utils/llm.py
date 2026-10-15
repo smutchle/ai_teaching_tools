@@ -3,15 +3,14 @@ import os
 import random
 import re
 
-import anthropic
 from dotenv import load_dotenv
 from openai import OpenAI
 
 load_dotenv()
 
-PROVIDER_ARC = os.getenv("OPEN_AI_PROVIDER_NAME", "OpenAI")
-PROVIDER_CLAUDE = "Claude Sonnet"
-PROVIDERS = [PROVIDER_ARC, PROVIDER_CLAUDE]
+# VT ARC is the only LLM: every call goes through _call_arc (ARC's
+# OpenAI-compatible endpoint). The name is for display only.
+ARC_PROVIDER_NAME = os.getenv("OPEN_AI_PROVIDER_NAME", "VT ARC")
 
 DEFAULT_INSTRUCTIONS = (
     "Generate plausible distractor answers that are similar to the correct answer "
@@ -148,34 +147,6 @@ def _call_arc(system: str, user: str, temperature: float) -> str:
     return content
 
 
-def _call_claude(system: str, user: str) -> str:
-    client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    model = os.getenv("ANTHROPIC_MODEL", "claude-sonnet-4-6")
-    response = client.messages.create(
-        model=model,
-        max_tokens=8096,
-        system=system,
-        messages=[{"role": "user", "content": user}],
-    )
-    # Models with extended thinking enabled prepend a thinking block, so the
-    # text is not guaranteed to be at index 0; scan for the first text block.
-    text_block = next(
-        (block.text for block in response.content if block.type == "text"),
-        None,
-    )
-    if text_block is None:
-        block_types = [block.type for block in response.content]
-        raise TypeError(f"Expected a text block in response but got {block_types}")
-    return text_block.strip()
-
-
-def _call_llm(provider: str, system: str, user: str, temperature: float) -> str:
-    # temperature applies to ARC only; Claude calls keep the model default.
-    if provider == PROVIDER_CLAUDE:
-        return _call_claude(system, user)
-    return _call_arc(system, user, temperature)
-
-
 QUESTIONS_PER_CHUNK = 25
 MIN_QUESTIONS_PER_CHUNK = 5
 
@@ -189,12 +160,11 @@ def _questions_for_chunk(chunk: str) -> int:
 def generate_questions(
     text_chunks: list[str],
     supplemental_instructions: str = DEFAULT_INSTRUCTIONS,
-    provider: str = PROVIDER_ARC,
 ) -> list:
     all_questions = []
     for chunk in text_chunks:
         n = _questions_for_chunk(chunk)
-        raw = _call_llm(provider, _SYSTEM_PROMPT, _build_prompt(n, supplemental_instructions, chunk), 0.7)
+        raw = _call_arc(_SYSTEM_PROMPT, _build_prompt(n, supplemental_instructions, chunk), 0.7)
         all_questions.extend(_parse_questions(raw))
 
     return all_questions
@@ -236,11 +206,11 @@ def _build_import_prompt(text: str) -> str:
     )
 
 
-def import_questions(text_chunks: list[str], provider: str = PROVIDER_ARC) -> list:
+def import_questions(text_chunks: list[str]) -> list:
     """Parse pre-written questions (with answers called out) into bank format."""
     all_questions = []
     for chunk in text_chunks:
-        raw = _call_llm(provider, _IMPORT_SYSTEM_PROMPT, _build_import_prompt(chunk), 0.0)
+        raw = _call_arc(_IMPORT_SYSTEM_PROMPT, _build_import_prompt(chunk), 0.0)
         all_questions.extend(
             _parse_questions(raw, allowed_answer_counts=IMPORT_ANSWER_COUNTS, shuffle=False)
         )

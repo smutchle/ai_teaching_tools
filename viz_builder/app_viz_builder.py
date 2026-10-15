@@ -8,9 +8,17 @@ import json
 import uuid
 import time
 from datetime import datetime
-from contextlib import redirect_stdout, redirect_stderr
+from contextlib import contextmanager, redirect_stdout, redirect_stderr
 from dotenv import load_dotenv
 from AnthropicChatBot import AnthropicChatBot
+from anthropic import (
+    Anthropic,
+    APIConnectionError,
+    APIError,
+    APIStatusError,
+    AuthenticationError,
+    PermissionDeniedError,
+)
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -54,6 +62,9 @@ import shutil
 load_dotenv()
 
 def initialize_state():
+    # The user's own VT ARC key ("" = use the shared ARC_API_KEY from .env).
+    if "arc_api_key" not in st.session_state:
+        st.session_state.arc_api_key = ""
     if "visualizations" not in st.session_state:
         if os.path.exists("visualizations.json"):
             with open("visualizations.json", "r") as f:
@@ -224,10 +235,95 @@ def extract_code_from_response(response_text):
     else:
         return response_text.strip()
 
+ARC_ENDPOINT = os.getenv("ARC_ENDPOINT", "https://llm-api.arc.vt.edu/api/v1")
+# The SDK appends "/v1/messages" itself, so drop ARC_ENDPOINT's trailing "/v1".
+ARC_BASE_URL = ARC_ENDPOINT.rstrip("/").removesuffix("/v1")
+
+
 def get_chatbot():
-    api_key = os.getenv("CLAUDE_API_KEY")
-    model_name = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-5")
-    return AnthropicChatBot(api_key, model=model_name)
+    """VT ARC LLM, via ARC's Anthropic-compatible API.
+
+    A key the user entered in the API key panel is used instead of ARC_API_KEY
+    from .env; the .env key is only used when the panel is blank.
+    """
+    api_key = st.session_state.get("arc_api_key", "").strip() or os.getenv("ARC_API_KEY")
+    model_name = os.getenv("ARC_MODEL", "vt-arc-llm")
+    return AnthropicChatBot(api_key, model=model_name, base_url=ARC_BASE_URL)
+
+
+def arc_error_message(error, action):
+    """A short, plain-language explanation of a failed VT ARC request."""
+    if isinstance(error, (AuthenticationError, PermissionDeniedError)):
+        if st.session_state.get("arc_api_key"):
+            return (f"❌ Couldn't {action}: VT ARC rejected the API key you entered. "
+                    "Check it in the 🔑 **LLM API key** panel, or create a new one.")
+        return (f"❌ Couldn't {action}: VT ARC rejected the app's shared API key. "
+                "Enter your own key in the 🔑 **LLM API key** panel.")
+    if isinstance(error, APIConnectionError):
+        return f"❌ Couldn't {action}: VT ARC could not be reached. Please try again in a moment."
+    if isinstance(error, APIStatusError):
+        return (f"❌ Couldn't {action}: VT ARC returned an error (HTTP {error.status_code}). "
+                "Please try again in a moment.")
+    return f"❌ Couldn't {action}: the VT ARC request failed."
+
+
+@contextmanager
+def arc_errors(action):
+    """Show a clean message instead of a traceback when a VT ARC request fails.
+
+    Only API errors are caught; anything else (including Streamlit's rerun
+    signal) propagates as usual. The full error stays available under Details.
+    """
+    try:
+        yield
+    except APIError as e:
+        st.error(arc_error_message(e, action))
+        with st.expander("ℹ️ Error details"):
+            st.code(f"{type(e).__name__}: {e}")
+
+
+def render_arc_key_panel():
+    """The user's own VT ARC API key: not required, but highly recommended."""
+    with st.expander("🔑 LLM API key — highly recommended",
+                     expanded=not st.session_state.arc_api_key):
+        st.caption("Please create your own API key for the ARC models.")
+        # A stable widget key: with value= instead, the widget's ID changes once
+        # a key is entered and the user's next edit (e.g. clearing it) is lost.
+        if "arc_api_key_widget" not in st.session_state:
+            st.session_state.arc_api_key_widget = st.session_state.arc_api_key
+        st.session_state.arc_api_key = st.text_input(
+            "API key", key="arc_api_key_widget", type="password",
+            placeholder="sk-…", label_visibility="collapsed",
+        ).strip()
+        if st.session_state.arc_api_key:
+            # Verify once per distinct key, not on every rerun.
+            if st.session_state.get("arc_key_checked") != st.session_state.arc_api_key:
+                try:
+                    Anthropic(api_key=st.session_state.arc_api_key, base_url=ARC_BASE_URL,
+                              max_retries=0).models.list(limit=1)
+                    st.session_state.arc_key_error = ""
+                except APIError as e:
+                    st.session_state.arc_key_error = f"{type(e).__name__}: {e}"
+                st.session_state.arc_key_checked = st.session_state.arc_api_key
+            if st.session_state.arc_key_error:
+                st.error(f"❌ ARC could not verify this key — {st.session_state.arc_key_error}")
+            else:
+                st.success("✓ Key verified — using the key entered here.")
+        elif os.getenv("ARC_API_KEY"):
+            st.warning("**Highly recommended:** enter your own key. Until you do, "
+                       "the app's shared key from .env is used.")
+        else:
+            st.warning("No key in .env — enter your own key here to create visualizations.")
+        st.markdown(
+            "**Get your own VT ARC API key**\n"
+            "1. Go to [llm.arc.vt.edu](https://llm.arc.vt.edu/)\n"
+            "2. Log in with your VT credentials (PID and password)\n"
+            "3. Click your profile icon → **Settings** → **Account** → "
+            "**API Keys**\n"
+            "4. Click **Create new secret key**, name it, and click "
+            "**Create**\n"
+            "5. **Copy the key immediately** and paste it above"
+        )
 
 def save_visualization(viz_id=None, auto_save=False, title=None):
     if not viz_id:
@@ -505,6 +601,8 @@ def main():
     sidebar, main_area = st.columns([1, 3])
 
     with sidebar:
+        render_arc_key_panel()
+
         st.subheader("✨ Create Visualization")
 
         # File uploader for CSV
@@ -535,7 +633,7 @@ def main():
         prompt = st.text_area("📝 Describe the visualization you want:")
 
         if st.button("✨ Generate"):
-            with st.spinner("Generating visualization..."):  # ⏳
+            with arc_errors("generate the visualization"), st.spinner("Generating visualization..."):  # ⏳
                 # Pass both CSV and image filenames to the create_new_visualization function
                 create_new_visualization(prompt, st.session_state.uploaded_csv, st.session_state.uploaded_image)
 
@@ -610,7 +708,7 @@ def main():
                         st.code(result["traceback"])
 
                     if st.button("🛠️ Auto-repair"):
-                        with st.spinner("⏳ Repairing code..."):
+                        with arc_errors("repair the code"), st.spinner("⏳ Repairing code..."):
                             fixed_code = repair_with_llm(st.session_state.current_code, result, viz.get('used_image'))
                             st.session_state.current_code = fixed_code
                             save_visualization(st.session_state.current_viz_id, True, title=viz['title'])
@@ -630,7 +728,7 @@ def main():
             
             with tabs[3]:  # Export tab
                 if st.button("📥 Export as Quarto (.qmd)"):
-                    with st.spinner("🔄 Generating academic title..."):
+                    with arc_errors("export to Quarto"), st.spinner("🔄 Generating academic title..."):
                         qmd_content, quarto_title = export_to_quarto(st.session_state.current_viz_id)
                         st.success(f"✅ Generated title: {quarto_title}")
                         st.download_button(
@@ -700,7 +798,7 @@ def main():
                 DO NOT use st.set_page_config() as it's already set by the parent app.
                 """
 
-                with st.spinner("⏳ Refining visualization..."):
+                with arc_errors("refine the visualization"), st.spinner("⏳ Refining visualization..."):
                     # Use image if available for refinement
                     image_filename = viz.get('used_image')
                     if image_filename:

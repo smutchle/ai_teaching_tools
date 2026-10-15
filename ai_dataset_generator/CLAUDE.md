@@ -27,13 +27,15 @@ Dependencies live in the parent project's `requirements.txt` (`../requirements.t
 `.env` is loaded by `app_dataset.py` via `python-dotenv`:
 
 ```
-CLAUDE_API_KEY=<key>
-ANTHROPIC_MODEL=claude-sonnet-4-6
-OLLAMA_MODEL=gemma3:27b
-OLLAMA_END_POINT=http://localhost:11434
+ARC_ENDPOINT=https://llm-api.arc.vt.edu/api/v1
+ARC_API_KEY=<key>
+ARC_MODEL=vt-arc-llm
 ```
 
-The user can override the Claude key per-session in the Streamlit sidebar.
+All LLM calls go to VT ARC through its Anthropic-compatible API (`AnthropicChatBot`
+with `base_url` = `ARC_ENDPOINT` minus `/v1`). Requests always stream: ARC rejects
+non-streaming requests above 8000 output tokens. Users can enter their own ARC key
+per session in the sidebar (highly recommended); it replaces `ARC_API_KEY`.
 
 ## Architecture
 
@@ -50,7 +52,7 @@ Two-layer core, plus a Streamlit UI:
   7. Convert categorical features to labels via `pd.qcut` into 10 deciles
   8. Apply missing data
   9. Evaluate the target expression
-- **LLM clients** — `AnthropicChatBot.py` (Claude with 529 retry/backoff) and `OllamaChatBot.py` (local Ollama, chat vs. generate endpoint based on history). Both expose `complete()` and `completeAsJSON()` (which strips ```json fences).
+- **LLM client** — `AnthropicChatBot.py`, pointed at VT ARC via `base_url`; streams every request, with 529 retry/backoff. Exposes `complete()` and `completeAsJSON()` (which strips ```json fences). `OllamaChatBot.py` is no longer used by the app.
 - **`app_dataset.py`** — Streamlit UI. Three tabs (Chat Assistant, JSON Editor, Dataset Description). Chat walks the user through a fixed `QUESTIONS` list, then sends the answers + `api_documentation.qmd` to the LLM to produce JSON. On generation failure, "Fix Error with AI" round-trips the broken JSON + error message back through the LLM.
 
 ## Key Concepts (Easy to Get Wrong)
@@ -73,7 +75,7 @@ Two-layer core, plus a Streamlit UI:
 
 - `dataset.py`, `dataset_generator.py` — core
 - `app_dataset.py` — Streamlit UI (single file, ~800 lines)
-- `AnthropicChatBot.py`, `OllamaChatBot.py` — LLM clients
+- `AnthropicChatBot.py` — LLM client (VT ARC); `OllamaChatBot.py` — unused legacy client
 - `api_documentation.qmd` / `.pdf` — JSON schema reference; **the .qmd is fed into the LLM as context** when generating or repairing configs, so keep it in sync with `Dataset._validate_*` rules.
 - `user_documentation.qmd` / `.pdf` — end-user guide for the Streamlit app
 - `combined_datasets_json.json` — example combined config bundle

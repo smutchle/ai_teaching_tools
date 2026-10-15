@@ -6,8 +6,8 @@ from vt_banner import render_vt_banner
 
 from utils.llm import (
     DEFAULT_INSTRUCTIONS,
+    ARC_PROVIDER_NAME,
     IMPORT_CHARS_PER_CHUNK,
-    PROVIDERS,
     QUESTIONS_PER_CHUNK,
     generate_questions,
     import_questions,
@@ -49,7 +49,6 @@ for key, default in [
     ("bank_saved_id", None),        # bank_id after save
     ("bank_source_name", None),     # uploaded filename(s) the bank was built from
     ("quiz_saved_id", None),        # quiz code after quiz save
-    ("llm_provider", PROVIDERS[0]), # selected LLM provider
 ]:
     if key not in st.session_state:
         st.session_state[key] = default
@@ -76,13 +75,6 @@ MODE_GENERATE = "🤖 Generate from materials"
 MODE_IMPORT = "📥 Import pre-built questions"
 bank_mode = st.radio("Source", [MODE_GENERATE, MODE_IMPORT], horizontal=True)
 
-provider = st.radio(
-    "LLM Provider",
-    PROVIDERS,
-    index=PROVIDERS.index(st.session_state.llm_provider),
-    horizontal=True,
-)
-st.session_state.llm_provider = provider
 
 st.divider()
 
@@ -119,8 +111,8 @@ if bank_mode == MODE_GENERATE:
         est = sum(_questions_for_chunk(c) for c in chunks)
         st.info(f"Text extracted in {len(chunks)} chunk(s). Generating ~{est} questions…")
 
-        with st.spinner(f"Calling {provider} (context-only mode)…"):
-            questions = generate_questions(chunks, supplemental_instructions, provider)
+        with st.spinner(f"Calling {ARC_PROVIDER_NAME} (context-only mode)…"):
+            questions = generate_questions(chunks, supplemental_instructions)
 
         if not questions:
             st.error("No questions returned. Check your API settings and try again.")
@@ -167,8 +159,8 @@ else:
         with st.spinner("Processing files…"):
             chunks = process_files(uploaded_files, max_chars=IMPORT_CHARS_PER_CHUNK)
 
-        with st.spinner(f"Calling {provider} to parse {len(chunks)} chunk(s)…"):
-            questions = import_questions(chunks, provider)
+        with st.spinner(f"Calling {ARC_PROVIDER_NAME} to parse {len(chunks)} chunk(s)…"):
+            questions = import_questions(chunks)
 
         if not questions:
             st.error(
