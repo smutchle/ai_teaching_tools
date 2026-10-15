@@ -1,5 +1,3 @@
-import base64
-import os
 import uuid
 
 import pandas as pd
@@ -15,40 +13,22 @@ import tabs.topics_tab as topics_tab
 import tabs.outputs_tab as outputs_tab
 
 # --- Page Config ---
-_logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logo.jpg")
-try:
-    from PIL import Image as _PILImage
-    _page_icon = _PILImage.open(_logo_path) if os.path.exists(_logo_path) else "📚"
-except ImportError:
-    _page_icon = "📚"
-
 st.set_page_config(
     layout="wide",
     initial_sidebar_state="collapsed",
     page_title="AI Course Builder",
-    page_icon=_page_icon,
 )
 render_vt_banner()
 
 inject_css()
 
 # --- Header ---
-def _load_logo_b64():
-    if os.path.exists(_logo_path):
-        with open(_logo_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    return None
-
-_LOGO_B64 = _load_logo_b64()
-_logo_html = f'<img src="data:image/jpeg;base64,{_LOGO_B64}" alt="Logo">' if _LOGO_B64 else ''
-st.markdown(f"""
+st.markdown("""
 <div class="app-header">
-    {_logo_html}
     <div class="app-header-text">
         <h1>AI Course Builder</h1>
-        <p>AI-Powered Course Design Tool</p>
+        <p>AI Course Scaffolding Generator</p>
     </div>
-    <span class="app-header-badge">Beta</span>
 </div>
 """, unsafe_allow_html=True)
 

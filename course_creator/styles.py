@@ -5,7 +5,6 @@ def inject_css():
     st.markdown(
         """
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@400;500;600;700&display=swap');
 
     /* Force a light theme regardless of the user's system color-scheme. */
     :root { color-scheme: light only; }
@@ -41,7 +40,6 @@ def inject_css():
     html, body, .stApp {
         background-color: var(--bg-deep) !important;
         color: var(--text-hi) !important;
-        font-family: 'Syne', sans-serif !important;
     }
 
     /* ── Main Content Area ── */
@@ -60,15 +58,7 @@ def inject_css():
         border-bottom: 1px solid var(--border);
         margin-bottom: 28px;
     }
-    .app-header img {
-        width: 56px;
-        height: 56px;
-        border-radius: var(--radius-md);
-        object-fit: cover;
-        box-shadow: 0 0 24px rgba(134,31,65,0.18);
-    }
     .app-header-text h1 {
-        font-family: 'Cormorant Garamond', serif !important;
         font-size: 2.4rem !important;
         font-weight: 600 !important;
         color: var(--accent) !important;
@@ -77,29 +67,13 @@ def inject_css():
         line-height: 1.1;
     }
     .app-header-text p {
-        font-family: 'Syne', sans-serif;
         font-size: 0.88rem;
         color: var(--text-lo);
         margin: 0;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-    }
-    .app-header-badge {
-        margin-left: auto;
-        background: linear-gradient(135deg, var(--accent-dim), var(--accent));
-        color: #FFFFFF;
-        font-size: 0.72rem;
-        font-weight: 700;
-        letter-spacing: 0.1em;
-        text-transform: uppercase;
-        padding: 4px 10px;
-        border-radius: 20px;
-        font-family: 'Syne', sans-serif;
     }
 
     /* ── Headings ── */
     h1, h2, h3, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3 {
-        font-family: 'Cormorant Garamond', serif !important;
         color: var(--accent) !important;
         letter-spacing: 0.01em;
     }
@@ -109,7 +83,6 @@ def inject_css():
 
     [data-testid="stHeadingWithActionElements"] h2,
     [data-testid="stHeadingWithActionElements"] h3 {
-        font-family: 'Cormorant Garamond', serif !important;
         color: var(--accent) !important;
     }
 
@@ -125,11 +98,8 @@ def inject_css():
     [data-testid="stTab"] {
         background: transparent !important;
         color: var(--text-lo) !important;
-        font-family: 'Syne', sans-serif !important;
         font-size: 0.92rem !important;
         font-weight: 500 !important;
-        letter-spacing: 0.06em !important;
-        text-transform: uppercase !important;
         padding: 12px 20px !important;
         border: none !important;
         border-bottom: 2px solid transparent !important;
@@ -159,11 +129,8 @@ def inject_css():
         color: var(--text-mid) !important;
         border: 1px solid var(--border-hi) !important;
         border-radius: var(--radius-sm) !important;
-        font-family: 'Syne', sans-serif !important;
         font-size: 0.92rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.08em !important;
-        text-transform: uppercase !important;
         padding: 8px 18px !important;
         transition: all 0.2s ease !important;
         box-shadow: var(--shadow-sm) !important;
@@ -189,10 +156,8 @@ def inject_css():
         color: #FFFFFF !important;
         border: none !important;
         border-radius: var(--radius-sm) !important;
-        font-family: 'Syne', sans-serif !important;
         font-size: 0.8rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.06em !important;
         padding: 8px 18px !important;
         transition: all 0.2s ease !important;
     }
@@ -209,7 +174,6 @@ def inject_css():
         color: var(--text-hi) !important;
         border: 1px solid var(--border) !important;
         border-radius: var(--radius-sm) !important;
-        font-family: 'Syne', sans-serif !important;
         font-size: 1rem !important;
         padding: 10px 14px !important;
         transition: border-color 0.2s, box-shadow 0.2s !important;
@@ -223,11 +187,8 @@ def inject_css():
     }
     .stTextInput label, .stTextArea label, .stNumberInput label,
     .stSelectbox label, .stFileUploader label, .stCheckbox label {
-        font-family: 'Syne', sans-serif !important;
         font-size: 0.88rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.08em !important;
-        text-transform: uppercase !important;
         color: var(--text-lo) !important;
         margin-bottom: 6px !important;
     }
@@ -256,7 +217,6 @@ def inject_css():
     [data-testid="stDataEditor"] th {
         background: var(--bg-surface) !important;
         color: var(--text-lo) !important;
-        font-family: 'Syne', sans-serif !important;
         font-size: 0.82rem !important;
         font-weight: 700 !important;
         letter-spacing: 0.1em !important;

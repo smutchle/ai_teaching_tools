@@ -10,8 +10,12 @@ def render():
 
     # ── Output ────────────────────────────────────────────────────────────────
     st.subheader("Output Settings")
-    notebook_path = st.text_input("Output Path", value=st.session_state.output_path)
-    st.session_state.output_path = notebook_path
+    st.text_input("Output Path", value=st.session_state.output_path, disabled=True)
+    st.caption(
+        "This is just where your output files are temporarily stored on the server. "
+        "You will be able to download them from the **Outputs** tab — individually "
+        "or all together as a ZIP."
+    )
 
     # ── LLM (VT ARC) ──────────────────────────────────────────────────────────
     st.subheader("LLM Settings (VT ARC)")
