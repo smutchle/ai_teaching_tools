@@ -37,7 +37,7 @@ def infer_department(llm: FailoverLLM, notes_sample: str) -> str:
     """Ask the LLM which Virginia Tech department the notes most likely belong to.
 
     Args:
-        llm: The session's LLM (ARC, or the Claude fallback).
+        llm: The session's LLM (ARC or Claude, as selected in the sidebar).
         notes_sample: Representative extracted text from the converted notes.
 
     Returns:

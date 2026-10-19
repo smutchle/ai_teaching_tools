@@ -37,15 +37,20 @@ load_dotenv()
 
 APP_LOGO_PATH = Path(__file__).resolve().parent / "images" / "logo.png"
 
-# LLM providers from .env, shared by every session: VT ARC by default,
-# Anthropic Claude as the fallback when ARC is unavailable. Each session gets
-# its own FailoverLLM (see get_llm) so one session's failover doesn't affect
-# others -- and a session with its own ARC key gets its own ARC provider.
+# LLM providers from .env, shared by every session: VT ARC by default, or
+# Anthropic Claude when the user selects it. There is no automatic fallback
+# from ARC to Claude -- notes may hold sensitive data that must stay on ARC.
+# Each session gets its own LLM (see get_llm), and a session with its own ARC
+# key gets its own ARC provider.
 ENV_ARC_PROVIDER: LLMProvider | None = arc_provider_from_env()
 CLAUDE_PROVIDER: LLMProvider | None = claude_provider_from_env()
 
 # session_state key holding the user's own VT ARC API key ("" if none).
 ARC_KEY_STATE: str = 'arc_api_key'
+
+# session_state keys for the sidebar provider checkboxes. ARC is on by default.
+USE_ARC_STATE: str = 'use_arc_provider'
+USE_CLAUDE_STATE: str = 'use_claude_provider'
 
 # Page count above which the user is advised to split the PDF.
 LARGE_DOCUMENT_PAGES: int = 50
@@ -91,14 +96,6 @@ if 'temp_reaper_ran' not in st.session_state:
     reap_stale_temp_dirs()
     st.session_state.temp_reaper_ran = True
 
-def _announce_failover(primary: LLMProvider, fallback: LLMProvider, error: APIError) -> None:
-    """Tell the user this session has switched from ARC to the Claude fallback."""
-    st.warning(
-        f"⚠️ {primary.label} is unavailable ({type(error).__name__}: {error}). "
-        f"Switching to {fallback.label} for the rest of this session."
-    )
-
-
 def get_user_arc_key() -> str:
     """Return the ARC API key the user entered in the sidebar, or "" if none."""
     key: str = st.session_state.get(ARC_KEY_STATE, "")
@@ -108,29 +105,74 @@ def get_user_arc_key() -> str:
 def get_llm() -> FailoverLLM:
     """Return this session's LLM, creating it on first use.
 
+    Exactly one provider is used: ARC when "ARC Vision LLM" is checked,
+    Claude when "Claude Sonnet" is checked. There is no fallback -- if ARC
+    fails, the error is shown and the user decides whether to switch.
+
     If the user entered their own ARC key, ARC is called with THAT key and the
     .env ARC_API_KEY is not used. The LLM is rebuilt whenever the entered key
-    changes, so a new key takes effect on the very next call.
-
-    Stored in session_state so the ARC -> Claude switch is sticky for the
-    session; a new key, a Reset, or a new browser session starts on ARC again.
+    or the provider selection changes, so either takes effect on the very next
+    call.
 
     Raises:
-        ValueError: If no ARC key (entered or in .env) and no Claude key exist.
+        ValueError: If no provider is selected, or the selected provider has
+            no key configured.
     """
+    use_arc: bool = st.session_state.get(USE_ARC_STATE, True)
+    use_claude: bool = st.session_state.get(USE_CLAUDE_STATE, False)
+    if not use_arc and not use_claude:
+        raise ValueError("Select an AI provider (ARC Vision LLM or Claude Sonnet) in the sidebar.")
     user_key = get_user_arc_key()
-    if 'llm' not in st.session_state or st.session_state.get('llm_key_sig') != user_key:
-        arc_provider = arc_provider_from_env(user_key) if user_key else ENV_ARC_PROVIDER
-        st.session_state.llm = FailoverLLM(
-            primary=arc_provider,
-            fallback=CLAUDE_PROVIDER,
-            on_failover=_announce_failover,
-            # A rejected user key must be reported, not hidden by the fallback.
-            fail_over_on_auth_error=not user_key,
-        )
-        st.session_state.llm_key_sig = user_key
+    if use_arc:
+        provider = arc_provider_from_env(user_key) if user_key else ENV_ARC_PROVIDER
+        if provider is None:
+            raise ValueError("ARC Vision LLM is selected but no ARC key is available. Enter your VT ARC API key below.")
+    else:
+        provider = CLAUDE_PROVIDER
+        if provider is None:
+            raise ValueError("Claude Sonnet is selected but CLAUDE_API_KEY is not set in .env.")
+    llm_sig = (user_key, use_arc)
+    if 'llm' not in st.session_state or st.session_state.get('llm_key_sig') != llm_sig:
+        st.session_state.llm = FailoverLLM(primary=provider, fallback=None)
+        st.session_state.llm_key_sig = llm_sig
     llm: FailoverLLM = st.session_state.llm
     return llm
+
+
+def _uncheck_other_provider(other_state_key: str, this_state_key: str) -> None:
+    """Checkbox callback: checking one provider unchecks the other."""
+    if st.session_state[this_state_key]:
+        st.session_state[other_state_key] = False
+
+
+def render_provider_selection() -> None:
+    """Sidebar checkboxes choosing which AI provider this session uses.
+
+    The two checkboxes are mutually exclusive. Must run before anything calls
+    get_llm() in a script run, so the selection the user just made is the one
+    that run uses.
+    """
+    if USE_ARC_STATE not in st.session_state:
+        st.session_state[USE_ARC_STATE] = True
+    if USE_CLAUDE_STATE not in st.session_state:
+        st.session_state[USE_CLAUDE_STATE] = False
+    st.checkbox(
+        "ARC Vision LLM",
+        key=USE_ARC_STATE,
+        on_change=_uncheck_other_provider,
+        args=(USE_CLAUDE_STATE, USE_ARC_STATE),
+        help="Virginia Tech's ARC hosted vision model.",
+    )
+    st.caption("🔒 The only safe model for high-sensitivity data. Data stays on Virginia Tech infrastructure.")
+    st.checkbox(
+        "Claude Sonnet",
+        key=USE_CLAUDE_STATE,
+        on_change=_uncheck_other_provider,
+        args=(USE_ARC_STATE, USE_CLAUDE_STATE),
+        disabled=CLAUDE_PROVIDER is None,
+        help="Anthropic Claude, called directly.",
+    )
+    st.caption("💲 Use this only if ARC fails. It has substantial cost associated with it.")
 
 
 def render_arc_key_input() -> None:
@@ -195,12 +237,16 @@ def reset_session():
     # Bump the uploader key so the file_uploader widget remounts empty. Just
     # clearing session_state leaves the widget's own state (and its file) intact.
     next_uploader_key = st.session_state.get('uploader_key', 0) + 1
-    # The user's ARC key is a setting, not conversion data: keep it.
+    # The user's ARC key and provider choice are settings, not conversion data: keep them.
     user_arc_key = get_user_arc_key()
+    use_arc: bool = st.session_state.get(USE_ARC_STATE, True)
+    use_claude: bool = st.session_state.get(USE_CLAUDE_STATE, False)
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.session_state.uploader_key = next_uploader_key
     st.session_state[ARC_KEY_STATE] = user_arc_key
+    st.session_state[USE_ARC_STATE] = use_arc
+    st.session_state[USE_CLAUDE_STATE] = use_claude
     st.rerun()
 
 def pdf_to_images(pdf_path, max_pages=None):
@@ -488,6 +534,8 @@ format:
     toc: true
     toc-depth: 3
     number-sections: true
+    embed-resources: true
+    self-contained-math: true
   pdf:
     documentclass: article
     keep-tex: true
@@ -579,7 +627,7 @@ def render_quarto(qmd_path, output_format, work_dir, return_error=False):
 
     Args:
         qmd_path: Path to the .qmd source file.
-        output_format: One of "pdf", "docx", "latex".
+        output_format: One of "pdf", "docx", "latex", "html".
         work_dir: Working directory for the render.
         return_error: When True, return a ``(output_file, error_text)`` tuple
             and suppress Streamlit error output, so the caller can drive a
@@ -600,6 +648,8 @@ def render_quarto(qmd_path, output_format, work_dir, return_error=False):
             cmd = ["quarto", "render", qmd_path, "--to", "docx"]
         elif output_format == "latex":
             cmd = ["quarto", "render", qmd_path, "--to", "latex"]
+        elif output_format == "html":
+            cmd = ["quarto", "render", qmd_path, "--to", "html"]
         else:
             return _result(None, f"Unsupported output format: {output_format}")
 
@@ -634,6 +684,8 @@ def render_quarto(qmd_path, output_format, work_dir, return_error=False):
             extension = ".docx"
         elif output_format == "latex":
             extension = ".tex"
+        elif output_format == "html":
+            extension = ".html"
         else:
             return _result(None, f"Unsupported output format: {output_format}")
 
@@ -1139,7 +1191,7 @@ def main():
         unsafe_allow_html=True,
     )
     st.markdown("""
-    Upload your handwritten PDF notes to convert them to accessible digital formats including Quarto, LaTeX, Word and PDF documents.
+    Upload your handwritten PDF notes to convert them to accessible digital formats: HTML5 (recommended for accessibility), PDF, Word, LaTeX and Quarto.
 
     **This tool uses AI to:**
     - Extract handwritten text from PDF pages
@@ -1149,85 +1201,91 @@ def main():
     """)
 
     # Add accessibility note
-    st.info("♿ This application creates documents with accessibility features enabled by default, including semantic structure, alt text for images, and proper heading hierarchy.")
+    st.info("♿ This application creates documents with accessibility features enabled by default, including semantic structure, alt text for images, and proper heading hierarchy. **For the most accessible result, download the HTML5 version.**")
 
     # Check Quarto installation (silently - only warn if missing)
     quarto_ok, quarto_info = check_quarto_installation()
     if not quarto_ok:
         st.error(f"❌ Quarto Installation Error: {quarto_info}")
-        st.warning("⚠️ PDF, Word, and LaTeX downloads require Quarto to be installed. Only .qmd format will be available.")
+        st.warning("⚠️ PDF, Word, LaTeX, and HTML downloads require Quarto to be installed. Only .qmd format will be available.")
 
     # Sidebar options
     with st.sidebar:
-        render_arc_key_input()
+        provider_tab, options_tab = st.tabs(["🤖 AI Provider", "⚙️ Conversion Options"])
 
-        st.header("Conversion Options")
-        st.markdown("Configure how your document will be processed and formatted.")
+        with provider_tab:
+            render_provider_selection()
+            render_arc_key_input()
 
-        make_accessible = st.checkbox(
-            "Enable Accessibility Features",
-            value=True,
-            help="Adds WCAG-compliant accessibility features including ARIA labels, semantic structure, proper heading hierarchy, and metadata for screen readers and assistive technologies."
-        )
+        with options_tab:
+            st.markdown("Configure how your document will be processed and formatted.")
 
-        preserve_figures = st.checkbox(
-            "Preserve Figures as Images",
-            value=True,
-            help="Saves diagrams, drawings, and graphs as embedded images with descriptive alt text. When disabled, figures will be described in plain text format."
-        )
+            make_accessible = st.checkbox(
+                "Enable Accessibility Features",
+                value=True,
+                help="Adds WCAG-compliant accessibility features including ARIA labels, semantic structure, proper heading hierarchy, and metadata for screen readers and assistive technologies."
+            )
 
-        enable_ocr_correction = st.checkbox(
-            "Enable OCR Error Correction",
-            value=True,
-            help="Uses AI to perform a second pass that fixes common OCR errors like misread characters (1 vs l, 0 vs O). Note: This doubles processing time."
-        )
+            preserve_figures = st.checkbox(
+                "Preserve Figures as Images",
+                value=True,
+                help="Saves diagrams, drawings, and graphs as embedded images with descriptive alt text. When disabled, figures will be described in plain text format."
+            )
 
-        remove_page_breaks = st.checkbox(
-            "Remove Page Breaks",
-            value=True,
-            help="Creates a continuous document by removing page break markers between scanned pages. Disable to preserve original page structure."
-        )
+            enable_ocr_correction = st.checkbox(
+                "Enable OCR Error Correction",
+                value=True,
+                help="Uses AI to perform a second pass that fixes common OCR errors like misread characters (1 vs l, 0 vs O). Note: This doubles processing time."
+            )
 
-        test_render_pages = st.checkbox(
-            "Test Render Each Page",
-            value=True,
-            disabled=not quarto_ok,
-            help=f"Renders each page to PDF on its own as soon as it is extracted. If a page fails to render, the AI repairs it (up to {SELF_HEAL_MAX_ATTEMPTS} attempts) before moving on. Catches broken LaTeX early, at the cost of a few seconds per page. Requires Quarto."
-        ) and quarto_ok
+            remove_page_breaks = st.checkbox(
+                "Remove Page Breaks",
+                value=True,
+                help="Creates a continuous document by removing page break markers between scanned pages. Disable to preserve original page structure."
+            )
 
-        # Adobe Auto-Tag option (DISABLED -- requires a paid Adobe PDF Services
-        # account). Left in the codebase, commented out, so it can be re-enabled
-        # by restoring this block, the call site in the PDF render section, and
-        # the pdfservices-sdk dependency in requirements.txt.
-        enable_autotag = False
-        # adobe_available = check_adobe_credentials()
-        # enable_autotag = st.checkbox(
-        #     "Adobe PDF Auto-Tag",
-        #     value=adobe_available,
-        #     disabled=not adobe_available,
-        #     help="Uses Adobe PDF Services API to add production-grade accessibility tags (PDF/UA) to the rendered PDF (very limited budget). "
-        #          "Requires PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env file."
-        # )
-        # if not adobe_available:
-        #     st.caption("Adobe credentials not configured. Set PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env")
+            test_render_pages = st.checkbox(
+                "Test Render Each Page",
+                value=True,
+                disabled=not quarto_ok,
+                help=f"Renders each page to PDF on its own as soon as it is extracted. If a page fails to render, the AI repairs it (up to {SELF_HEAL_MAX_ATTEMPTS} attempts) before moving on. Catches broken LaTeX early, at the cost of a few seconds per page. Requires Quarto."
+            ) and quarto_ok
+
+            # Adobe Auto-Tag option (DISABLED -- requires a paid Adobe PDF Services
+            # account). Left in the codebase, commented out, so it can be re-enabled
+            # by restoring this block, the call site in the PDF render section, and
+            # the pdfservices-sdk dependency in requirements.txt.
+            enable_autotag = False
+            # adobe_available = check_adobe_credentials()
+            # enable_autotag = st.checkbox(
+            #     "Adobe PDF Auto-Tag",
+            #     value=adobe_available,
+            #     disabled=not adobe_available,
+            #     help="Uses Adobe PDF Services API to add production-grade accessibility tags (PDF/UA) to the rendered PDF (very limited budget). "
+            #          "Requires PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env file."
+            # )
+            # if not adobe_available:
+            #     st.caption("Adobe credentials not configured. Set PDF_SERVICES_CLIENT_ID and PDF_SERVICES_CLIENT_SECRET in .env")
 
         st.markdown("---")
         st.markdown("### About This Tool")
         st.markdown("""
-        This application uses Virginia Tech ARC hosted vision AI (falling back to Anthropic Claude if ARC is unavailable) to:
+        This application uses Virginia Tech ARC hosted vision AI (or Anthropic Claude, if selected) to:
         - **Extract** handwritten text from PDF pages with high accuracy
         - **Convert** mathematical notation to accessible LaTeX format
         - **Preserve** diagrams and drawings as embedded images with alt text
-        - **Generate** multiple accessible output formats (PDF, Word, LaTeX, Quarto)
+        - **Generate** multiple accessible output formats: **HTML5 (recommended for accessibility)**, PDF, Word, LaTeX and Quarto
 
         **Accessibility Commitment:**
         Output documents comply with WCAG 2.1 Level AA standards when "Enable Accessibility Features" is checked.
         """)
 
         st.markdown("---")
+        llm_ready = True
         try:
             st.caption(f"🤖 AI model: {get_llm().active.label}")
         except ValueError as e:
+            llm_ready = False
             st.error(f"❌ {e}")
         if st.button(
             "🔄 Reset",
@@ -1260,7 +1318,7 @@ def main():
                 shutil.rmtree(old_dir, ignore_errors=True)
             # Clear previous file's cached data and tracking keys
             for key in ['qmd_content', 'qmd_path', 'temp_dir_path', 'pdf_data',
-                        'docx_data', 'tex_data', 'conversion_complete', 'original_filename',
+                        'docx_data', 'tex_data', 'html_data', 'conversion_complete', 'original_filename',
                         'pdf_render_failed', 'document']:
                 st.session_state.pop(key, None)
             # Create the session/file-specific temp directory exactly once
@@ -1299,7 +1357,7 @@ def main():
 
             # Process button
             st.markdown("### Step 2: Start Conversion")
-            if st.button("🔄 Convert to Accessible Document", type="primary", help="Begin processing the uploaded PDF file"):
+            if st.button("🔄 Convert to Accessible Document", type="primary", disabled=not llm_ready, help="Begin processing the uploaded PDF file"):
                 with st.spinner("Converting PDF pages to images..."):
                     images = pdf_to_images(str(pdf_path))
                     st.info(f"📄 Found {len(images)} pages to process")
@@ -1386,7 +1444,7 @@ def main():
                 # Store in session state to persist across reruns. Clear any
                 # cached renders and the self-heal flag from a prior conversion
                 # so the new document renders fresh.
-                for key in ['pdf_data', 'docx_data', 'tex_data', 'pdf_render_failed']:
+                for key in ['pdf_data', 'docx_data', 'tex_data', 'html_data', 'pdf_render_failed']:
                     st.session_state.pop(key, None)
                 st.session_state.qmd_content = qmd_content
                 st.session_state.document = document
@@ -1459,7 +1517,7 @@ def main():
                         # The document was repaired: drop stale derived outputs
                         # so every format re-renders from the fix.
                         st.session_state.qmd_content = healed_qmd
-                        for k in ['docx_data', 'tex_data']:
+                        for k in ['docx_data', 'tex_data', 'html_data']:
                             st.session_state.pop(k, None)
                         if pdf_output:
                             st.success("✅ Self-healing succeeded — the document was repaired and rendered to PDF.")
@@ -1492,6 +1550,44 @@ def main():
                         #             st.warning(f"⚠️ Adobe Auto-Tag failed: {e}. PDF saved without accessibility tags.")
                         st.session_state.pdf_data = pdf_bytes
 
+                # Recommended format: standalone HTML5 (images and math embedded)
+                st.markdown("#### ⭐ Recommended: HTML5")
+                st.success(
+                    "**HTML5 is the most accessible format.** Text reflows to any zoom level or "
+                    "screen size, equations are read aloud correctly by screen readers (MathJax), "
+                    "and headings, a table of contents and image alt text are all navigable "
+                    "with assistive technology. The file is self-contained, with every image "
+                    "embedded, and opens in any web browser.\n\n"
+                    "🎓 **Canvas:** upload the HTML5 file directly to Canvas in place of a PDF. "
+                    "Students get the accessible version with nothing else to download."
+                )
+                if 'html_data' not in st.session_state:
+                    with st.spinner("🔄 Rendering HTML document..."):
+                        html_output = render_quarto(st.session_state.qmd_path, "html", st.session_state.temp_dir_path)
+                        if html_output:
+                            with open(html_output, "r", encoding="utf-8") as f:
+                                st.session_state.html_data = f.read()
+
+                if 'html_data' in st.session_state:
+                    st.download_button(
+                        label="🌐 Download HTML5 (.html) — Best for Accessibility",
+                        data=st.session_state.html_data,
+                        file_name=f"{original_filename}.html",
+                        mime="text/html",
+                        type="primary",
+                        use_container_width=True,
+                        help="Download as a standalone HTML5 web page with all images and math embedded. Upload it directly to Canvas in place of a PDF.",
+                        key="download_html"
+                    )
+                else:
+                    st.warning("⚠️ HTML unavailable - Quarto installation required")
+
+                st.markdown("#### Other formats")
+                st.caption(
+                    "PDF, Word and LaTeX are provided for printing, editing and further "
+                    "customization. They are less accessible than HTML5: PDF equations are not "
+                    "read by screen readers and PDF pages do not reflow when zoomed."
+                )
                 col1, col2, col3, col4 = st.columns(4)
 
                 # Download .qmd (reflects the healed source if self-healing ran)
