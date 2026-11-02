@@ -37,9 +37,9 @@ load_dotenv()
 
 APP_LOGO_PATH = Path(__file__).resolve().parent / "images" / "logo.png"
 
-# LLM providers from .env, shared by every session: VT ARC by default, or
-# Anthropic Claude when the user selects it. There is no automatic fallback
-# from ARC to Claude -- notes may hold sensitive data that must stay on ARC.
+# LLM providers from .env, shared by every session: Anthropic Claude by default,
+# or VT ARC when the user selects it. There is no automatic fallback between
+# them -- notes may hold sensitive data that must stay on ARC once it is selected.
 # Each session gets its own LLM (see get_llm), and a session with its own ARC
 # key gets its own ARC provider.
 ENV_ARC_PROVIDER: LLMProvider | None = arc_provider_from_env()
@@ -48,9 +48,14 @@ CLAUDE_PROVIDER: LLMProvider | None = claude_provider_from_env()
 # session_state key holding the user's own VT ARC API key ("" if none).
 ARC_KEY_STATE: str = 'arc_api_key'
 
-# session_state keys for the sidebar provider checkboxes. ARC is on by default.
+# session_state keys for the sidebar provider checkboxes.
 USE_ARC_STATE: str = 'use_arc_provider'
 USE_CLAUDE_STATE: str = 'use_claude_provider'
+
+# Claude is on by default. Without a CLAUDE_API_KEY its checkbox is disabled, so
+# the default drops to ARC rather than starting on a provider that can't run.
+DEFAULT_USE_CLAUDE: bool = CLAUDE_PROVIDER is not None
+DEFAULT_USE_ARC: bool = not DEFAULT_USE_CLAUDE
 
 # Page count above which the user is advised to split the PDF.
 LARGE_DOCUMENT_PAGES: int = 50
@@ -118,8 +123,8 @@ def get_llm() -> FailoverLLM:
         ValueError: If no provider is selected, or the selected provider has
             no key configured.
     """
-    use_arc: bool = st.session_state.get(USE_ARC_STATE, True)
-    use_claude: bool = st.session_state.get(USE_CLAUDE_STATE, False)
+    use_arc: bool = st.session_state.get(USE_ARC_STATE, DEFAULT_USE_ARC)
+    use_claude: bool = st.session_state.get(USE_CLAUDE_STATE, DEFAULT_USE_CLAUDE)
     if not use_arc and not use_claude:
         raise ValueError("Select an AI provider (ARC Vision LLM or Claude Sonnet) in the sidebar.")
     user_key = get_user_arc_key()
@@ -153,17 +158,9 @@ def render_provider_selection() -> None:
     that run uses.
     """
     if USE_ARC_STATE not in st.session_state:
-        st.session_state[USE_ARC_STATE] = True
+        st.session_state[USE_ARC_STATE] = DEFAULT_USE_ARC
     if USE_CLAUDE_STATE not in st.session_state:
-        st.session_state[USE_CLAUDE_STATE] = False
-    st.checkbox(
-        "ARC Vision LLM",
-        key=USE_ARC_STATE,
-        on_change=_uncheck_other_provider,
-        args=(USE_CLAUDE_STATE, USE_ARC_STATE),
-        help="Virginia Tech's ARC hosted vision model.",
-    )
-    st.caption("🔒 The only safe model for high-sensitivity data. Data stays on Virginia Tech infrastructure.")
+        st.session_state[USE_CLAUDE_STATE] = DEFAULT_USE_CLAUDE
     st.checkbox(
         "Claude Sonnet",
         key=USE_CLAUDE_STATE,
@@ -172,7 +169,15 @@ def render_provider_selection() -> None:
         disabled=CLAUDE_PROVIDER is None,
         help="Anthropic Claude, called directly.",
     )
-    st.caption("💲 Use this only if ARC fails. It has substantial cost associated with it.")
+    st.caption("⚠️ Not safe for high-sensitivity data. Notes are sent to Anthropic, outside Virginia Tech infrastructure. Use ARC for sensitive information.")
+    st.checkbox(
+        "ARC Vision LLM",
+        key=USE_ARC_STATE,
+        on_change=_uncheck_other_provider,
+        args=(USE_CLAUDE_STATE, USE_ARC_STATE),
+        help="Virginia Tech's ARC hosted vision model.",
+    )
+    st.caption("🔒 The only safe model for high-sensitivity data. Data stays on Virginia Tech infrastructure.")
 
 
 def render_arc_key_input() -> None:
@@ -239,8 +244,8 @@ def reset_session():
     next_uploader_key = st.session_state.get('uploader_key', 0) + 1
     # The user's ARC key and provider choice are settings, not conversion data: keep them.
     user_arc_key = get_user_arc_key()
-    use_arc: bool = st.session_state.get(USE_ARC_STATE, True)
-    use_claude: bool = st.session_state.get(USE_CLAUDE_STATE, False)
+    use_arc: bool = st.session_state.get(USE_ARC_STATE, DEFAULT_USE_ARC)
+    use_claude: bool = st.session_state.get(USE_CLAUDE_STATE, DEFAULT_USE_CLAUDE)
     for key in list(st.session_state.keys()):
         del st.session_state[key]
     st.session_state.uploader_key = next_uploader_key
