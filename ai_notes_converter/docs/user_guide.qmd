@@ -1,0 +1,210 @@
+---
+title: "AI Handwritten Notes Converter"
+subtitle: "User Guide"
+author: "Scott Mutchler"
+date: today
+lang: en
+format:
+  pdf:
+    pdf-engine: xelatex
+    documentclass: article
+    papersize: letter
+    fontsize: 11pt
+    geometry:
+      - margin=1in
+    colorlinks: true
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    fig-width: 6.5
+    fig-height: 4
+    fig-pos: "H"
+    mermaid-format: png
+    include-in-header: latex/fit-pages.tex
+---
+
+## What the Tool Does
+
+The Notes Converter turns a PDF of handwritten notes, such as scanned lecture notes, worked examples or tablet-written pages, into accessible digital documents. It reads each page with an AI vision model, writes the text and equations as Markdown with LaTeX math, and produces:
+
+- **HTML5** (recommended): one self-contained web page that screen readers can navigate, with equations read aloud;
+- **PDF**, **Word** and **LaTeX** for printing, editing and typesetting;
+- **Quarto (.qmd)**, the plain-text source you can correct and re-render.
+
+```{mermaid}
+%%| label: fig-workflow
+%%| fig-cap: "The four steps a user takes."
+%%| fig-alt: "Flow diagram of the user workflow: choose an AI provider, upload a PDF, click Convert and wait, then download HTML5 and other formats and proofread."
+flowchart LR
+    A["1. Choose AI provider<br/>(sidebar)"] --> B["2. Upload PDF"]
+    B --> C["3. Click Convert<br/>and wait"]
+    C --> D["4. Download HTML5<br/>and proofread"]
+```
+
+::: {.callout-important}
+The AI is accurate but not perfect. **Always proofread the output**, especially equations, before you share it with students.
+:::
+
+## Before You Start
+
+### Prepare a good scan
+
+Most transcription errors come from the input. A few minutes spent on the scan saves much more time on proofreading.
+
+- **Scan at 200 DPI or higher**, in color or grayscale. The tool renders every page at 200 DPI, so lower-resolution scans lose detail that cannot be recovered.
+- **Use dark ink on plain or lightly ruled paper.** Faint pencil and heavy grid paper are the hardest to read.
+- **Keep pages flat and straight**, without shadows or cropped edges. Phone scanning apps with "document" mode work well.
+- **Write equation numbers clearly**, for example `(3)` to the right of the equation.
+- **Cross out cleanly.** Scribbled-over work may be transcribed as if it were still part of the notes.
+- **Split long documents.** Documents over 50 pages are more likely to run into rendering problems. Use your PDF viewer's print-to-PDF to save pages 1–50, 51–100, and so on, as separate files.
+
+### Decide which AI provider to use
+
+The provider decides where your notes are sent. Choose before you upload.
+
+: Choosing an AI provider {#tbl-provider tbl-colwidths="[22,39,39]"}
+
+| | Claude Sonnet | ARC Vision LLM |
+|---|---|---|
+| Where data goes | Anthropic, outside Virginia Tech | Virginia Tech ARC, on VT infrastructure |
+| Use for | Ordinary course notes with no sensitive information | **Anything sensitive**: student names, grades, unpublished research, protected data |
+| Key needed | None (provided by the app) | Shared app key, or your own ARC key (recommended) |
+
+::: {.callout-warning}
+If your notes contain any sensitive information, select **ARC Vision LLM**. Claude Sonnet sends the page images to Anthropic, outside Virginia Tech.
+:::
+
+## Step-by-Step Instructions
+
+### Step 1: Set up the sidebar
+
+The sidebar on the left has two tabs.
+
+**AI Provider tab**
+
+1. Check **Claude Sonnet** or **ARC Vision LLM**. Checking one unchecks the other.
+2. *(Recommended for ARC)* Open **VT ARC API Key** and paste your personal key. The app checks it right away and shows "Key verified" or an error. To get a key:
+   a. go to [the VT ARC LLM portal (llm.arc.vt.edu)](https://llm.arc.vt.edu/) and log in with your VT PID and password;
+   b. click your profile icon, then **Settings**, **Account**, **API Keys**;
+   c. click **Create new secret key**, give it a name, click **Create**, and copy the key immediately.
+
+The bottom of the sidebar shows which AI model the session will use.
+
+**Conversion Options tab**
+
+The defaults suit most notes. @tbl-options explains when to change them.
+
+: Conversion options {#tbl-options tbl-colwidths="[26,10,64]"}
+
+| Option | Default | What it does and when to change it |
+|---|---|---|
+| Enable Accessibility Features | On | Adds document language, a table of contents, numbered sections, PDF metadata and bookmarks, and section structure for assistive technology. Leave on. |
+| Preserve Figures as Images | On | Embeds the page image wherever a diagram or drawing is found. Turn off to get a short text description of each figure instead, for example when the "figures" are just small sketches. |
+| Enable OCR Error Correction | On | A second AI pass that fixes misread characters (1/l, 0/O) and broken LaTeX. Roughly doubles the time. Turn off only for a quick draft. |
+| Remove Page Breaks | On | Joins all pages into one continuous document. Turn off to start each scanned page on a new page in the PDF and Word output. |
+| Test Render Each Page | On | Checks that each page builds into a PDF as soon as it is read, and has the AI repair it if not. Adds a few seconds per page and greatly reduces failed PDFs. Leave on. |
+
+### Step 2: Upload your PDF
+
+Under **Step 1: Upload Your Document**, drag your PDF onto the upload box or click **Browse files**. Only PDF files are accepted. If the document has more than 50 pages, you will see a suggestion to split it. You can still continue.
+
+### Step 3: Convert
+
+Click **Convert to Accessible Document**. Progress messages show what is happening:
+
+: Progress messages {#tbl-progress tbl-colwidths="[38,62]"}
+
+| Message | Meaning |
+|---|---|
+| Extracting text from page *n* | The AI is reading the page image. |
+| Correcting OCR errors on page *n* | The second, correction pass is running. |
+| Test rendering page *n* | The page is being built into a test PDF. |
+| Page *n* failed to render: self-healing attempt *k*/5 | The page contained something LaTeX rejects; the AI is repairing it. This is normal and usually succeeds on the first attempt. |
+| Generating document title | The AI is proposing a title from the first pages. |
+| Rendering PDF / HTML / Word / LaTeX | Quarto is building the download files. |
+
+A typical page takes well under a minute with all options on. **Keep the browser tab open** until the downloads appear; closing it stops the conversion.
+
+### Step 4: Download
+
+When conversion finishes, **Step 3: Download Your Document** appears.
+
+- **Download HTML5 (.html), Best for Accessibility**: this is the file to give students. It is a single file with all images and math embedded. **Upload it directly to Canvas** in place of a PDF.
+- **Quarto (.qmd)**: the source text. Keep a copy if you plan to make corrections.
+- **PDF Document**: for printing. Equations in the PDF are not read by screen readers, so do not use it as the accessible copy.
+- **Word (.docx)**: for quick edits in Word.
+- **LaTeX (.tex)**: for custom typesetting.
+
+Open **Preview Document Content** to see the generated source before downloading.
+
+## Getting the Best Results
+
+### Proofread efficiently
+
+Open the HTML file next to the original scan and check, in order:
+
+1. **Equations**: subscripts and superscripts, primes, Greek letters, signs and fraction structure.
+2. **Equation numbers and references**.
+3. **Headings and lists**: indentation in handwriting does not always map cleanly to structure.
+4. **Figures**: see @sec-figures.
+5. **The title**, which is generated by the AI and may need rewording.
+
+### Improve figure accessibility {#sec-figures}
+
+When **Preserve Figures as Images** is on, the tool embeds the **whole page image** wherever it detects a diagram, with the generic description "Diagram or drawing from handwritten notes". This keeps the figure visible, but a screen reader cannot describe it. For full accessibility, replace the generic text with a real description of what the figure shows, for example "Free-body diagram of a block on a 30-degree incline with weight, normal force and friction".
+
+The simplest way is in the **Word** download: right-click each image, choose **View Alt Text** (or **Edit Alt Text**), and type the description. Word keeps equations as editable Word equations, so the result stays accessible.
+
+### Edit the source and re-render {#sec-edit}
+
+The `.qmd` file is plain text. Open it in any text editor (RStudio, VS Code and Positron all have Quarto support), make your corrections, and render it with [Quarto](https://quarto.org/docs/get-started/):
+
+```bash
+quarto render my_notes.qmd --to html
+quarto render my_notes.qmd --to pdf
+```
+
+Figure descriptions in the `.qmd` are the text inside the square brackets of lines starting with `![Diagram or drawing from handwritten notes]`.
+
+::: {.callout-note}
+The figure image files (`figure_1.png`, and so on) are not part of the `.qmd` download, so re-rendering a document **with figures** will fail to find them. For documents with figures, make corrections in the Word file instead.
+:::
+
+### Start over
+
+Click **Reset** at the bottom of the sidebar to clear the uploaded file and results. Your provider choice and ARC key are kept. Uploading a different file also clears the previous results.
+
+## Troubleshooting
+
+: Common problems and fixes {#tbl-trouble tbl-colwidths="[34,66]"}
+
+| Problem | What to do |
+|---|---|
+| "ARC could not verify this key" | Check that you copied the whole key with no spaces. Create a new key on the ARC portal if needed. |
+| "Select an AI provider" or the Convert button is greyed out | Check one provider in the **AI Provider** tab. |
+| Some pages "still failed to render after 5 self-healing attempts" | The original text for those pages was kept. Open **Show page render errors** to see the problem. HTML and Word usually still work; check those pages by hand. |
+| "PDF unavailable: rendering failed" | The HTML5, Word, `.qmd` and usually `.tex` files are still offered. Use HTML5 for students. |
+| Text is clearly wrong on a page | Rescan that page at higher quality, or correct it in the `.qmd`. Faint or slanted pages cause most errors. |
+| Crossed-out work appears in the output | Delete it from the `.qmd` or the Word file. |
+| The conversion seems to stall | Large documents take time; each page is processed in turn. If nothing changes for several minutes, click **Reset** and try a smaller document. |
+| An AI or connection error appears | The provider may be busy. Wait a minute and try again, or switch provider if your data allows it. |
+
+## Privacy and Data Handling
+
+- Page images and text go only to the provider you select.
+- Uploaded files and results are kept in a temporary folder on the server while you work. They are deleted when you press **Reset** or upload another file, and any leftovers are removed automatically after 24 hours.
+- For usage reporting, the app records the date and time, the number of pages, and the academic department the notes most likely belong to (estimated by the AI). It does **not** store your notes, images or file names. Aggregate charts are on the **Usage Metrics** page in the sidebar navigation.
+
+## Quick Reference
+
+::: {.callout-tip}
+**Sensitive data?** Select ARC Vision LLM and enter your own ARC key.
+
+**Best scan:** 200 DPI or higher, dark ink, flat pages, 50 pages or fewer per file.
+
+**Leave all Conversion Options on.**
+
+**Give students the HTML5 file** and upload it straight to Canvas.
+
+**Proofread** equations first, then replace generic figure descriptions.
+:::

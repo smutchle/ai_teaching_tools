@@ -1,0 +1,425 @@
+---
+title: "AI Handwritten Notes Converter"
+subtitle: "Architecture and Design Overview"
+author: "Scott Mutchler"
+date: today
+lang: en
+format:
+  pdf:
+    pdf-engine: xelatex
+    documentclass: article
+    papersize: letter
+    fontsize: 11pt
+    geometry:
+      - margin=1in
+    colorlinks: true
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    fig-width: 6.5
+    fig-height: 5
+    fig-pos: "H"
+    mermaid-format: png
+    include-in-header: latex/fit-pages.tex
+---
+
+## Purpose of This Document
+
+This document explains how the AI Handwritten Notes Converter works. It is written for the team preparing the Procurement comparison against HokieAI, Mathpix, and other university-supported AI platforms. It covers:
+
+- what the tool does, starting from a one-picture overview and adding detail in layers;
+- every instruction (prompt) sent to the AI model, reproduced verbatim in @sec-prompts;
+- the processing done before and after the model, which matters as much as the prompts;
+- why each design choice was made;
+- how to set up a fair comparison (@sec-fair).
+
+::: {.callout-important}
+The prompts are only part of the result. A large share of the output quality comes from steps a chat interface does not perform: rendering each page at a fixed resolution, a second correction pass, deterministic repair of known LaTeX/Markdown failures, test-rendering every page, automatic AI repair of pages that fail to render, and producing a reflowable, screen-reader-friendly HTML file. A fair test should keep **transcription accuracy** separate from the **end-to-end deliverable** (see @sec-fair).
+:::
+
+## The Simple View
+
+At the highest level the tool does three things: it turns each PDF page into an image, asks a vision-capable AI model to transcribe that image into Markdown with LaTeX math, and assembles the result into a Quarto document that is rendered into several file formats.
+
+```{mermaid}
+%%| label: fig-simple
+%%| fig-cap: "The three stages of a conversion."
+%%| fig-alt: "Flow diagram: a handwritten PDF goes into stage 1, page images; then stage 2, AI transcription to Markdown and LaTeX; then stage 3, a Quarto document rendered to HTML5, PDF, Word, LaTeX and Quarto source."
+flowchart LR
+    A["Handwritten<br/>PDF"] --> B["1. Page images<br/>(200 DPI PNG)"]
+    B --> C["2. AI transcription<br/>(Markdown + LaTeX)"]
+    C --> D["3. Quarto document<br/>rendered to formats"]
+    D --> E["HTML5 · PDF · Word<br/>LaTeX · .qmd"]
+```
+
+Users interact through a single web page (a Streamlit app): upload a PDF, press **Convert**, and download the results.
+
+## Components
+
+```{mermaid}
+%%| label: fig-components
+%%| fig-cap: "Main components and where data flows."
+%%| fig-alt: "Component diagram. The user's browser talks to the Streamlit web app. The app uses Poppler via pdf2image to make page images, an LLM client module that calls either VT ARC or Anthropic Claude, and the Quarto CLI with a LaTeX engine to render outputs. A local usage metrics CSV records counts only."
+flowchart TB
+    U["User's browser"] <--> APP["Streamlit web app<br/>notes_converter.py"]
+    APP --> P2I["pdf2image + Poppler<br/>PDF to PNG"]
+    APP --> LLM["LLM client<br/>llm.py"]
+    LLM --> ARC["VT ARC LLM<br/>(on VT infrastructure)"]
+    LLM --> CL["Anthropic Claude<br/>(off VT infrastructure)"]
+    APP --> Q["Quarto CLI + XeLaTeX<br/>HTML / PDF / DOCX / TeX"]
+    APP --> M["usage_metrics.csv<br/>(counts only)"]
+```
+
+: Components and responsibilities {#tbl-components tbl-colwidths="[28,72]"}
+
+| Component | Responsibility |
+|---|---|
+| Streamlit app (`notes_converter.py`) | User interface, conversion pipeline, post-processing, self-healing render loop, downloads. |
+| LLM client (`llm.py`) | One entry point for every model call. Streams responses, detects truncated answers and retries with a larger budget, and reports provider errors clearly. |
+| pdf2image + Poppler | Rasterizes each PDF page to a PNG at 200 DPI. |
+| Quarto CLI + XeLaTeX | Turns the generated `.qmd` source into HTML5, PDF, Word and LaTeX. |
+| VT ARC LLM | Virginia Tech's hosted model, run by Advanced Research Computing. Notes stay on VT infrastructure, so it is the only option for sensitive data. Uses the `vt-arc-llm` alias (a frontier vision model). |
+| Anthropic Claude | Claude Sonnet, called directly at Anthropic. Selected by default when the server has a Claude key configured. The UI warns that notes leave VT infrastructure and that it is not appropriate for sensitive data. |
+| Usage metrics | One CSV row per conversion: timestamp, number of pages, and the department inferred from the content. No note content is stored. |
+
+## The Conversion Pipeline in Detail
+
+The pipeline has two phases. @fig-page-loop runs once for every page, in order. @fig-doc-phase then runs once for the whole document. Steps marked **[AI]** call the model; every other step is deterministic code.
+
+```{mermaid}
+%%| label: fig-page-loop
+%%| fig-cap: "Phase 1, repeated for every page. [AI] marks a model call."
+%%| fig-alt: "Flowchart of the per-page loop. A page image at 200 DPI goes to AI extraction, then an optional AI OCR correction pass, then deterministic sanitizing, then an optional test render to PDF. If the test render fails, an AI repair step runs and the page is test-rendered again, up to five times. A page that passes goes on to the next page."
+flowchart LR
+    A["Page image<br/>200 DPI PNG"] --> C["[AI] Extract<br/>text + math"]
+    C --> D["[AI] OCR<br/>correction"]
+    D --> E["Sanitize<br/>(code)"]
+    E --> F{"Test render<br/>page"}
+    F -- fails --> G["[AI] Repair page<br/>(max 5 tries)"]
+    G --> F
+    F -- passes --> H["Next page"]
+```
+
+```{mermaid}
+%%| label: fig-doc-phase
+%%| fig-cap: "Phase 2, run once per document after every page is done."
+%%| fig-alt: "Flowchart of the document phase. The AI generates a title, the Quarto document is assembled, and the PDF is rendered. If the render fails, self-healing runs and the PDF is rendered again. Once the PDF succeeds, HTML5, Word and LaTeX are rendered and the downloads are offered."
+flowchart LR
+    H["[AI] Generate<br/>title"] --> I["Assemble<br/>Quarto .qmd"]
+    I --> J{"Render<br/>PDF"}
+    J -- fails --> K["Self-heal<br/>(Fig. 5)"]
+    K --> J
+    J -- ok --> N["Render HTML5,<br/>Word, LaTeX"]
+    N --> O["Offer<br/>downloads"]
+```
+
+### Step 1: Rasterize pages
+
+Every page is converted to a PNG at 200 DPI using Poppler. Each page image is sent to the model on its own.
+
+**Why.** Sending the model a known, consistent image is the most reliable way to get repeatable transcription. 200 DPI is enough to resolve subscripts, primes and small handwritten symbols without making requests unnecessarily large. Uploading a whole PDF to a chat tool leaves the resolution and page handling up to that platform.
+
+### Step 2: AI extraction (one request per page)
+
+The page image and the extraction prompt (@sec-p-extract) go to the model together in a single user message. There is no system prompt and no conversation history; every page is an independent request. The prompt asks for:
+
+- all text, with headings, lists and structure preserved;
+- all math as LaTeX (`$...$` inline, `$$...$$` display), with every delimiter paired;
+- equation numbers written as `\tag{N}` only inside display math, otherwise as plain `(N)`;
+- nothing added that is not on the page (no page numbers or headers);
+- figures marked with a placeholder (or briefly described in text, if the user turned off **Preserve Figures as Images**).
+
+**Why one page per request.** It keeps each request small and focused. One unreadable page cannot derail the rest. Errors can be traced to a specific page, and a failed page can be repaired without touching the others.
+
+**Why a vision LLM rather than traditional OCR.** Handwritten STEM notes mix prose, equations, arrows, layout and diagrams. Traditional OCR, and math-specific OCR such as Mathpix, recognizes characters and expressions. A vision language model can read the page as a whole: it can tell that an arrow connects two steps, that an indented block is a sub-point, or that a smudged character must be a subscript `i` given the summation around it.
+
+### Step 3: AI OCR correction pass (optional, on by default)
+
+The extracted text (not the image) goes back to the model with the correction prompt (@sec-p-ocr). The model may fix only obvious transcription errors (`1`/`l`, `0`/`O`, malformed LaTeX) and must return the result between `<CORRECTED>` and `</CORRECTED>` markers. Only text inside the markers is kept. If the markers are missing, the original extraction is used unchanged.
+
+**Why.** A second, text-only look catches LaTeX syntax mistakes and character confusions that are easy to make while reading an image. The strict markers exist because an earlier version once let the model's commentary ("Looking at the text, I notice...") leak into the notes. Anything outside the markers is now discarded.
+
+### Step 4: Deterministic sanitizing
+
+Plain code (no AI) repairs three failure classes that were seen repeatedly in testing:
+
+: Deterministic repairs applied to every page {#tbl-sanitize tbl-colwidths="[30,35,35]"}
+
+| Problem | Why it breaks | Repair |
+|---|---|---|
+| A line of `---` (horizontal rule) | Quarto reads it as the start of a YAML metadata block, and the render aborts. | Rewritten as `***`, which looks the same. |
+| `\tag{N}` inside inline math | Invalid in LaTeX; the PDF build stops with "\\tag not allowed here". | Rewritten as plain `(N)`. |
+| Leftover `{{FIGURE: ...}}` markers | Would show up as literal text in the output. | Removed (the page image is embedded instead). |
+
+**Why code rather than more prompting.** These failures are rare per page but almost certain across a long document. A regular expression fixes them every time at no cost. Prompt instructions alone reduce them but never remove them.
+
+### Step 5: Test render each page, with self-healing (optional, on by default)
+
+Each page is wrapped in a minimal Quarto document and rendered to PDF on its own. If it fails, the page text and the exact LaTeX/Quarto error go to the model with the page-repair prompt (@sec-p-page-heal). The repaired page must come back between `<FIXED>` markers. This repeats up to five times. If no attempt renders, the **original** text is kept, because a failed repair might have dropped content, and the user is told which pages failed.
+
+**Why.** PDF output depends on LaTeX, which rejects the whole document over a single bad character. Testing each page as soon as it is extracted finds the problem page right away, and a targeted page repair is cheaper and less likely to disturb other content than repairing the whole document.
+
+### Step 6: Title, assembly and rendering
+
+The model proposes a title of up to 10 words from the first three pages (@sec-p-title). The pages are then joined into one Quarto (`.qmd`) file with a fixed YAML header (@sec-yaml), and Quarto renders it.
+
+If the final PDF render still fails, a two-stage self-heal runs (@fig-heal): first every page not yet tested is test-rendered and repaired; if the assembled document still fails, the whole `.qmd` and the error go to the model (@sec-p-doc-heal), up to five times. Any repair is written back to the `.qmd`, so every download format reflects the fix.
+
+```{mermaid}
+%%| label: fig-heal
+%%| fig-cap: "Two-stage self-healing for the final PDF render."
+%%| fig-alt: "Flowchart. Render the PDF. If it succeeds, done. If not, stage 1 test-renders and repairs each untested page, then re-renders. If that still fails, stage 2 sends the whole document to the model for repair, up to five attempts. If all attempts fail, the user still receives the Quarto and LaTeX source plus the error details."
+flowchart LR
+    A{"Render<br/>PDF"} -- fails --> B["Stage 1: test-render<br/>+ repair pages"]
+    B --> C{"Re-render"}
+    C -- fails --> D["Stage 2: repair whole<br/>document (max 5)"]
+    D --> E{"Re-render"}
+    E -- still fails --> F["Offer .qmd + .tex<br/>and error details"]
+    A -- ok --> Z["Done"]
+    C -- ok --> Z
+    E -- ok --> Z
+```
+
+### Step 7: Output formats
+
+: Output formats {#tbl-formats tbl-colwidths="[18,82]"}
+
+| Format | Notes |
+|---|---|
+| **HTML5** (recommended) | Self-contained single file with images embedded. Text reflows at any zoom; math is rendered by MathJax, which screen readers can read aloud; headings and table of contents are navigable. Can be uploaded directly to Canvas. |
+| PDF | Built with XeLaTeX, with document metadata (title, subject, bookmarks) when accessibility features are on. Good for printing; equations are not read by screen readers and pages do not reflow. |
+| Word (.docx) | For editing. Includes a table of contents. |
+| LaTeX (.tex) | For authors who want to customize the typesetting. If the dedicated LaTeX render fails, the `.tex` left by the PDF build is offered instead. |
+| Quarto (.qmd) | The plain-text source. Edit it and re-render with Quarto to correct anything. |
+
+**Why Quarto.** One plain-text source produces every format, so the formats never disagree. Quarto's HTML output is the most accessible format we can produce for math-heavy material, and the `.qmd` is easy for instructors to correct by hand.
+
+## Model Configuration
+
+All model calls go through one function that uses the Anthropic Messages API. VT ARC exposes the same API, so the same code serves both providers. Settings that affect results:
+
+: Model and request settings {#tbl-model tbl-colwidths="[30,70]"}
+
+| Setting | Value |
+|---|---|
+| Providers | Anthropic, model `claude-sonnet-5` (selected by default when a Claude key is configured), or VT ARC (`https://llm-api.arc.vt.edu/api`), model alias `vt-arc-llm` (frontier vision model). The user picks one with a checkbox and can enter a personal ARC key. |
+| Failover | None. Only the selected provider is used, so sensitive notes never leave ARC once ARC is selected. |
+| System prompt | None. All instructions are in the user message. |
+| Temperature, top-p | Provider defaults (not set). |
+| Extended thinking | Model default. Token budgets leave room for thinking plus the answer. |
+| Streaming | Every call streams. This avoids ARC's 8,000-token limit on non-streamed responses and the SDK's timeout on long ones. |
+| Image input | PNG, base64, one page per request, 200 DPI. |
+| Truncation handling | If an answer comes back empty or cut off, the call is retried once with 4 times the budget (capped at 64,000 tokens). Repair calls never accept a truncated answer. |
+
+: AI calls made during a conversion {#tbl-calls tbl-colwidths="[24,22,16,38]"}
+
+| Call | Input | Token budget | When |
+|---|---|---|---|
+| Page extraction | Page image + prompt | 8,192 | Every page |
+| OCR correction | Extracted text | 8,192 | Every page (if enabled) |
+| Page repair | Page text + render error | 16,000 | Only when a page fails to render |
+| Document title | First ~2,000 characters | 1,024 | Once per document |
+| Document repair | Full `.qmd` + render error | 32,000 | Only if the final PDF still fails |
+| Department inference | First ~4,000 characters | 1,024 | Once, for usage metrics only |
+
+For a typical document with OCR correction on and no render failures, that is **two requests per page plus two per document**.
+
+## Security, Privacy and Data Handling
+
+- **Provider choice is explicit.** ARC is labelled as the only option for high-sensitivity data. Claude carries a warning that notes leave VT infrastructure. The app never switches providers on its own.
+- **Personal ARC keys.** Users are encouraged to enter their own ARC key, which is checked when entered and used for every request in that session.
+- **Temporary files.** Each upload gets its own temporary folder. It is deleted when the user uploads a different file or presses **Reset**, and a startup sweep deletes any folder older than 24 hours.
+- **Usage metrics** store only the timestamp, page count and inferred department. No note text, images or file names are kept.
+
+## Known Limitations
+
+- **Figures are embedded as the whole page image**, not cropped to the figure, with generic alt text ("Diagram or drawing from handwritten notes"). The image is embedded when the extraction mentions a figure placeholder or the words "diagram" or "drawing". Instructors should replace the alt text with a real description for full accessibility.
+- **The figure placeholder in the extraction prompt is sent with four braces** (`{{{{FIGURE: ...}}}}`), because that string is not passed through Python's brace un-escaping. Detection and removal still work in practice, but this is the literal text the model sees, and it should be reproduced as-is in comparisons.
+- **AI transcription can be wrong.** Ambiguous handwriting, crossed-out work and faint scans are still the main source of errors; output should be proofread.
+- **Very long documents** (over 50 pages) are more likely to hit render failures; the app recommends splitting them.
+
+## Running a Fair Comparison {#sec-fair}
+
+The email asks how to put other tools on a level playing field. We suggest testing two things separately.
+
+**A. Transcription accuracy (model + prompt).** This isolates what a chat tool such as HokieAI can reproduce:
+
+1. Rasterize each test page to PNG at 200 DPI (for example `pdftoppm -r 200 -png notes.pdf page`).
+2. Start a **new conversation for each page**, attach that one image, and paste the extraction prompt from @sec-p-extract exactly as written.
+3. Optionally paste the output into a new conversation with the OCR correction prompt (@sec-p-ocr) and keep only the text between the markers.
+4. Score the result against a hand-checked reference: text accuracy, math accuracy (symbols, sub/superscripts, structure), and preserved headings and lists.
+5. Record which model produced each result. Our tool can run on Claude Sonnet or on ARC's `vt-arc-llm` alias, whose underlying model ARC may change over time. Where the other platform offers a model choice, pick its strongest vision model.
+
+**B. End-to-end deliverable.** This measures what an instructor actually gets:
+
+- Does it produce a document at all for a 20 to 50 page set, without manual cleanup?
+- Does the PDF build? (Our pipeline test-renders and repairs every page.)
+- Is there an HTML version with screen-reader-readable math, a table of contents and proper headings?
+- How long does the instructor spend fixing it before it can be posted to Canvas?
+
+::: {.callout-tip}
+Test A tells you whether the model is reading the handwriting correctly. Test B tells you whether the tool removes the work for faculty. A general-purpose chat tool can be tested fairly on A with our prompts. Steps 4 to 7 of the pipeline (sanitizing, test rendering, self-healing and multi-format rendering) have no equivalent in a chat interface, so they only show up in test B.
+:::
+
+## Appendix A: Prompts (Verbatim) {#sec-prompts}
+
+These are the exact texts sent to the model. Content in angle brackets, such as `<extracted text>`, is filled in at run time. All other characters, including the doubled and quadrupled braces, are literal.
+
+### Page extraction {#sec-p-extract}
+
+Sent with the page image. This is the default version with **Preserve Figures as Images** on.
+
+```text
+You are analyzing handwritten notes. Please extract ALL text, equations, and content from this image.
+
+IMPORTANT INSTRUCTIONS:
+- Preserve the structure and organization of the content
+- Convert ALL mathematical expressions and equations to LaTeX format (use $...$ for inline math and $$...$$ for display math)
+- Equation numbers: use \tag{N} ONLY inside display math ($$...$$). NEVER put \tag inside inline math ($...$) -- it is invalid LaTeX there and breaks PDF rendering. If an equation number appears outside display math, write it as plain text (N) instead
+- Every $ and $$ must be correctly paired; never leave an unclosed math delimiter
+- Identify and preserve any headings, lists, or structured content
+- Be thorough and capture all visible text and formulas
+- Do NOT add page numbers, headers, or any metadata not present in the image
+- If there are diagrams, drawings, graphs, or figures, mark their location with {{{{FIGURE: brief description}}}} and I will preserve them as images
+- Do NOT attempt to describe complex diagrams in detail - just note their presence and general purpose
+
+Please provide the extracted content in a clean, readable format without adding page numbers or headers.
+```
+
+With **Preserve Figures as Images** off, the two figure lines are replaced by this single line:
+
+```text
+- If there are diagrams, drawings, graphs, or figures, describe them briefly in plain text as part of the notes
+```
+
+### OCR correction {#sec-p-ocr}
+
+```text
+You are reviewing OCR-extracted text from handwritten notes. Your task is to fix ONLY obvious OCR errors while preserving all original content and meaning.
+
+CRITICAL RULES:
+- Fix ONLY obvious transcription errors (e.g., "1" vs "l", "0" vs "O", malformed LaTeX)
+- Do NOT change, add, or remove any actual content or meaning
+- Do NOT "improve" the writing or add explanations
+- Do NOT change the structure or organization
+- Do NOT add page numbers, headers, or any new content
+- Preserve ALL mathematical notation exactly (only fix syntax errors in LaTeX)
+- \tag{N} is only valid inside display math ($$...$$); if you see \tag inside inline math ($...$), rewrite it as plain text (N)
+- Keep all {{FIGURE:...}} markers exactly as they are
+
+Here is the extracted text to review:
+
+<extracted text>
+
+Return the corrected text wrapped EXACTLY between the markers <CORRECTED> and </CORRECTED>. Output NOTHING outside the markers -- no commentary, no analysis, no explanation of what you changed.
+```
+
+### Document title {#sec-p-title}
+
+```text
+Based on the following content from handwritten notes, generate a concise, descriptive title (maximum 10 words).
+
+The title should:
+- Capture the main topic or subject matter
+- Be professional and clear
+- Not include words like "Notes", "Handwritten", or "Document" (this is implied)
+- Not include page numbers or metadata
+
+Content:
+<first ~2,000 characters of the first three pages>
+
+Please respond with ONLY the title, nothing else.
+```
+
+### Page render repair {#sec-p-page-heal}
+
+Used only when a page fails its test render.
+
+```text
+One page of handwritten notes, already converted to Quarto Markdown with LaTeX math, failed to render to PDF when wrapped in a standalone Quarto document. Below is the page content followed by the exact render error. Diagnose the cause and return a corrected version of the page content.
+
+Rules:
+- Fix ONLY what is needed to make the render succeed (e.g. unpaired $ or $$ delimiters, invalid or undefined LaTeX commands and environments, \tag inside inline math, unescaped special characters such as % & # _ outside math, Markdown that Pandoc misreads). Preserve all content, headings, equations, and meaning.
+- This is page body content only: do NOT add YAML frontmatter, a title, or code fences.
+- Line numbers in the error refer to the generated LaTeX file, not to the page content.
+- Return the corrected page wrapped EXACTLY between the markers <FIXED> and </FIXED>. Output NOTHING outside the markers.
+
+=== RENDER ERROR ===
+<last 12,000 characters of the Quarto/LaTeX error output>
+
+=== PAGE CONTENT ===
+<page text>
+```
+
+### Whole-document render repair {#sec-p-doc-heal}
+
+Used only if the assembled document still fails to render after page-level repair.
+
+```text
+A Quarto document failed to render to PDF. Below is the full .qmd source followed by the exact error output from the render. Diagnose the cause and return a corrected version of the entire document that will render successfully.
+
+Rules:
+- Fix ONLY what is needed to make the render succeed (e.g. malformed YAML, unescaped LaTeX special characters, broken Markdown, stray fences, invalid math). Preserve all original content, headings, equations, and meaning.
+- Keep the YAML frontmatter structure and output formats intact.
+- Return the COMPLETE corrected .qmd document and nothing else. Do not wrap it in code fences or add explanations.
+
+=== RENDER ERROR ===
+<last 12,000 characters of the Quarto/LaTeX error output>
+
+=== QMD SOURCE ===
+<full .qmd document>
+```
+
+### Department inference (usage metrics only)
+
+This prompt does not affect the converted document. It assigns each conversion to a department for usage reporting.
+
+```text
+You are classifying a set of converted academic notes by the Virginia Tech department they most likely belong to.
+
+Here is a sample of the notes content:
+
+=== NOTES SAMPLE ===
+<first ~4,000 characters of the first three pages>
+=== END SAMPLE ===
+
+Choose the single most likely department from this exact list:
+
+<list of Virginia Tech departments>
+
+Respond with ONLY the department name, copied exactly from the list above. If the content does not clearly fit any department, respond with "<unknown department label>".
+```
+
+## Appendix B: Generated Document Header {#sec-yaml}
+
+This is the Quarto header the tool writes at the top of every converted document when **Enable Accessibility Features** is on (the default). `<title>` is the AI-generated title. Each page's content is wrapped in a `::: {.content-section}` block. Page breaks between pages are added only if the user turns off **Remove Page Breaks**. With accessibility features off, the PDF metadata block and the section wrappers are omitted.
+
+```yaml
+---
+title: "<title>"
+author: "Converted from Handwritten PDF"
+date: today
+lang: en
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    embed-resources: true
+    self-contained-math: true
+  pdf:
+    documentclass: article
+    keep-tex: true
+    number-sections: true
+    include-in-header:
+      text: |
+        \usepackage[utf8]{inputenc}
+        \usepackage{fontspec}
+        \usepackage{hyperref}
+        \hypersetup{pdfauthor={Converted from PDF}, pdftitle={<title>}, pdfsubject={Handwritten Notes}, pdfkeywords={notes, handwritten}, colorlinks=true, bookmarks=true, bookmarksopen=true, bookmarksnumbered=true}
+    pdf-engine: xelatex
+  docx:
+    toc: true
+    number-sections: true
+---
+```
